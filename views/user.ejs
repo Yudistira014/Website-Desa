@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Warga - Portal <%= desa.nama %></title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body class="bg-light">
+
+    <!-- Navbar User -->
+    <nav class="navbar">
+        <a href="/" class="nav-brand" style="text-decoration: none;">
+            <img src="/uploads/Logo_desa.png" alt="Logo Desa" class="brand-icon" />
+            <div class="brand-text">Portal<span>Warga</span></div>
+        </a>
+        <ul class="nav-links">
+            <li><a href="/user">Dashboard</a></li>
+            <li><a href="/">Beranda</a></li>
+            
+            <li class="nav-item">
+                <span style="font-weight: 600; color: var(--primary-color); font-size: 0.9rem;">👤 <%= user.username %></span>
+            </li>
+            <li><a href="/logout" class="btn-primary" style="background-color: #ef4444; border: none; padding: 8px 20px;">Keluar</a></li>
+        </ul>
+    </nav>
+
+    <main class="section">
+        <div class="section-header">
+            <h2>Dashboard Warga</h2>
+            <p>Halo, <strong><%= user.username %></strong>! Selamat datang di layanan mandiri digital <%= desa.nama %>.</p>
+        </div>
+
+        <% if (error) { %>
+            <div class="alert-error"><%= error %></div>
+        <% } %>
+
+        <div class="dashboard-grid">
+            <!-- Kolom Kiri: Form Laporan/Aspirasi -->
+            <section class="card">
+                <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <span>✍️</span> Kirim Aspirasi & Laporan
+                </h3>
+                <form action="/user/kirim-laporan" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label>Tipe Laporan</label>
+                        <select name="tipe" required>
+                            <option value="Saran">Saran</option>
+                            <option value="Keluhan">Keluhan/Pengaduan</option>
+                            <option value="Permohonan">Permohonan Informasi</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Isi Laporan</label>
+                        <textarea name="isi" rows="4" required placeholder="Tuliskan detail laporan Anda di sini..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Foto Pendukung (opsional)</label>
+                        <input type="file" name="fotoLaporan" accept="image/*">
+                    </div>
+                    <button type="submit" class="btn-primary" style="width: 100%; border: none; padding: 12px; cursor: pointer;">Kirim Laporan</button>
+                </form>
+            </section>
+
+            <!-- Kolom Kanan: Riwayat Laporan Saya -->
+            <section class="card">
+                <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <span>📜</span> Riwayat Laporan Saya
+                </h3>
+                <div style="max-height: 320px; overflow-y: auto; padding-right: 5px; margin-bottom: 20px;">
+                    <% if (laporan && laporan.length > 0) { %>
+                        <% [...laporan].reverse().forEach(item => { %>
+                            <div style="background: var(--bg-light); padding: 15px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid var(--secondary-color);">
+                                <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; align-items: center;">
+                                    <div>
+                                        <span style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-light);"><%= item.tipe %></span>
+                                        <span style="display: inline-block; margin-left: 10px; font-size: 0.75rem; color: var(--text-main);"><%= item.tanggal %></span>
+                                    </div>
+                                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                        <a href="/user/edit-laporan/<%= item.id %>" class="btn-primary" style="padding: 6px 12px; font-size: 0.8rem;">Edit</a>
+                                        <form action="/user/hapus-laporan/<%= item.id %>" method="POST" onsubmit="return confirm('Yakin ingin menghapus laporan ini?')" style="display: inline-block; margin: 0;">
+                                            <button type="submit" class="btn-primary" style="padding: 6px 12px; font-size: 0.8rem; background-color: #ef4444; border: none;">Hapus</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                <p style="font-size: 0.9rem; color: var(--text-main);"><%= item.isi %></p>
+                                <% if (item.foto) { %>
+                                    <img src="/<%= item.foto %>" alt="Foto laporan" style="max-width: 100%; margin-top: 10px; border-radius: 10px; border: 1px solid #ddd;">
+                                <% } %>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <p style="text-align: center; color: var(--text-light); padding: 20px;">Anda belum pernah mengirim laporan.</p>
+                    <% } %>
+                </div>
+            </section>
+        </div>
+
+        <div class="dashboard-grid" style="margin-top: 20px;">
+            <section class="card" style="grid-column: 1 / -1;">
+                <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <span>📄</span> Riwayat Surat Pengantar Saya
+                </h3>
+                <div style="max-height: 360px; overflow-y: auto; padding-right: 5px;">
+                    <% if (suratPengantar && suratPengantar.length > 0) { %>
+                        <% [...suratPengantar].reverse().forEach(surat => { %>
+                            <div style="background: var(--bg-light); padding: 15px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid var(--primary-color);">
+                                <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; align-items: center;">
+                                    <div>
+                                        <strong style="color: var(--primary-dark);"><%= surat.keperluan %></strong>
+                                        <span style="display: inline-block; margin-left: 10px; font-size: 0.75rem; color: var(--text-main);"><%= surat.tanggal %></span>
+                                    </div>
+                                    <span style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-light);">Status: <%= surat.status %></span>
+                                </div>
+                                <p style="font-size: 0.9rem; color: var(--text-main); margin: 0 0 6px;"><strong>Alamat:</strong> <%= surat.alamat %></p>
+                                <p style="margin: 0 0 6px; font-size: 0.85rem; color: var(--text-light);"><strong>NIK:</strong> <%= surat.nik %> | <strong>HP:</strong> <%= surat.no_hp %></p>
+                                <% if (surat.catatan) { %>
+                                    <p style="margin: 0 0 6px; font-size: 0.85rem; color: var(--text-main);"><strong>Catatan:</strong> <%= surat.catatan %></p>
+                                <% } %>
+                                <% if (surat.status === 'Ditolak' && surat.alasan_penolakan) { %>
+                                    <p style="margin: 0; font-size: 0.85rem; color: #b91c1c;"><strong>Alasan Tolak:</strong> <%= surat.alasan_penolakan %></p>
+                                <% } %>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <p style="text-align: center; color: var(--text-light); padding: 20px;">Belum ada pengajuan surat pengantar.</p>
+                    <% } %>
+                </div>
+            </section>
+        </div>
+
+        <!-- Bagian Bawah: Link Layanan Cepat -->
+        <div style="margin-top: 40px;">
+            <h3 style="margin-bottom: 20px;">🚀 Layanan Cepat</h3>
+            <div class="grid-container">
+                <div class="card service-card" style="padding: 20px;">
+                    <div class="icon">📄</div>
+                    <h4>Surat Pengantar</h4>
+                    <p>Urus dokumen kependudukan lebih cepat.</p>
+                    <a href="/layanan/surat-pengantar" class="btn-secondary" style="margin-top: 15px; display: inline-flex;">Ajukan Sekarang</a>
+                </div>
+                <div class="card service-card" style="padding: 20px;">
+                    <div class="icon">📞</div>
+                    <h4>Kontak Darurat</h4>
+                    <p>Hubungi petugas desa dalam keadaan darurat.</p>
+                    <a href="/layanan/kontak-darurat" class="btn-secondary" style="margin-top: 15px; display: inline-flex;">Lihat Kontak</a>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

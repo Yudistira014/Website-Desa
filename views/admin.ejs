@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Portal <%= desa.nama %></title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body class="bg-light">
+
+    <!-- Navbar Khusus Admin -->
+    <nav class="navbar">
+        <a href="/" class="nav-brand" style="text-decoration: none;">
+            <img src="/uploads/Logo_desa.png" alt="Logo Desa" class="brand-icon" />
+            <div class="brand-text">Admin<span>Panel</span></div>
+        </a>
+        <ul class="nav-links">
+            <li><a href="/admin">Dashboard</a></li>
+            <li><a href="/">Lihat Beranda</a></li>
+            <li class="nav-item">
+                <span style="font-weight: 600; color: var(--primary-color); font-size: 0.9rem;">👤 <%= user.username %></span>
+            </li>
+            <li><a href="/logout" class="btn-primary" style="background-color: #ef4444; border: none; padding: 8px 20px;">Keluar</a></li>
+        </ul>
+    </nav>
+
+    <main class="section">
+        <div class="section-header">
+            <h2>Panel Administrasi Desa</h2>
+            <p>Selamat datang kembali, <strong><%= user.username %></strong>. Kelola informasi desa Anda di sini.</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Kolom Kiri: Form Tambah Berita -->
+            <section class="card">
+                <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <span>📢</span> Terbitkan Berita Baru
+                </h3>
+                <form action="/admin/tambah-berita" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label>Judul Berita</label>
+                        <input type="text" name="judul" required placeholder="Contoh: Jadwal Musyawarah Desa">
+                    </div>
+                    <div class="form-group">
+                        <label>Ringkasan Informasi</label>
+                        <textarea name="ringkasan" rows="5" required placeholder="Tuliskan isi berita secara singkat dan jelas..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Foto Berita (opsional)</label>
+                        <input type="file" name="fotoBerita" accept="image/*">
+                    </div>
+                    <button type="submit" class="btn-primary" style="width: 100%; border: none; padding: 12px; cursor: pointer;">Posting Berita</button>
+                </form>
+            </section>
+
+            <!-- Kolom Kanan: Daftar Laporan Warga -->
+            <section class="card">
+                <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <span>📩</span> Laporan & Aspirasi Masuk
+                </h3>
+                <div style="max-height: 260px; overflow-y: auto; padding-right: 5px; margin-bottom: 20px;">
+                    <% if (laporanWarga && laporanWarga.length > 0) { %>
+                        <% [...laporanWarga].reverse().forEach(laporan => { %>
+                            <div style="background: var(--bg-light); padding: 15px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid var(--primary-color);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                    <strong style="color: var(--primary-dark);"><%= laporan.nama %></strong>
+                                    <span style="font-size: 0.7rem; background: #fff; padding: 2px 8px; border-radius: 10px; border: 1px solid #ddd; color: var(--text-light);"><%= laporan.tipe %></span>
+                                </div>
+                                <p style="font-size: 0.9rem; color: var(--text-main);"><%= laporan.isi %></p>
+                                <% if (laporan.foto) { %>
+                                    <img src="/<%= laporan.foto %>" alt="Foto laporan" style="max-width: 100%; margin-top: 10px; border-radius: 10px; border: 1px solid #ddd;">
+                                <% } %>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <p style="text-align: center; color: var(--text-light); padding: 20px;">Belum ada laporan dari warga.</p>
+                    <% } %>
+                </div>
+
+                <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <span>📄</span> Surat Pengantar Masuk
+                </h3>
+                <div style="max-height: 260px; overflow-y: auto; padding-right: 5px;">
+                    <% if (suratPengantar && suratPengantar.length > 0) { %>
+                        <% [...suratPengantar].reverse().forEach(surat => { %>
+                            <div style="background: var(--bg-light); padding: 15px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid var(--secondary-color);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                                    <strong style="color: var(--primary-dark);"><%= surat.nama %></strong>
+                                    <span style="font-size: 0.7rem; background: #fff; padding: 2px 8px; border-radius: 10px; border: 1px solid #ddd; color: var(--text-light);">Status: <%= surat.status || 'Menunggu' %></span>
+                                </div>
+                                <p style="margin: 0 0 6px; font-size: 0.9rem; color: var(--text-main);"><strong>Keperluan:</strong> <%= surat.keperluan %></p>
+                                <p style="margin: 0 0 6px; font-size: 0.85rem; color: var(--text-light);"><strong>NIK:</strong> <%= surat.nik %> | <strong>HP:</strong> <%= surat.no_hp %></p>
+                                <p style="margin: 0; font-size: 0.85rem; color: var(--text-main);"><strong>Alamat:</strong> <%= surat.alamat %></p>
+                                <% if (surat.status === 'Ditolak' && surat.alasan_penolakan) { %>
+                                    <p style="margin: 8px 0 0; font-size: 0.85rem; color: #b91c1c;"><strong>Alasan Tolak:</strong> <%= surat.alasan_penolakan %></p>
+                                <% } %>
+                                <% if (surat.status === 'Menunggu') { %>
+                                    <div style="margin-top: 10px;">
+                                        <form action="/admin/surat-pengantar/<%= surat.id %>/status" method="POST" style="margin-bottom: 10px;">
+                                            <input type="hidden" name="action" value="konfirmasi">
+                                            <button type="submit" class="btn-primary" style="padding: 6px 12px; font-size: 0.8rem;">Konfirmasi</button>
+                                        </form>
+                                        <form action="/admin/surat-pengantar/<%= surat.id %>/status" method="POST">
+                                            <input type="hidden" name="action" value="tolak">
+                                            <div style="margin-bottom: 8px;">
+                                                <textarea name="alasanPenolakan" rows="2" required placeholder="Tuliskan alasan penolakan..." style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ddd; resize: vertical;"></textarea>
+                                            </div>
+                                            <button type="submit" class="btn-primary" style="padding: 6px 12px; font-size: 0.8rem; background-color: #ef4444; border: none;">Tolak</button>
+                                        </form>
+                                    </div>
+                                <% } %>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <p style="text-align: center; color: var(--text-light); padding: 20px;">Belum ada pengajuan surat pengantar.</p>
+                    <% } %>
+                </div>
+            </section>
+        </div>
+
+        <!-- Bagian Bawah: Daftar Berita yang Sudah Ada -->
+        <div class="card" style="margin-top: 30px;">
+            <h3 style="margin-bottom: 20px;">📰 Berita Desa Saat Ini</h3>
+            <div class="grid-container" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+                <% (berita || []).forEach((b, index) => { %>
+                    <div class="news-card" style="border: 1px solid #eee; padding: 15px; border-radius: 8px;">
+                        <span class="date"><%= b.tanggal %></span>
+                        <h4 style="margin: 10px 0;"><%= b.judul %></h4>
+                        <p style="font-size: 0.85rem; color: var(--text-light);"><%= b.ringkasan.substring(0, 100) %>...</p>
+                        <div style="margin-top: 15px; display: flex; gap: 10px;">
+                            <a href="/admin/edit-berita/<%= b.id %>" class="btn-primary" style="padding: 8px 14px; font-size: 0.9rem; background-color: var(--secondary-color);">Edit</a>
+                            <form action="/admin/hapus-berita/<%= b.id %>" method="POST" onsubmit="return confirm('Hapus berita ini?')">
+                                <button type="submit" class="btn-primary" style="padding: 8px 14px; font-size: 0.9rem; background-color: #ef4444; border: none; cursor: pointer;">Hapus</button>
+                            </form>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

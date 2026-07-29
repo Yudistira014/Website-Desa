@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LPMD - <%= desa.nama %></title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css?v=20260603">
+</head>
+<body class="bg-light">
+
+    <nav class="navbar">
+        <div class="nav-brand">
+            <img src="/uploads/Logo_desa.png" alt="Logo Desa" class="brand-icon" />
+            <div class="brand-text"><span><%= desa.nama %></span></div>
+        </div>
+        <ul class="nav-links">
+            <li><a href="/">Beranda</a></li>
+            <li><a href="/pemerintahan/desa">Pemerintahan</a></li>
+            <li><a href="/profil">Profil Desa</a></li>
+            <li><a href="/layanan/pengaduan">Pengaduan</a></li>
+            <% if (user) { %>
+                <li><a href="/<%= user.role %>" class="btn-primary">Dashboard</a></li>
+                <li><a href="/logout" style="color: #ef4444; font-weight: bold;">Logout</a></li>
+            <% } else { %>
+                <li><a href="/login" class="btn-primary">Login</a></li>
+            <% } %>
+        </ul>
+    </nav>
+
+    <main class="section">
+        <div class="section-header">
+            <h2><%= desa.pemerintahan.lpmd.judul %></h2>
+            <p><%= desa.pemerintahan.lpmd.deskripsi %></p>
+        </div>
+
+        <div class="grid-container" style="max-width: 900px; margin: 0 auto;">
+            <div class="card" style="border-top: 5px solid var(--primary-color);">
+                <h3>Fokus Pemberdayaan</h3>
+                <p style="font-size: 1rem; color: var(--text-main); line-height: 1.8;">
+                    LPMD bekerja sama dengan warga untuk meningkatkan kualitas ekonomi lokal, mendorong kerjasama kelompok, dan menciptakan kegiatan produktif yang berdampak nyata bagi masyarakat.
+                </p>
+            </div>
+            <div class="card" style="border-top: 5px solid var(--secondary-color);">
+                <h3>Agenda Utama</h3>
+                <ul style="list-style: none; margin-top: 20px;">
+                    <% desa.pemerintahan.lpmd.tugas.forEach((item) => { %>
+                        <li style="margin-bottom: 14px; display: flex; gap: 14px; align-items: flex-start;">
+                            <span style="width: 28px; height: 28px; border-radius: 50%; background: var(--primary-color); color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem;">•</span>
+                            <span style="color: var(--text-light);"><%= item %></span>
+                        </li>
+                    <% }) %>
+                </ul>
+            </div>
+            <div class="card" style="border-top: 5px solid rgba(4,120,87,0.4);">
+                <h3>Manfaat bagi Warga</h3>
+                <p style="font-size: 1rem; color: var(--text-main); line-height: 1.8;">
+                    Melalui LPMD, Desa Sukamakmur memfasilitasi pelatihan kewirausahaan, pendampingan kelompok tani, dan program unggulan yang membantu warga mengembangkan usaha serta meningkatkan kesejahteraan.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-info">
+                <h3><%= desa.nama %></h3>
+                <p>Kepala Desa: <%= desa.kepalaDesa %> | Populasi: <%= desa.populasi %> Jiwa</p>
+            </div>
+            <p class="footer-copyright">&copy; 2026 Portal Resmi <%= desa.nama %></p>
+        </div>
+    </footer>
+
+</body>
+</html>

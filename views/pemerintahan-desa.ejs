@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pemerintah Desa - <%= desa.nama %></title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css?v=20260603">
+</head>
+<body class="bg-light">
+
+    <nav class="navbar">
+        <div class="nav-brand">
+            <img src="/uploads/Logo_desa.png" alt="Logo Desa" class="brand-icon" />
+            <div class="brand-text"><span><%= desa.nama %></span></div>
+        </div>
+        <ul class="nav-links">
+            <li><a href="/">Beranda</a></li>
+            <li><a href="/profil">Profil Desa</a></li>
+            <li><a href="/pemerintahan/desa">Pemerintahan</a></li>
+            <li><a href="/layanan/pengaduan">Pengaduan</a></li>
+            <% if (user) { %>
+                <li><a href="/<%= user.role %>" class="btn-primary">Dashboard</a></li>
+                <li><a href="/logout" style="color: #ef4444; font-weight: bold;">Logout</a></li>
+            <% } else { %>
+                <li><a href="/login" class="btn-primary">Login</a></li>
+                <% } %>
+            </ul>
+    </nav>
+
+    <main class="section">
+        <div class="section-header">
+            <h2><%= desa.pemerintahan.desa.judul %></h2>
+            <p><%= desa.pemerintahan.desa.deskripsi %></p>
+        </div>
+
+        <div class="grid-container" style="max-width: 1000px; margin: 0 auto;">
+            <div class="card" style="grid-column: 1 / -1; border-top: 5px solid var(--primary-color);">
+                <h3>Struktur Pemerintahan Desa</h3>
+                <ul style="list-style: none; margin-top: 20px;">
+                    <% desa.pemerintahan.desa.struktur.forEach((posisi) => { %>
+                        <li style="margin-bottom: 14px; padding: 14px 18px; background: #f8fafc; border-radius: 12px; font-weight: 600;"><%= posisi %></li>
+                    <% }) %>
+                </ul>
+            </div>
+            <div class="card" style="grid-column: 1 / -1; border-top: 5px solid var(--secondary-color);">
+                <h3>Tugas & Fungsi Utama</h3>
+                <ul style="list-style: none; margin-top: 20px;">
+                    <% desa.pemerintahan.desa.tugas.forEach((item) => { %>
+                        <li style="margin-bottom: 14px; display: flex; gap: 14px; align-items: flex-start;">
+                            <span style="width: 28px; height: 28px; border-radius: 50%; background: var(--primary-color); color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem;">•</span>
+                            <span style="color: var(--text-light);"><%= item %></span>
+                        </li>
+                    <% }) %>
+                </ul>
+            </div>
+            <div class="card" style="grid-column: 1 / -1; border-top: 5px solid rgba(4,120,87,0.4);">
+                <h3>Nilai Pelayanan Kami</h3>
+                <p style="font-size: 1rem; color: var(--text-main); line-height: 1.8;">
+                    Desa Sukamakmur berkomitmen melayani masyarakat dengan pendekatan yang terbuka, cepat, dan profesional. Setiap warga didorong untuk turut serta memberi masukan demi pembangunan desa.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-info">
+                <h3><%= desa.nama %></h3>
+                <p>Kepala Desa: <%= desa.kepalaDesa %> | Populasi: <%= desa.populasi %> Jiwa</p>
+            </div>
+            <p class="footer-copyright">&copy; 2026 Portal Resmi <%= desa.nama %></p>
+        </div>
+    </footer>
+
+</body>
+</html>

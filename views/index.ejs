@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beranda - <%= desa.nama %></title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" integrity="sha512-Ho3T1cY3+D9Vq1VbZ846fYnmqXOomuFv6aM5aYt0oxdz2zlkk8OTn0DQvow8o3yJgFQ1UydFwcfVxjYFZyYxIg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="/style.css?v=20260603">
+</head>
+<body>
+   <nav class="navbar">
+        <div class="nav-brand">
+            <img src="/uploads/Logo_desa.png" alt="Logo Desa" class="brand-icon" />
+            <div class="brand-text"><span><%= desa.nama %></span></div>
+        </div>
+        
+        <button class="menu-toggle" id="menu-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <ul class="nav-links">
+            <li><a href="/">Beranda</a></li>
+            
+            <li class="nav-item">
+                <a href="#">Profil Desa ▾</a>
+                <ul class="dropdown">
+                    <li><a href="/profil">Visi & Misi</a></li>
+                    <li><a href="/profil/wilayah-desa">Wilayah Desa</a></li>
+                </ul>
+            </li>
+            
+            <li class="nav-item">
+                <a href="#">Pemerintahan ▾</a>
+                <ul class="dropdown">
+                    <li><a href="/pemerintahan/desa">Pemerintah Desa</a></li>
+                    <li><a href="/pemerintahan/bpd">BPD</a></li>
+                    <li><a href="/pemerintahan/lpmd">LPMD</a></li>
+                </ul>
+            </li>
+            
+            <li class="nav-item">
+                <a href="#">Layanan ▾</a>
+                <ul class="dropdown">
+                    <li><a href="#layanan">Persuratan</a></li>
+                    <li><a href="/layanan/pengaduan">Pengaduan</a></li>
+                </ul>
+            </li>
+            
+            <li><a href="#berita">Berita</a></li>
+            <li><a href="#kontak">Hubungi Kami</a></li>
+
+            <% if (user) { %>
+                <li><a href="/<%= user.role %>" class="btn-primary">Dashboard</a></li>
+                <li><a href="/logout" style="color: #ef4444; font-weight: bold;">Logout</a></li>
+            <% } else { %>
+                <li><a href="/login" class="btn-primary">Login</a></li>
+            <% } %>
+        </ul>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-content" data-aos="fade-up" data-aos-delay="100" data-aos-duration="900">
+            <h1>Selamat Datang di <%= desa.nama %></h1>
+            <p><%= desa.tagline %></p>
+            <a href="#layanan" class="btn-secondary">Jelajahi Layanan</a>
+        </div>
+    </header>
+
+    <section id="layanan" class="section">
+        <div class="section-header" data-aos="fade-up" data-aos-duration="800">
+            <h2>Layanan Masyarakat</h2>
+            <p>Akses cepat untuk berbagai kebutuhan administrasi desa.</p>
+        </div>
+        <div class="grid-container">
+            <% desa.layanan.forEach(function(item) { %>
+                <div class="card service-card" data-aos="fade-up" data-aos-delay="150" data-aos-duration="800">
+                    <div class="icon"><%= item.icon %></div>
+                    <h3><%= item.nama %></h3>
+                    <p><%= item.desc %></p>
+                    <a href="/layanan/<%= item.slug %>" class="btn-secondary" style="margin-top: 20px; display: inline-flex;">Pelajari</a>
+                </div>
+            <% }); %>
+        </div>
+    </section>
+
+    <section id="berita" class="section bg-light">
+        <div class="section-header" data-aos="fade-up" data-aos-duration="800">
+            <h2>Kabar Desa Terbaru</h2>
+            <p>Informasi dan transparansi kegiatan desa terkini.</p>
+        </div>
+        <div class="grid-container">
+            <% (berita || []).forEach(function(item, index) { %>
+                <div class="card news-card" data-aos="fade-up" data-aos-delay="<%= 100 + (index * 100) %>" data-aos-duration="900">
+                    <% if (item.foto) { %>
+                        <div class="news-card-image">
+                            <img src="/<%= item.foto %>" alt="Foto Berita <%= item.judul %>">
+                            <button type="button" class="read-more">Baca selengkapnya</button>
+                        </div>
+                    <% } %>
+                    <div class="news-card-details">
+                        <span class="date"><%= item.tanggal %></span>
+                        <h3><%= item.judul %></h3>
+                        <p><%= item.ringkasan %></p>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    </section>
+
+    <footer id="kontak">
+        <div class="footer-content">
+            <div class="footer-info">
+                <h3>Pemerintah <%= desa.nama %></h3>
+                <p>Jl. Raya Pembangunan No. 1, Kecamatan Maju, Kabupaten Sejahtera.</p>
+                <p>Email: kontak@<%= desa.nama.toLowerCase().replace(' ', '') %>.go.id</p>
+            </div>
+            <div class="footer-copyright">
+                <p>&copy; 2026 Portal Resmi <%= desa.nama %>. Dilindungi Hak Cipta.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const menuToggle = document.getElementById('menu-toggle');
+        const navLinks = document.querySelector('.nav-links');
+
+        menuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            menuToggle.classList.toggle('active');
+        });
+
+        document.querySelectorAll('.news-card .read-more').forEach(button => {
+            button.addEventListener('click', event => {
+                const card = event.currentTarget.closest('.news-card');
+                if (!card) return;
+                card.classList.toggle('expanded');
+                event.currentTarget.textContent = card.classList.contains('expanded') ? 'Tutup informasi' : 'Baca selengkapnya';
+            });
+        });
+
+        AOS.init({
+            once: true,
+            duration: 800,
+            easing: 'ease-out-cubic'
+        });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js" integrity="sha512-Gavb1sB5CZWYz73+pZg9hH8B9kNYk5V7u+0xG2YVe7jO9UEboRxdVDbzAMe/je0Rx/nCiwSsjhC9mP8wOw+Y1w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</body>
+</html>

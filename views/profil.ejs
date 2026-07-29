@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil - <%= desa.nama %></title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body class="bg-light">
+
+    <nav class="navbar">
+        <div class="nav-brand">
+            <img src="/uploads/Logo_desa.png" alt="Logo Desa" class="brand-icon" />
+            <div class="brand-text">Desa<span>Sukamakmur</span></div>
+        </div>
+        <ul class="nav-links">
+            <li><a href="/">Beranda</a></li>
+            <li><a href="/profil/visi-misi">Profil Desa</a></li>
+            <% if (user) { %>
+                <li><a href="/logout" class="btn-primary">Logout</a></li>
+            <% } else { %>
+                <li><a href="/login" class="btn-primary">Login</a></li>
+            <% } %>
+        </ul>
+    </nav>
+
+    <main class="section">
+        <div class="section-header">
+            <h2>Visi & Misi</h2>
+            <p>Cita-cita dan arah kebijakan pembangunan <%= desa.nama %></p>
+        </div>
+
+        <div class="grid-container" style="max-width: 900px; margin: 0 auto;">
+            <!-- Bagian Visi -->
+            <div class="card" style="grid-column: 1 / -1; text-align: center; border-top: 5px solid var(--primary-color);">
+                <h3 style="margin-bottom: 15px; color: var(--primary-dark);">Visi</h3>
+                <p style="font-size: 1.2rem; font-style: italic; color: var(--text-main); line-height: 1.8;">
+                    "<%= desa.visi %>"
+                </p>
+            </div>
+
+            <!-- Bagian Misi -->
+            <div class="card" style="grid-column: 1 / -1; border-top: 5px solid var(--secondary-color);">
+                <h3 style="margin-bottom: 20px; color: var(--primary-dark);">Misi</h3>
+                <ul style="list-style: none;">
+                    <% desa.misi.forEach((item, index) => { %>
+                        <li style="margin-bottom: 15px; display: flex; gap: 15px; align-items: flex-start;">
+                            <span style="background: var(--primary-color); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.8rem; font-weight: bold;">
+                                <%= index + 1 %>
+                            </span>
+                            <span style="color: var(--text-light);"><%= item %></span>
+                        </li>
+                    <% }) %>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-info">
+                <h3><%= desa.nama %></h3>
+                <p>Kepala Desa: <%= desa.kepalaDesa %> | Populasi: <%= desa.populasi %> Jiwa</p>
+            </div>
+            <p class="footer-copyright">&copy; 2026 Portal Resmi <%= desa.nama %></p>
+        </div>
+    </footer>
+
+</body>
+</html>

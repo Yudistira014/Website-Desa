@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Laporan - Portal <%= desa.nama %></title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body class="bg-light">
+    <nav class="navbar">
+        <a href="/" class="nav-brand" style="text-decoration: none;">
+            <img src="/uploads/Logo_desa.png" alt="Logo Desa" class="brand-icon" />
+            <div class="brand-text">Portal<span>Warga</span></div>
+        </a>
+        <ul class="nav-links">
+            <li><a href="/user">Kembali ke Dashboard</a></li>
+            <li><a href="/logout" class="btn-primary" style="background-color: #ef4444; border: none; padding: 8px 20px;">Keluar</a></li>
+        </ul>
+    </nav>
+
+    <main class="section">
+        <div class="card" style="max-width: 600px; margin: 0 auto;">
+            <h2 style="margin-bottom: 20px;">Edit Laporan</h2>
+            <form action="/user/edit-laporan/<%= laporan.id %>" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Tipe Laporan</label>
+                    <select name="tipe" required>
+                        <option value="Saran" <%= laporan.tipe === 'Saran' ? 'selected' : '' %>>Saran</option>
+                        <option value="Keluhan" <%= laporan.tipe === 'Keluhan' ? 'selected' : '' %>>Keluhan/Pengaduan</option>
+                        <option value="Permohonan" <%= laporan.tipe === 'Permohonan' ? 'selected' : '' %>>Permohonan Informasi</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Isi Laporan</label>
+                    <textarea name="isi" rows="6" required><%= laporan.isi %></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Foto Pendukung Baru (opsional)</label>
+                    <input type="file" name="fotoLaporan" accept="image/*">
+                </div>
+                <% if (laporan.foto) { %>
+                    <div style="margin-bottom: 20px;">
+                        <strong>Foto saat ini:</strong>
+                        <img src="/<%= laporan.foto %>" alt="Foto laporan" style="max-width: 100%; margin-top: 10px; border-radius: 12px; border: 1px solid #ddd;">
+                    </div>
+                <% } %>
+                <button type="submit" class="btn-primary" style="width: 100%; border: none; padding: 12px; cursor: pointer;">Simpan Perubahan</button>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

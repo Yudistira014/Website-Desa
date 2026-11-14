@@ -636,3 +636,5 @@ app.post('/user/hapus-laporan/:id', cekUser, async (req, res) => {
 app.listen(port, () => {
     console.log(`Server berjalan di http://localhost:${port}`);
 });
+
+module.exports = app;

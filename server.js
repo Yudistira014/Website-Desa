@@ -632,9 +632,11 @@ app.post('/user/hapus-laporan/:id', cekUser, async (req, res) => {
     }
 });
 
-// Menjalankan server
-app.listen(port, () => {
-    console.log(`Server berjalan di http://localhost:${port}`);
-});
+// Hanya jalankan app.listen jika di komputer lokal (bukan di produksi/Vercel)
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(port, () => {
+        console.log(`Server berjalan di http://localhost:${port}`);
+    });
+}
 
 module.exports = app;

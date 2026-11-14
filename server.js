@@ -8,13 +8,14 @@ const multer = require('multer');
 const app = express();
 const port = 3000;
 
-// Konfigurasi EJS & File Statis
+// Konfigurasi EJS & File Statis (DIUBAH UNTUK VERCEL)
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-app.use(express.static(path.join(__dirname, 'public')));
+app.set('views', path.join(process.cwd(), 'views'));
+app.use(express.static(path.join(process.cwd(), 'public')));
 
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, path.join(__dirname, 'public', 'uploads')),
+    // (DIUBAH UNTUK VERCEL)
+    destination: (req, file, cb) => cb(null, path.join(process.cwd(), 'public', 'uploads')),
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
         const ext = path.extname(file.originalname);
@@ -38,7 +39,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Konfigurasi Session untuk Fitur Login
 app.use(session({
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || 'secret-desa',
     resave: false,
     saveUninitialized: true
 }));
@@ -88,14 +89,14 @@ async function verifyDatabaseConnection() {
         console.log(`Database MySQL terhubung: ${process.env.DB_NAME || 'web_desa'}`);
     } catch (err) {
         console.error('Gagal terhubung ke database MySQL:', err.message);
-        process.exit(1);
+        // Jangan gunakan process.exit(1) di Vercel agar aplikasi tidak langsung mati jika DB gagal terkoneksi saat build
+        // process.exit(1); 
     }
 }
 
 verifyDatabaseConnection();
 
 // --- DATABASE SIMULASI (Data Asli Anda + Data Fitur Baru) ---
-// Bagian ini tetap untuk info statis desa
 const infoDesa = {
     nama: "Desa Sukamakmur",
     kepalaDesa: "Bpk. Budi Santoso",
@@ -160,7 +161,7 @@ const infoDesa = {
             }
         },
         {
-            icon: "�👥",
+            icon: "👥",
             nama: "Data Kependudukan",
             slug: "data-kependudukan",
             desc: "Pelaporan mutasi, kelahiran, dan kematian warga.",
@@ -265,7 +266,6 @@ const infoDesa = {
     }
 };
 
-// Tambahkan ini agar variabel 'desa' otomatis tersedia di SEMUA file .ejs
 app.locals.desa = infoDesa;
 
 // --- MIDDLEWARE KEAMANAN ---

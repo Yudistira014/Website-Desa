@@ -44,13 +44,16 @@ app.use(session({
     saveUninitialized: true
 }));
 
-// --- KONFIGURASI DATABASE MYSQL ---
+// --- KONFIGURASI DATABASE MYSQL DENGAN SSL UNTUK TIDB ---
 const db = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'web_desa',
     port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306,
+    ssl: {
+        rejectUnauthorized: true // WAJIB DITAMBAHKAN UNTUK KONEKSI TIDB CLOUD
+    },
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0

@@ -11,7 +11,7 @@
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/style.css?v=20261116">
 
   <style>
     /* ── Auth Page Layout ─────────────────────────── */
@@ -318,9 +318,9 @@
     }
   </style>
 </head>
-<body style="margin: 0; padding: 0;">
+<body>
 
-  <div class="auth-page">
+  <main class="auth-page">
     <div class="auth-card">
       
       <div class="auth-left">
@@ -360,19 +360,19 @@
         <form action="/login" method="POST">
           
           <div class="auth-field">
-            <label class="auth-label">Username</label>
+            <label class="auth-label" for="login-username">Username</label>
             <div class="auth-input-wrap">
               <i class="auth-icon fas fa-user"></i>
-              <input type="text" name="username" required placeholder="Masukkan username Anda">
+              <input type="text" name="username" id="login-username" autocomplete="username" required placeholder="Masukkan username Anda">
             </div>
           </div>
 
           <div class="auth-field">
-            <label class="auth-label">Kata Sandi</label>
+            <label class="auth-label" for="login-pwd">Kata Sandi</label>
             <div class="auth-input-wrap">
               <i class="auth-icon fas fa-lock"></i>
-              <input type="password" name="password" id="login-pwd" required placeholder="Masukkan kata sandi">
-              <button type="button" class="auth-eye" onclick="togglePassword('login-pwd')">
+              <input type="password" name="password" id="login-pwd" autocomplete="current-password" required placeholder="Masukkan kata sandi">
+              <button type="button" class="auth-eye" aria-label="Tampilkan atau sembunyikan kata sandi" aria-controls="login-pwd" onclick="togglePassword('login-pwd')">
                 <i class="fas fa-eye"></i>
               </button>
             </div>
@@ -390,7 +390,7 @@
 
       </div>
     </div>
-  </div>
+  </main>
 
   <script>
     function togglePassword(inputId) {

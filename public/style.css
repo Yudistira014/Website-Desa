@@ -1759,3 +1759,82 @@ th, td {
         transition-duration: 0.01ms !important;
     }
 }
+
+/* Keep interactions on composited properties and avoid continuous paint effects. */
+:root {
+    --transition: transform 0.22s ease, opacity 0.22s ease, color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, visibility 0.22s linear;
+}
+
+.navbar {
+    background: var(--nav-bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.hero-content,
+.lpmd-art-center,
+.news-card-image .read-more {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.hero-content {
+    background: rgba(6, 57, 43, 0.48);
+}
+
+.card,
+.lpmd-info-card {
+    transition: transform 0.22s ease, border-color 0.18s ease;
+}
+
+.card:hover,
+.lpmd-info-card:hover {
+    box-shadow: var(--shadow-card);
+}
+
+.btn-primary,
+.btn-secondary,
+.auth-btn,
+.lpmd-button,
+.news-card-image .read-more {
+    transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+.btn-primary:hover,
+.btn-secondary:hover,
+.auth-btn:hover,
+.lpmd-button:hover,
+.news-card-image .read-more:hover {
+    opacity: 0.94;
+}
+
+.news-card-image .read-more:hover {
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.2);
+}
+
+.lpmd-art-orbit-outer,
+.lpmd-art-orbit-inner,
+.lpmd-art-center {
+    animation: none;
+}
+
+body .auth-page .auth-card {
+    animation-duration: 0.45s;
+}
+
+body .auth-page .auth-input-wrap input {
+    transition: border-color 0.16s ease, background-color 0.16s ease;
+}
+
+body .auth-page .auth-eye {
+    transition: color 0.16s ease, background-color 0.16s ease;
+}
+
+body .auth-page .auth-btn {
+    transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+body .auth-page .auth-btn:hover {
+    background: linear-gradient(110deg, #07805b, #07966b);
+    box-shadow: 0 10px 24px rgba(7, 128, 91, 0.2);
+}

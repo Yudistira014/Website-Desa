@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Beranda - <%= desa.nama %></title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/style.css?v=20261116">
+    <link rel="stylesheet" href="/style.css?v=galeri">
 </head>
 <body>
    <nav class="navbar">
@@ -48,6 +48,7 @@
                 </ul>
             </li>
             
+            <li><a href="/galeri">Galeri</a></li>
             <li><a href="#berita">Berita</a></li>
             <li><a href="#kontak">Hubungi Kami</a></li>
 
@@ -109,6 +110,32 @@
                 </article>
             <% }); %>
         </div>
+    </section>
+
+    <section id="galeri" class="section home-gallery">
+        <div class="section-header">
+            <span class="section-kicker">Dokumentasi kegiatan</span>
+            <h2>Galeri Kegiatan Desa</h2>
+            <p>Potret kegiatan dan kebersamaan warga <%= desa.nama %>.</p>
+        </div>
+        <% if (galeri && galeri.length) { %>
+            <div class="gallery-preview-grid">
+                <% galeri.forEach(function(item) { %>
+                    <a class="gallery-preview-card" href="/galeri" aria-label="Lihat galeri: <%= item.judul %>">
+                        <img src="/<%= item.foto %>" alt="<%= item.judul %>" loading="lazy" decoding="async">
+                        <span class="gallery-preview-caption">
+                            <span><%= item.tanggal %></span>
+                            <strong><%= item.judul %></strong>
+                        </span>
+                    </a>
+                <% }); %>
+            </div>
+            <div class="gallery-preview-action">
+                <a class="btn-primary" href="/galeri">Lihat Semua Dokumentasi <span aria-hidden="true">→</span></a>
+            </div>
+        <% } else { %>
+            <p class="gallery-empty">Dokumentasi kegiatan akan ditampilkan di sini.</p>
+        <% } %>
     </section>
 
     <section id="berita" class="section bg-light home-news">

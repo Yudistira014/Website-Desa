@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
+const fs = require('fs').promises;
 const mysql = require('mysql2/promise');
 const multer = require('multer');
 
@@ -33,6 +34,16 @@ const upload = multer({
         }
     }
 });
+
+async function cleanupGalleryUploads(files) {
+    for (const file of files) {
+        try {
+            await fs.unlink(file.path);
+        } catch (err) {
+            if (err.code !== 'ENOENT') console.error('Gagal membersihkan unggahan galeri:', err.message);
+        }
+    }
+}
 
 // Middleware untuk membaca data dari formulir (POST request)
 app.use(express.urlencoded({ extended: true }));
@@ -97,6 +108,15 @@ async function verifyDatabaseConnection() {
                 tanggal VARCHAR(100),
                 ringkasan TEXT,
                 foto VARCHAR(255)
+            )
+        `);
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS galeri (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                judul VARCHAR(255) NOT NULL,
+                tanggal VARCHAR(100) NOT NULL,
+                deskripsi TEXT,
+                foto VARCHAR(255) NOT NULL
             )
         `);
         await connection.query(`
@@ -310,9 +330,36 @@ function cekUser(req, res, next) {
 app.get('/', async (req, res) => {
     try {
         const [berita] = await db.query('SELECT * FROM berita ORDER BY id DESC LIMIT 3');
-        res.render('index', { desa: infoDesa, berita, user: req.session.user });
+        const [galeri] = await db.query('SELECT id, judul, tanggal, foto FROM galeri ORDER BY id DESC LIMIT 6');
+        res.render('index', { desa: infoDesa, berita, galeri, user: req.session.user });
     } catch (err) {
         res.status(500).send("Database Error di Halaman Utama: " + err.message);
+    }
+});
+
+app.get('/galeri', async (req, res) => {
+    try {
+        const pageSize = 24;
+        const requestedPage = Number.parseInt(req.query.page, 10);
+        const page = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+        const [[{ total }]] = await db.query('SELECT COUNT(*) AS total FROM galeri');
+        const totalPages = Math.max(1, Math.ceil(Number(total) / pageSize));
+        const currentPage = Math.min(page, totalPages);
+        const offset = (currentPage - 1) * pageSize;
+        const [galeri] = await db.query(
+            'SELECT id, judul, tanggal, deskripsi, foto FROM galeri ORDER BY id DESC LIMIT ? OFFSET ?',
+            [pageSize, offset]
+        );
+
+        res.render('galeri', {
+            desa: infoDesa,
+            user: req.session.user,
+            galeri,
+            currentPage,
+            totalPages
+        });
+    } catch (err) {
+        res.status(500).send("Database Error di Galeri: " + err.message);
     }
 });
 
@@ -470,7 +517,17 @@ app.get('/admin', cekAdmin, async (req, res) => {
         const [berita] = await db.query('SELECT * FROM berita ORDER BY id DESC');
         const [laporan] = await db.query('SELECT * FROM laporan ORDER BY id DESC');
         const [suratPengantar] = await db.query('SELECT * FROM surat_pengantar ORDER BY id DESC');
-        res.render('admin', { desa: infoDesa, user: req.session.user, berita, laporanWarga: laporan, suratPengantar });
+        const [galeri] = await db.query('SELECT * FROM galeri ORDER BY id DESC');
+        res.render('admin', {
+            desa: infoDesa,
+            user: req.session.user,
+            berita,
+            galeri,
+            laporanWarga: laporan,
+            suratPengantar,
+            error: req.query.error,
+            success: req.query.success
+        });
     } catch (err) {
         res.status(500).send("Database Error di Halaman Admin: " + err.message);
     }
@@ -531,6 +588,58 @@ app.post('/admin/tambah-berita', cekAdmin, upload.single('fotoBerita'), async (r
             } catch (innerErr) {}
         }
         res.redirect('/admin?error=Gagal menambah berita');
+    }
+});
+
+app.post('/admin/tambah-galeri', cekAdmin, upload.array('fotoGaleri', 10), async (req, res) => {
+    const judul = typeof req.body.judul === 'string' ? req.body.judul.trim() : '';
+    const deskripsi = typeof req.body.deskripsi === 'string' ? req.body.deskripsi.trim() : '';
+    const files = Array.isArray(req.files) ? req.files : [];
+
+    if (!judul || judul.length > 255 || files.length === 0) {
+        await cleanupGalleryUploads(files);
+        return res.redirect('/admin?error=Lengkapi judul dan pilih foto galeri');
+    }
+
+    const tanggal = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    const values = files.map(file => [judul, tanggal, deskripsi || null, `uploads/${file.filename}`]);
+
+    try {
+        await db.query('INSERT INTO galeri (judul, tanggal, deskripsi, foto) VALUES ?', [values]);
+        res.redirect('/admin?success=Dokumentasi berhasil ditambahkan ke galeri');
+    } catch (err) {
+        console.error('Gagal menyimpan dokumentasi galeri:', err.message);
+        await cleanupGalleryUploads(files);
+        res.redirect('/admin?error=Gagal menyimpan dokumentasi galeri');
+    }
+});
+
+app.post('/admin/hapus-galeri/:id', cekAdmin, async (req, res) => {
+    const id = Number.parseInt(req.params.id, 10);
+    if (!Number.isSafeInteger(id) || id < 1) {
+        return res.redirect('/admin?error=Dokumentasi galeri tidak valid');
+    }
+
+    try {
+        const [rows] = await db.query('SELECT foto FROM galeri WHERE id = ?', [id]);
+        if (rows.length === 0) return res.redirect('/admin?error=Dokumentasi galeri tidak ditemukan');
+
+        await db.query('DELETE FROM galeri WHERE id = ?', [id]);
+        const filename = path.basename(rows[0].foto || '');
+        if (filename) {
+            try {
+                await fs.unlink(path.join(process.cwd(), 'public', 'uploads', filename));
+            } catch (err) {
+                if (err.code !== 'ENOENT') {
+                    console.error('Gagal menghapus file dokumentasi galeri:', err.message);
+                    return res.redirect('/admin?error=Dokumentasi dihapus, tetapi file gagal dibersihkan');
+                }
+            }
+        }
+        res.redirect('/admin?success=Dokumentasi galeri berhasil dihapus');
+    } catch (err) {
+        console.error('Gagal menghapus dokumentasi galeri:', err.message);
+        res.redirect('/admin?error=Gagal menghapus dokumentasi galeri');
     }
 });
 

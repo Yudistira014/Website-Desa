@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galeri Kegiatan - <%= desa.nama %></title>
+    <link rel="stylesheet" href="/style.css?v=galeri">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="nav-brand" style="text-decoration: none;">
+            <img src="/uploads/Logo_desa.png" alt="Logo Desa" class="brand-icon">
+            <div class="brand-text"><span><%= desa.nama %></span></div>
+        </a>
+        <button class="menu-toggle" type="button" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="nav-links">
+            <span></span><span></span><span></span>
+        </button>
+        <ul class="nav-links" id="nav-links">
+            <li><a href="/">Beranda</a></li>
+            <li><a href="/#layanan">Layanan</a></li>
+            <li><a href="/galeri" aria-current="page">Galeri</a></li>
+            <li><a href="/#berita">Berita</a></li>
+            <% if (user) { %>
+                <li><a href="/<%= user.role %>" class="btn-primary">Dashboard</a></li>
+                <li><a href="/logout">Logout</a></li>
+            <% } else { %>
+                <li><a href="/login" class="btn-primary">Login</a></li>
+            <% } %>
+        </ul>
+    </nav>
+
+    <main>
+        <header class="gallery-hero">
+            <span class="section-kicker">Cerita dalam gambar</span>
+            <h1>Galeri Kegiatan <%= desa.nama %></h1>
+            <p>Dokumentasi kegiatan, program, dan kebersamaan masyarakat desa.</p>
+        </header>
+
+        <section class="section gallery-page-section" aria-label="Dokumentasi kegiatan desa">
+            <% if (galeri && galeri.length) { %>
+                <div class="gallery-page-grid">
+                    <% galeri.forEach(function(item) { %>
+                        <article class="gallery-page-card">
+                            <a class="gallery-page-image" href="/<%= item.foto %>" target="_blank" rel="noopener noreferrer" aria-label="Buka foto: <%= item.judul %>">
+                                <img src="/<%= item.foto %>" alt="<%= item.judul %>" loading="lazy" decoding="async">
+                            </a>
+                            <div class="gallery-page-details">
+                                <span class="gallery-page-date"><%= item.tanggal %></span>
+                                <h2><%= item.judul %></h2>
+                                <% if (item.deskripsi) { %>
+                                    <p><%= item.deskripsi %></p>
+                                <% } %>
+                            </div>
+                        </article>
+                    <% }); %>
+                </div>
+                <% if (totalPages > 1) { %>
+                    <nav class="gallery-pagination" aria-label="Navigasi halaman galeri">
+                        <% if (currentPage > 1) { %>
+                            <a href="/galeri?page=<%= currentPage - 1 %>">← Sebelumnya</a>
+                        <% } else { %>
+                            <span></span>
+                        <% } %>
+                        <span>Halaman <%= currentPage %> dari <%= totalPages %></span>
+                        <% if (currentPage < totalPages) { %>
+                            <a href="/galeri?page=<%= currentPage + 1 %>">Berikutnya →</a>
+                        <% } else { %>
+                            <span></span>
+                        <% } %>
+                    </nav>
+                <% } %>
+            <% } else { %>
+                <div class="gallery-page-empty">
+                    <span aria-hidden="true">▧</span>
+                    <h2>Belum ada dokumentasi</h2>
+                    <p>Dokumentasi kegiatan desa akan ditampilkan di halaman ini.</p>
+                    <a href="/" class="btn-primary">Kembali ke Beranda</a>
+                </div>
+            <% } %>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-info">
+                <h3>Pemerintah <%= desa.nama %></h3>
+                <p>Jl. Raya Pembangunan No. 1, Kecamatan Maju, Kabupaten Sejahtera.</p>
+            </div>
+            <div class="footer-copyright">
+                <p>&copy; 2026 Portal Resmi <%= desa.nama %>.</p>
+            </div>
+        </div>
+    </footer>
+    <script src="/navigation.js?v=20261116"></script>
+</body>
+</html>

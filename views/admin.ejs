@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Admin - Portal <%= desa.nama %></title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/style.css?v=galeri">
 </head>
 <body class="bg-light">
 
@@ -21,6 +21,7 @@
         <ul class="nav-links" id="nav-links">
             <li><a href="/admin">Dashboard</a></li>
             <li><a href="/">Lihat Beranda</a></li>
+            <li><a href="/galeri">Galeri</a></li>
             <li class="nav-item">
                 <span style="font-weight: 600; color: var(--primary-color); font-size: 0.9rem;">👤 <%= user.username %></span>
             </li>
@@ -33,6 +34,13 @@
             <h2>Panel Administrasi Desa</h2>
             <p>Selamat datang kembali, <strong><%= user.username %></strong>. Kelola informasi desa Anda di sini.</p>
         </div>
+
+        <% if (error) { %>
+            <p class="admin-notice admin-notice-error" role="alert"><%= error %></p>
+        <% } %>
+        <% if (success) { %>
+            <p class="admin-notice admin-notice-success" role="status"><%= success %></p>
+        <% } %>
 
         <div class="dashboard-grid">
             <!-- Kolom Kiri: Form Tambah Berita -->
@@ -121,6 +129,52 @@
                 </div>
             </section>
         </div>
+
+        <section class="card admin-gallery">
+            <div class="admin-gallery-heading">
+                <div>
+                    <span class="section-kicker">Dokumentasi desa</span>
+                    <h3>Kelola Galeri Kegiatan</h3>
+                    <p>Tambahkan hingga 10 foto untuk satu kegiatan. Foto akan tampil di halaman galeri publik.</p>
+                </div>
+                <a class="admin-gallery-view-link" href="/galeri">Lihat galeri <span aria-hidden="true">→</span></a>
+            </div>
+            <form action="/admin/tambah-galeri" method="POST" enctype="multipart/form-data" class="gallery-upload-form">
+                <div class="form-group">
+                    <label for="gallery-title">Nama kegiatan</label>
+                    <input id="gallery-title" type="text" name="judul" maxlength="255" required placeholder="Contoh: Kerja Bakti Lingkungan">
+                </div>
+                <div class="form-group">
+                    <label for="gallery-description">Keterangan (opsional)</label>
+                    <textarea id="gallery-description" name="deskripsi" rows="3" placeholder="Ceritakan singkat kegiatan ini"></textarea>
+                </div>
+                <div class="form-group gallery-file-field">
+                    <label for="gallery-photos">Foto dokumentasi</label>
+                    <input id="gallery-photos" type="file" name="fotoGaleri" accept="image/*" multiple required>
+                    <small>Pilih maksimal 10 foto sekaligus.</small>
+                </div>
+                <button type="submit" class="btn-primary gallery-upload-button">Simpan Dokumentasi</button>
+            </form>
+
+            <div class="admin-gallery-list">
+                <% if (galeri && galeri.length) { %>
+                    <% galeri.forEach(function(item) { %>
+                        <article class="admin-gallery-item">
+                            <img src="/<%= item.foto %>" alt="<%= item.judul %>" loading="lazy" decoding="async">
+                            <div class="admin-gallery-item-info">
+                                <strong><%= item.judul %></strong>
+                                <span><%= item.tanggal %></span>
+                            </div>
+                            <form action="/admin/hapus-galeri/<%= item.id %>" method="POST" onsubmit="return confirm('Hapus dokumentasi ini?')">
+                                <button type="submit" class="gallery-delete-button">Hapus</button>
+                            </form>
+                        </article>
+                    <% }); %>
+                <% } else { %>
+                    <p class="gallery-empty">Belum ada dokumentasi yang disimpan.</p>
+                <% } %>
+            </div>
+        </section>
 
         <!-- Bagian Bawah: Daftar Berita yang Sudah Ada -->
         <div class="card" style="margin-top: 30px;">

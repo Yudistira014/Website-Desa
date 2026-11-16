@@ -15,13 +15,13 @@
             <div class="brand-text"><span><%= desa.nama %></span></div>
         </div>
         
-        <button class="menu-toggle" id="menu-toggle">
+        <button class="menu-toggle" type="button" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="nav-links">
             <span></span>
             <span></span>
             <span></span>
         </button>
 
-        <ul class="nav-links">
+        <ul class="nav-links" id="nav-links">
             <li><a href="/">Beranda</a></li>
             
             <li class="nav-item">
@@ -124,14 +124,6 @@
     </footer>
 
     <script>
-        const menuToggle = document.getElementById('menu-toggle');
-        const navLinks = document.querySelector('.nav-links');
-
-        menuToggle.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-            menuToggle.classList.toggle('active');
-        });
-
         document.querySelectorAll('.news-card .read-more').forEach(button => {
             button.addEventListener('click', event => {
                 const card = event.currentTarget.closest('.news-card');
@@ -148,5 +140,6 @@
         });
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js" integrity="sha512-Gavb1sB5CZWYz73+pZg9hH8B9kNYk5V7u+0xG2YVe7jO9UEboRxdVDbzAMe/je0Rx/nCiwSsjhC9mP8wOw+Y1w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="/navigation.js?v=20261116"></script>
 </body>
 </html>

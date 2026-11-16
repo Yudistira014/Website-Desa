@@ -63,6 +63,8 @@ async function verifyDatabaseConnection() {
     try {
         const connection = await db.getConnection();
         await connection.ping();
+        
+        // MEMBUAT TABEL OTOMATIS JIKA BELUM ADA DI TIDB
         await connection.query(`
             CREATE TABLE IF NOT EXISTS laporan (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -88,12 +90,28 @@ async function verifyDatabaseConnection() {
                 tanggal VARCHAR(100)
             )
         `);
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS berita (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                judul VARCHAR(255),
+                tanggal VARCHAR(100),
+                ringkasan TEXT,
+                foto VARCHAR(255)
+            )
+        `);
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(100),
+                password VARCHAR(255),
+                role VARCHAR(50)
+            )
+        `);
+        
         connection.release();
         console.log(`Database MySQL terhubung: ${process.env.DB_NAME || 'web_desa'}`);
     } catch (err) {
         console.error('Gagal terhubung ke database MySQL:', err.message);
-        // Jangan gunakan process.exit(1) di Vercel agar aplikasi tidak langsung mati jika DB gagal terkoneksi saat build
-        // process.exit(1); 
     }
 }
 
@@ -294,7 +312,7 @@ app.get('/', async (req, res) => {
         const [berita] = await db.query('SELECT * FROM berita ORDER BY id DESC LIMIT 3');
         res.render('index', { desa: infoDesa, berita, user: req.session.user });
     } catch (err) {
-        res.status(500).send("Database Error");
+        res.status(500).send("Database Error di Halaman Utama: " + err.message);
     }
 });
 
@@ -376,7 +394,7 @@ app.get('/transparansi', async (req, res) => {
         const [rincian] = await db.query('SELECT * FROM anggaran WHERE tahun = 2024');
         res.render('transparansi', { desa: infoDesa, anggaran: { rincian }, user: req.session.user });
     } catch (err) {
-        res.status(500).send("Database Error");
+        res.status(500).send("Database Error di Halaman Transparansi: " + err.message);
     }
 });
 
@@ -386,7 +404,7 @@ app.get('/statistik', async (req, res) => {
         const statistik = rows[0] || {};
         res.render('statistik', { desa: infoDesa, statistik, user: req.session.user });
     } catch (err) {
-        res.status(500).send("Database Error");
+        res.status(500).send("Database Error di Halaman Statistik: " + err.message);
     }
 });
 
@@ -454,7 +472,7 @@ app.get('/admin', cekAdmin, async (req, res) => {
         const [suratPengantar] = await db.query('SELECT * FROM surat_pengantar ORDER BY id DESC');
         res.render('admin', { desa: infoDesa, user: req.session.user, berita, laporanWarga: laporan, suratPengantar });
     } catch (err) {
-        res.status(500).send("Database Error");
+        res.status(500).send("Database Error di Halaman Admin: " + err.message);
     }
 });
 
@@ -569,7 +587,7 @@ app.get('/user', cekUser, async (req, res) => {
         const [suratSaya] = await db.query('SELECT * FROM surat_pengantar WHERE nama = ? ORDER BY id DESC', [req.session.user.username]);
         res.render('user', { desa: infoDesa, user: req.session.user, laporan: laporanSaya, suratPengantar: suratSaya, error: req.query.error });
     } catch (err) {
-        res.status(500).send("Database Error");
+        res.status(500).send("Database Error di Halaman User: " + err.message);
     }
 });
 

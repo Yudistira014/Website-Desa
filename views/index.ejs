@@ -122,7 +122,7 @@
             <div class="gallery-preview-grid">
                 <% galeri.forEach(function(item) { %>
                     <a class="gallery-preview-card" href="/galeri" aria-label="Lihat galeri: <%= item.judul %>">
-                        <img src="/<%= item.foto %>" alt="<%= item.judul %>" loading="lazy" decoding="async">
+                        <img src="<%= /^https?:\/\//i.test(item.foto) ? item.foto : '/' + item.foto %>" alt="<%= item.judul %>" loading="lazy" decoding="async">
                         <span class="gallery-preview-caption">
                             <span><%= item.tanggal %></span>
                             <strong><%= item.judul %></strong>

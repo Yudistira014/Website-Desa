@@ -3,8 +3,10 @@ const express = require('express');
 const session = require('express-session');
 const path = require('path');
 const fs = require('fs').promises;
+const crypto = require('crypto');
 const mysql = require('mysql2/promise');
 const multer = require('multer');
+const { put, del } = require('@vercel/blob');
 
 const app = express();
 const port = 3000;
@@ -35,6 +37,30 @@ const upload = multer({
     }
 });
 
+const galleryImageTypes = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp'
+};
+const galleryImageFilter = (req, file, cb) => {
+    if (galleryImageTypes[file.mimetype]) {
+        cb(null, true);
+    } else {
+        cb(new Error('Foto galeri harus berformat JPEG, PNG, atau WebP'));
+    }
+};
+const galleryImageLimits = { fileSize: 3 * 1024 * 1024 };
+const galleryDiskUpload = multer({
+    storage,
+    limits: galleryImageLimits,
+    fileFilter: galleryImageFilter
+});
+const galleryMemoryUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: galleryImageLimits,
+    fileFilter: galleryImageFilter
+});
+
 async function cleanupGalleryUploads(files) {
     for (const file of files) {
         try {
@@ -42,6 +68,28 @@ async function cleanupGalleryUploads(files) {
         } catch (err) {
             if (err.code !== 'ENOENT') console.error('Gagal membersihkan unggahan galeri:', err.message);
         }
+    }
+}
+
+function isGalleryBlobUrl(value) {
+    try {
+        const url = new URL(value);
+        return url.protocol === 'https:' &&
+            (url.hostname === 'blob.vercel-storage.com' || url.hostname.endsWith('.blob.vercel-storage.com'));
+    } catch (err) {
+        return false;
+    }
+}
+
+function parseGalleryBlobUrls(value) {
+    if (typeof value !== 'string') return null;
+
+    try {
+        const urls = JSON.parse(value);
+        if (!Array.isArray(urls) || urls.length === 0 || urls.length > 10) return null;
+        return urls.every(url => typeof url === 'string' && isGalleryBlobUrl(url)) ? urls : null;
+    } catch (err) {
+        return null;
     }
 }
 
@@ -526,7 +574,9 @@ app.get('/admin', cekAdmin, async (req, res) => {
             laporanWarga: laporan,
             suratPengantar,
             error: req.query.error,
-            success: req.query.success
+            success: req.query.success,
+            isVercel: process.env.VERCEL === '1',
+            hasVercelBlobConfig: Boolean(process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN)
         });
     } catch (err) {
         res.status(500).send("Database Error di Halaman Admin: " + err.message);
@@ -591,7 +641,78 @@ app.post('/admin/tambah-berita', cekAdmin, upload.single('fotoBerita'), async (r
     }
 });
 
-app.post('/admin/tambah-galeri', cekAdmin, upload.array('fotoGaleri', 10), async (req, res) => {
+app.post('/admin/upload-galeri-file', cekAdmin, (req, res, next) => {
+    galleryMemoryUpload.single('fotoGaleri')(req, res, err => {
+        if (!err) return next();
+        const status = err.code === 'LIMIT_FILE_SIZE' ? 413 : 400;
+        res.status(status).json({
+            error: status === 413 ? 'Ukuran setiap foto maksimal 3 MB' : err.message
+        });
+    });
+}, async (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'Pilih foto dokumentasi terlebih dahulu' });
+
+    try {
+        const extension = galleryImageTypes[req.file.mimetype];
+        const blob = await put(`galeri/${crypto.randomUUID()}.${extension}`, req.file.buffer, {
+            access: 'public',
+            contentType: req.file.mimetype
+        });
+        res.status(201).json({ url: blob.url });
+    } catch (err) {
+        console.error('Gagal mengunggah foto ke Vercel Blob:', err.message);
+        res.status(503).json({
+            error: 'Penyimpanan galeri belum siap. Hubungkan Vercel Blob ke project terlebih dahulu.'
+        });
+    }
+});
+
+app.post('/admin/tambah-galeri-remote', cekAdmin, async (req, res) => {
+    const judul = typeof req.body.judul === 'string' ? req.body.judul.trim() : '';
+    const deskripsi = typeof req.body.deskripsi === 'string' ? req.body.deskripsi.trim() : '';
+    const urls = parseGalleryBlobUrls(req.body.fotoUrls);
+
+    if (!judul || judul.length > 255 || !urls) {
+        return res.status(400).json({ error: 'Data dokumentasi galeri tidak valid' });
+    }
+
+    const tanggal = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    const values = urls.map(url => [judul, tanggal, deskripsi || null, url]);
+
+    try {
+        await db.query('INSERT INTO galeri (judul, tanggal, deskripsi, foto) VALUES ?', [values]);
+        res.json({ redirect: '/admin?success=Dokumentasi berhasil ditambahkan ke galeri' });
+    } catch (err) {
+        console.error('Gagal menyimpan dokumentasi galeri:', err.message);
+        res.status(500).json({ error: 'Gagal menyimpan dokumentasi galeri' });
+    }
+});
+
+app.post('/admin/hapus-upload-galeri-temp', cekAdmin, async (req, res) => {
+    const urls = parseGalleryBlobUrls(req.body.fotoUrls);
+    if (!urls) return res.status(400).json({ error: 'Daftar foto galeri tidak valid' });
+
+    try {
+        await del(urls);
+        res.sendStatus(204);
+    } catch (err) {
+        console.error('Gagal membersihkan unggahan galeri sementara:', err.message);
+        res.status(502).json({ error: 'Gagal membersihkan foto galeri sementara' });
+    }
+});
+
+app.post('/admin/tambah-galeri', cekAdmin, (req, res, next) => {
+    if (process.env.VERCEL === '1') {
+        return res.redirect('/admin?error=Aktifkan JavaScript untuk mengunggah foto galeri');
+    }
+    galleryDiskUpload.array('fotoGaleri', 10)(req, res, err => {
+        if (err) {
+            console.error('Gagal menerima unggahan galeri:', err.message);
+            return res.redirect('/admin?error=Gagal menerima foto galeri');
+        }
+        next();
+    });
+}, async (req, res) => {
     const judul = typeof req.body.judul === 'string' ? req.body.judul.trim() : '';
     const deskripsi = typeof req.body.deskripsi === 'string' ? req.body.deskripsi.trim() : '';
     const files = Array.isArray(req.files) ? req.files : [];
@@ -615,7 +736,7 @@ app.post('/admin/tambah-galeri', cekAdmin, upload.array('fotoGaleri', 10), async
 });
 
 app.post('/admin/hapus-galeri/:id', cekAdmin, async (req, res) => {
-    const id = Number.parseInt(req.params.id, 10);
+    const id = Number(req.params.id);
     if (!Number.isSafeInteger(id) || id < 1) {
         return res.redirect('/admin?error=Dokumentasi galeri tidak valid');
     }
@@ -625,14 +746,18 @@ app.post('/admin/hapus-galeri/:id', cekAdmin, async (req, res) => {
         if (rows.length === 0) return res.redirect('/admin?error=Dokumentasi galeri tidak ditemukan');
 
         await db.query('DELETE FROM galeri WHERE id = ?', [id]);
-        const filename = path.basename(rows[0].foto || '');
-        if (filename) {
-            try {
-                await fs.unlink(path.join(process.cwd(), 'public', 'uploads', filename));
-            } catch (err) {
-                if (err.code !== 'ENOENT') {
-                    console.error('Gagal menghapus file dokumentasi galeri:', err.message);
-                    return res.redirect('/admin?error=Dokumentasi dihapus, tetapi file gagal dibersihkan');
+        if (isGalleryBlobUrl(rows[0].foto)) {
+            await del(rows[0].foto);
+        } else if (process.env.VERCEL !== '1') {
+            const filename = path.basename(rows[0].foto || '');
+            if (filename) {
+                try {
+                    await fs.unlink(path.join(process.cwd(), 'public', 'uploads', filename));
+                } catch (err) {
+                    if (err.code !== 'ENOENT') {
+                        console.error('Gagal menghapus file dokumentasi galeri:', err.message);
+                        return res.redirect('/admin?error=Dokumentasi dihapus, tetapi file gagal dibersihkan');
+                    }
                 }
             }
         }

@@ -41,8 +41,8 @@
                 <div class="gallery-page-grid">
                     <% galeri.forEach(function(item) { %>
                         <article class="gallery-page-card">
-                            <a class="gallery-page-image" href="/<%= item.foto %>" target="_blank" rel="noopener noreferrer" aria-label="Buka foto: <%= item.judul %>">
-                                <img src="/<%= item.foto %>" alt="<%= item.judul %>" loading="lazy" decoding="async">
+                            <a class="gallery-page-image" href="<%= /^https?:\/\//i.test(item.foto) ? item.foto : '/' + item.foto %>" target="_blank" rel="noopener noreferrer" aria-label="Buka foto: <%= item.judul %>">
+                                <img src="<%= /^https?:\/\//i.test(item.foto) ? item.foto : '/' + item.foto %>" alt="<%= item.judul %>" loading="lazy" decoding="async">
                             </a>
                             <div class="gallery-page-details">
                                 <span class="gallery-page-date"><%= item.tanggal %></span>

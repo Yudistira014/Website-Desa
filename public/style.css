@@ -2456,6 +2456,18 @@ footer#kontak {
     cursor: pointer;
 }
 
+.gallery-upload-button:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+.gallery-upload-status {
+    grid-column: 1 / -1;
+    min-height: 1.5em;
+    color: var(--text-light);
+    font-size: 0.86rem;
+}
+
 .admin-gallery-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr));

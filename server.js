@@ -861,6 +861,28 @@ app.post('/admin/surat-pengantar/:id/status', cekAdmin, async (req, res) => {
     }
 });
 
+app.post('/admin/surat-pengantar/hapus-selesai', cekAdmin, async (req, res) => {
+    try {
+        await db.query("DELETE FROM surat_pengantar WHERE status IN ('Disetujui', 'Ditolak')");
+        res.redirect('/admin/surat-pengantar?success=Seluruh riwayat surat yang sudah diproses berhasil dihapus');
+    } catch (err) {
+        res.redirect('/admin/surat-pengantar?error=Gagal menghapus riwayat surat pengantar');
+    }
+});
+
+app.post('/admin/surat-pengantar/:id/hapus', cekAdmin, async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 1) {
+        return res.redirect('/admin/surat-pengantar?error=Data surat tidak valid');
+    }
+    try {
+        await db.query('DELETE FROM surat_pengantar WHERE id = ?', [id]);
+        res.redirect('/admin/surat-pengantar?success=Riwayat surat pengantar berhasil dihapus');
+    } catch (err) {
+        res.redirect('/admin/surat-pengantar?error=Gagal menghapus riwayat surat pengantar');
+    }
+});
+
 app.post('/admin/tambah-berita', cekAdmin, upload.single('fotoBerita'), async (req, res) => {
     const { judul, ringkasan } = req.body;
     const tanggalHariIni = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });

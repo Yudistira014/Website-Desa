@@ -490,20 +490,33 @@ const totalKK = dataPenduduk.reduce((acc, r) => acc + (Number(r.kk) || 0), 0);
                 </section>
             <% } else if (activeSection === 'surat-pengantar') { %>
                 <!-- HALAMAN 5: SURAT PENGANTAR -->
+                <%
+                    const suratSelesai = daftarSurat.filter(s => s.status === 'Disetujui' || s.status === 'Ditolak').length;
+                %>
                 <section class="card admin-section">
                     <div class="card-header">
                         <div>
                             <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'document' }) %></span> Daftar Pengajuan Surat Pengantar</h2>
-                            <p class="card-subtitle">Konfirmasi atau tolak pengajuan surat dari warga.</p>
+                            <p class="card-subtitle">Konfirmasi, tolak, atau hapus riwayat pengajuan surat dari warga.</p>
                         </div>
-                        <span class="badge badge-warning"><%= suratMenunggu %> menunggu</span>
+                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                            <span class="badge badge-warning"><%= suratMenunggu %> menunggu</span>
+                            <% if (suratSelesai > 0) { %>
+                                <form action="/admin/surat-pengantar/hapus-selesai" method="POST" onsubmit="return confirm('Hapus seluruh riwayat surat yang sudah Disetujui / Ditolak?')" style="margin: 0;">
+                                    <button type="submit" class="btn btn-danger-soft btn-sm">
+                                        <%- include('partials/icon', { name: 'trash' }) %>
+                                        <span>Bersihkan Riwayat Selesai (<%= suratSelesai %>)</span>
+                                    </button>
+                                </form>
+                            <% } %>
+                        </div>
                     </div>
                     <% if (daftarSurat.length > 0) { %>
                         <div class="item-list">
                             <% daftarSurat.forEach(function(surat) {
                                 const status = surat.status || 'Menunggu';
                             %>
-                                <article class="item <%= status === 'Ditolak' ? 'is-danger' : 'is-secondary' %>">
+                                <article class="item <%= status === 'Ditolak' ? 'is-danger' : (status === 'Disetujui' ? '' : 'is-secondary') %>">
                                     <div class="item-head">
                                         <span class="item-title"><%= surat.nama %> — <%= surat.keperluan %></span>
                                         <span class="badge <%= statusBadge(status) %>"><%= status %></span>
@@ -531,6 +544,15 @@ const totalKK = dataPenduduk.reduce((acc, r) => acc + (Number(r.kk) || 0), 0);
                                                 <label class="visually-hidden" for="alasan-<%= surat.id %>">Alasan penolakan</label>
                                                 <textarea id="alasan-<%= surat.id %>" name="alasanPenolakan" rows="1" required placeholder="Alasan penolakan..."></textarea>
                                                 <button type="submit" class="btn btn-danger-soft btn-sm">Tolak</button>
+                                            </form>
+                                        </div>
+                                    <% } else { %>
+                                        <div class="item-actions">
+                                            <form action="/admin/surat-pengantar/<%= surat.id %>/hapus" method="POST" onsubmit="return confirm('Hapus riwayat surat pengantar dari <%= surat.nama %> ini?')">
+                                                <button type="submit" class="btn btn-danger-soft btn-sm">
+                                                    <%- include('partials/icon', { name: 'trash' }) %>
+                                                    <span>Hapus Riwayat</span>
+                                                </button>
                                             </form>
                                         </div>
                                     <% } %>

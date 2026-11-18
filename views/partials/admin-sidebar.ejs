@@ -33,6 +33,12 @@ const base = typeof baseHref !== 'undefined' ? baseHref : '';
                     </a>
                 </li>
                 <li>
+                    <a href="<%= base %>#kependudukan" class="admin-nav-link <%= currentMenu === 'kependudukan' ? 'is-active' : '' %>" data-nav-target="kependudukan">
+                        <%- include('icon', { name: 'chart' }) %>
+                        <span>Grafik Kependudukan</span>
+                    </a>
+                </li>
+                <li>
                     <a href="<%= base %>#terbitkan-berita" class="admin-nav-link <%= currentMenu === 'berita' ? 'is-active' : '' %>" data-nav-target="terbitkan-berita">
                         <%- include('icon', { name: 'megaphone' }) %>
                         <span>Terbitkan Berita</span>
@@ -72,24 +78,6 @@ const base = typeof baseHref !== 'undefined' ? baseHref : '';
                         <% if (typeof c.berita === 'number') { %>
                             <span class="admin-nav-badge"><%= c.berita %></span>
                         <% } %>
-                    </a>
-                </li>
-            </ul>
-        </div>
-
-        <div class="admin-nav-group">
-            <span class="admin-nav-label">Pintasan Situs</span>
-            <ul class="admin-nav">
-                <li>
-                    <a href="/" class="admin-nav-link">
-                        <%- include('icon', { name: 'home' }) %>
-                        <span>Lihat Situs Utama</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/galeri" class="admin-nav-link">
-                        <%- include('icon', { name: 'image' }) %>
-                        <span>Galeri Publik</span>
                     </a>
                 </li>
             </ul>

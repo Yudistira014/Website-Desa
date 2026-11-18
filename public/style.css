@@ -2073,6 +2073,329 @@ textarea {
     display: none;
 }
 
+/* Grafik & Hitung Kependudukan Otomatis -------------------------------------- */
+.pop-card {
+    margin-bottom: 24px;
+}
+
+.pop-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.pop-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 18px 20px;
+    border-radius: var(--radius);
+    background: var(--bg);
+    border: 1px solid var(--line);
+}
+
+.pop-metric-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.pop-metric-value {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+}
+
+.pop-metric-value.is-male {
+    color: var(--primary-700);
+}
+
+.pop-metric-value.is-female {
+    color: #b58407;
+}
+
+.pop-metric-sub {
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+
+.pop-charts-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr 1.05fr;
+    gap: 18px;
+    margin-bottom: 28px;
+}
+
+.pop-chart-box {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+.pop-chart-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.pop-chart-head h3 {
+    font-size: 0.96rem;
+    font-weight: 700;
+}
+
+.pop-legend-inline {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+.pop-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+.pop-dot.is-male {
+    background: var(--primary-700);
+}
+
+.pop-dot.is-female {
+    background: var(--accent-500);
+}
+
+.pop-dusun-bars,
+.pop-age-bars {
+    display: grid;
+    gap: 14px;
+}
+
+.pop-dusun-item,
+.pop-age-item {
+    display: grid;
+    gap: 6px;
+}
+
+.pop-dusun-meta,
+.pop-age-meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.85rem;
+}
+
+.pop-dusun-meta span,
+.pop-age-meta small {
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.pop-bar-track {
+    display: flex;
+    width: 100%;
+    height: 12px;
+    border-radius: var(--radius-pill);
+    background: var(--bg);
+    overflow: hidden;
+    border: 1px solid var(--line);
+}
+
+.pop-bar-fill {
+    display: block;
+    height: 100%;
+    transition: width 0.25s ease;
+}
+
+.pop-bar-fill.is-male   { background: var(--primary-700); }
+.pop-bar-fill.is-female { background: var(--accent-500); }
+.pop-bar-fill.is-age-1  { background: #2fb38a; }
+.pop-bar-fill.is-age-2  { background: var(--primary-600); }
+.pop-bar-fill.is-age-3  { background: var(--primary-800); }
+.pop-bar-fill.is-age-4  { background: var(--accent-500); }
+
+.pop-dusun-sub {
+    display: flex;
+    gap: 14px;
+    font-size: 0.76rem;
+    color: var(--muted);
+}
+
+.pop-donut-wrap {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex: 1;
+}
+
+.pop-donut {
+    position: relative;
+    width: 132px;
+    height: 132px;
+    border-radius: 50%;
+    background: conic-gradient(var(--primary-700) 0deg 180deg, var(--accent-500) 180deg 360deg);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+
+.pop-donut-hole {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.pop-donut-hole strong {
+    font-size: 1.05rem;
+    color: var(--ink);
+    line-height: 1.15;
+}
+
+.pop-donut-hole span {
+    font-size: 0.7rem;
+    color: var(--muted);
+}
+
+.pop-donut-legend {
+    flex: 1;
+    display: grid;
+    gap: 10px;
+    font-size: 0.84rem;
+}
+
+.pop-legend-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.pop-legend-row.is-total {
+    padding-top: 8px;
+    border-top: 1px dashed var(--line);
+    color: var(--muted);
+}
+
+.pop-form {
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+}
+
+.pop-table-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.pop-table-head h3 {
+    font-size: 1rem;
+}
+
+.pop-table-head p {
+    font-size: 0.86rem;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+.pop-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+
+.pop-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    min-width: 760px;
+}
+
+.pop-table th,
+.pop-table td {
+    padding: 11px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+}
+
+.pop-table thead th {
+    background: var(--bg);
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.3;
+}
+
+.pop-table thead th small {
+    font-weight: 500;
+    color: var(--muted);
+    font-size: 0.72rem;
+}
+
+.pop-table tfoot th {
+    background: var(--primary-50);
+    color: var(--primary-900);
+    font-weight: 700;
+    border-bottom: 0;
+}
+
+.pop-input {
+    width: 84px;
+    padding: 7px 10px;
+    border: 1px solid var(--line-strong);
+    border-radius: 7px;
+    background: var(--surface);
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: var(--ink);
+}
+
+.pop-input:focus {
+    outline: none;
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px rgba(31, 150, 112, 0.14);
+}
+
+.pop-row-total {
+    white-space: nowrap;
+    color: var(--primary-800);
+}
+
+.pop-row-total strong {
+    font-size: 0.96rem;
+    margin-right: 4px;
+}
+
+.pop-row-total span {
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
 /* 14. Auth ------------------------------------------------------------------- */
 .auth-page {
     position: relative;
@@ -2747,6 +3070,14 @@ textarea {
 
     .admin-content {
         padding: 22px 20px 44px;
+    }
+
+    .pop-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pop-charts-grid {
+        grid-template-columns: 1fr;
     }
 }
 

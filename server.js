@@ -259,12 +259,62 @@ async function verifyDatabaseConnection() {
                 role VARCHAR(50)
             )
         `);
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS kependudukan (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                dusun VARCHAR(100) NOT NULL UNIQUE,
+                laki_laki INT NOT NULL DEFAULT 0,
+                perempuan INT NOT NULL DEFAULT 0,
+                kk INT NOT NULL DEFAULT 0,
+                balita INT NOT NULL DEFAULT 0,
+                anak_remaja INT NOT NULL DEFAULT 0,
+                dewasa INT NOT NULL DEFAULT 0,
+                lansia INT NOT NULL DEFAULT 0
+            )
+        `);
+        await ensureDefaultKependudukan(connection);
+        await syncTotalPopulasi(connection);
         
         connection.release();
         console.log(`Database MySQL terhubung: ${process.env.DB_NAME || 'web_desa'}`);
     } catch (err) {
         console.error('Gagal terhubung ke database MySQL:', err.message);
     }
+}
+
+const defaultKependudukan = [
+    { dusun: 'Dusun Karang', laki_laki: 620, perempuan: 605, kk: 340, balita: 95, anak_remaja: 260, dewasa: 710, lansia: 160 },
+    { dusun: 'Dusun Mulyo', laki_laki: 590, perempuan: 580, kk: 325, balita: 88, anak_remaja: 245, dewasa: 690, lansia: 147 },
+    { dusun: 'Dusun Makmur', laki_laki: 555, perempuan: 550, kk: 310, balita: 82, anak_remaja: 230, dewasa: 655, lansia: 138 }
+];
+
+async function ensureDefaultKependudukan(conn = db) {
+    try {
+        const [[{ total }]] = await conn.query('SELECT COUNT(*) AS total FROM kependudukan');
+        if (Number(total) === 0) {
+            const values = defaultKependudukan.map(d => [
+                d.dusun, d.laki_laki, d.perempuan, d.kk, d.balita, d.anak_remaja, d.dewasa, d.lansia
+            ]);
+            await conn.query(
+                'INSERT INTO kependudukan (dusun, laki_laki, perempuan, kk, balita, anak_remaja, dewasa, lansia) VALUES ?',
+                [values]
+            );
+        }
+    } catch (err) {
+        console.error('Gagal menyiapkan data awal kependudukan:', err.message);
+    }
+}
+
+async function syncTotalPopulasi(conn = db) {
+    try {
+        const [rows] = await conn.query('SELECT laki_laki, perempuan FROM kependudukan');
+        if (rows.length > 0) {
+            const totalJiwa = rows.reduce((sum, r) => sum + (Number(r.laki_laki) || 0) + (Number(r.perempuan) || 0), 0);
+            if (totalJiwa > 0) {
+                infoDesa.populasi = totalJiwa.toLocaleString('id-ID');
+            }
+        }
+    } catch (err) {}
 }
 
 verifyDatabaseConnection();
@@ -663,6 +713,13 @@ app.get('/admin', cekAdmin, async (req, res) => {
         const [laporan] = await db.query('SELECT * FROM laporan ORDER BY id DESC');
         const [suratPengantar] = await db.query('SELECT * FROM surat_pengantar ORDER BY id DESC');
         const [galeri] = await db.query('SELECT * FROM galeri ORDER BY id DESC');
+        let kependudukan = defaultKependudukan;
+        try {
+            await ensureDefaultKependudukan();
+            const [rowsPenduduk] = await db.query('SELECT * FROM kependudukan ORDER BY id ASC');
+            if (rowsPenduduk.length > 0) kependudukan = rowsPenduduk;
+        } catch (e) {}
+        await syncTotalPopulasi();
         res.render('admin', {
             desa: infoDesa,
             user: req.session.user,
@@ -670,6 +727,7 @@ app.get('/admin', cekAdmin, async (req, res) => {
             galeri,
             laporanWarga: laporan,
             suratPengantar,
+            kependudukan,
             error: req.query.error,
             success: req.query.success,
             isVercel: process.env.VERCEL === '1',
@@ -677,6 +735,51 @@ app.get('/admin', cekAdmin, async (req, res) => {
         });
     } catch (err) {
         res.status(500).send("Database Error di Halaman Admin: " + err.message);
+    }
+});
+
+app.post('/admin/kependudukan', cekAdmin, async (req, res) => {
+    const toInt = val => Math.max(0, Number.parseInt(val, 10) || 0);
+    const dusunList = Array.isArray(req.body.dusun) ? req.body.dusun : [req.body.dusun];
+    const lakiList = Array.isArray(req.body.laki_laki) ? req.body.laki_laki : [req.body.laki_laki];
+    const perempuanList = Array.isArray(req.body.perempuan) ? req.body.perempuan : [req.body.perempuan];
+    const kkList = Array.isArray(req.body.kk) ? req.body.kk : [req.body.kk];
+    const balitaList = Array.isArray(req.body.balita) ? req.body.balita : [req.body.balita];
+    const remajaList = Array.isArray(req.body.anak_remaja) ? req.body.anak_remaja : [req.body.anak_remaja];
+    const dewasaList = Array.isArray(req.body.dewasa) ? req.body.dewasa : [req.body.dewasa];
+    const lansiaList = Array.isArray(req.body.lansia) ? req.body.lansia : [req.body.lansia];
+
+    try {
+        for (let i = 0; i < dusunList.length; i++) {
+            const namaDusun = (dusunList[i] || '').trim();
+            if (!namaDusun) continue;
+            const laki = toInt(lakiList[i]);
+            const perempuan = toInt(perempuanList[i]);
+            const kk = toInt(kkList[i]);
+            const balita = toInt(balitaList[i]);
+            const remaja = toInt(remajaList[i]);
+            const dewasa = toInt(dewasaList[i]);
+            const lansia = toInt(lansiaList[i]);
+
+            await db.query(
+                `INSERT INTO kependudukan (dusun, laki_laki, perempuan, kk, balita, anak_remaja, dewasa, lansia)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE
+                    laki_laki = VALUES(laki_laki),
+                    perempuan = VALUES(perempuan),
+                    kk = VALUES(kk),
+                    balita = VALUES(balita),
+                    anak_remaja = VALUES(anak_remaja),
+                    dewasa = VALUES(dewasa),
+                    lansia = VALUES(lansia)`,
+                [namaDusun, laki, perempuan, kk, balita, remaja, dewasa, lansia]
+            );
+        }
+        await syncTotalPopulasi();
+        res.redirect('/admin?success=Data statistik kependudukan berhasil diperbarui#kependudukan');
+    } catch (err) {
+        console.error('Gagal menyimpan kependudukan:', err.message);
+        res.redirect('/admin?error=Gagal menyimpan data kependudukan#kependudukan');
     }
 });
 

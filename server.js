@@ -97,11 +97,95 @@ function parseGalleryBlobUrls(value) {
 app.use(express.urlencoded({ extended: true }));
 
 // Konfigurasi Session untuk Fitur Login
+const sessionSecret = process.env.SESSION_SECRET || 'secret-desa';
+const AUTH_COOKIE_NAME = 'desa_auth';
+const AUTH_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 hari
+
+function parseCookies(cookieHeader) {
+    const list = {};
+    if (!cookieHeader) return list;
+    cookieHeader.split(';').forEach(cookie => {
+        const idx = cookie.indexOf('=');
+        if (idx < 0) return;
+        const key = cookie.slice(0, idx).trim();
+        const val = cookie.slice(idx + 1).trim();
+        try {
+            list[key] = decodeURIComponent(val);
+        } catch (err) {
+            list[key] = val;
+        }
+    });
+    return list;
+}
+
+function signAuthToken(user) {
+    const payload = Buffer.from(JSON.stringify({
+        username: user.username,
+        role: user.role,
+        exp: Date.now() + AUTH_MAX_AGE_MS
+    })).toString('base64url');
+    const sig = crypto.createHmac('sha256', sessionSecret).update(payload).digest('base64url');
+    return `${payload}.${sig}`;
+}
+
+function verifyAuthToken(token) {
+    if (!token || typeof token !== 'string') return null;
+    const parts = token.split('.');
+    if (parts.length !== 2) return null;
+    const [payload, sig] = parts;
+    const expected = crypto.createHmac('sha256', sessionSecret).update(payload).digest('base64url');
+    const sigBuf = Buffer.from(sig);
+    const expBuf = Buffer.from(expected);
+    if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) return null;
+    try {
+        const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+        if (!data || !data.username || !data.role || (data.exp && Date.now() > data.exp)) return null;
+        return { username: data.username, role: data.role };
+    } catch (err) {
+        return null;
+    }
+}
+
+function setAuthCookie(res, user) {
+    res.cookie(AUTH_COOKIE_NAME, signAuthToken(user), {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: AUTH_MAX_AGE_MS,
+        path: '/'
+    });
+}
+
+function clearAuthCookie(res) {
+    res.clearCookie(AUTH_COOKIE_NAME, { path: '/' });
+}
+
+app.set('trust proxy', 1);
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'secret-desa',
+    secret: sessionSecret,
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: AUTH_MAX_AGE_MS
+    }
 }));
+
+// Pulihkan sesi login dari signed cookie & sediakan `user` di semua template EJS
+app.use((req, res, next) => {
+    if (!req.session.user) {
+        const cookies = parseCookies(req.headers.cookie);
+        const restoredUser = verifyAuthToken(cookies[AUTH_COOKIE_NAME]);
+        if (restoredUser) {
+            req.session.user = restoredUser;
+        }
+    }
+    res.locals.user = req.session.user || null;
+    res.set('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+    next();
+});
 
 // --- KONFIGURASI DATABASE MYSQL DENGAN SSL UNTUK TIDB ---
 const db = mysql.createPool({
@@ -367,7 +451,7 @@ function cekAdmin(req, res, next) {
 }
 
 function cekUser(req, res, next) {
-    if (req.session.user && req.session.user.role === 'user') {
+    if (req.session.user && (req.session.user.role === 'user' || req.session.user.role === 'admin')) {
         next();
     } else {
         res.redirect('/login?error=Silahkan Login Terlebih Dahulu!');
@@ -505,10 +589,16 @@ app.get('/statistik', async (req, res) => {
 
 // --- RUTE LOGIN & LOGOUT ---
 app.get('/login', (req, res) => {
-    res.render('login', { error: req.query.error, user: req.session.user });
+    if (req.session.user) {
+        return res.redirect(req.session.user.role === 'admin' ? '/admin' : '/user');
+    }
+    res.render('login', { error: req.query.error, success: req.query.success, user: req.session.user });
 });
 
 app.get('/register', (req, res) => {
+    if (req.session.user) {
+        return res.redirect(req.session.user.role === 'admin' ? '/admin' : '/user');
+    }
     res.render('register', { error: req.query.error, user: req.session.user });
 });
 
@@ -526,7 +616,7 @@ app.post('/register', async (req, res) => {
         }
 
         await db.query('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', [username, password, 'user']);
-        res.redirect('/login?error=Registrasi berhasil! Silahkan login.');
+        res.redirect('/login?success=Registrasi berhasil! Silakan masuk.');
     } catch (err) {
         res.redirect('/register?error=Terjadi kesalahan sistem.');
     }
@@ -540,12 +630,16 @@ app.post('/login', async (req, res) => {
         
         if (rows.length > 0) {
             const user = rows[0];
-            req.session.user = { username: user.username, role: user.role };
-            if (user.role === 'admin') {
-                res.redirect('/admin');
-            } else {
-                res.redirect('/user');
-            }
+            const sessionUser = { username: user.username, role: user.role };
+            req.session.user = sessionUser;
+            setAuthCookie(res, sessionUser);
+            req.session.save(() => {
+                if (user.role === 'admin') {
+                    res.redirect('/admin');
+                } else {
+                    res.redirect('/user');
+                }
+            });
         } else {
             res.redirect('/login?error=Username atau Password Salah!');
         }
@@ -555,8 +649,11 @@ app.post('/login', async (req, res) => {
 });
 
 app.get('/logout', (req, res) => {
-    req.session.destroy();
-    res.redirect('/');
+    clearAuthCookie(res);
+    req.session.destroy(() => {
+        res.clearCookie('connect.sid', { path: '/' });
+        res.redirect('/');
+    });
 });
 
 // --- RUTE KHUSUS ADMIN ---

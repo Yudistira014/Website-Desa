@@ -50,8 +50,14 @@ const caret = '<svg class="caret" viewBox="0 0 24 24" fill="none" stroke="curren
             <li><a href="/#berita" class="<%= isOn('berita') %>">Berita</a></li>
             <li><a href="/galeri" class="<%= isOn('galeri') %>">Galeri</a></li>
             <% if (user) { %>
-                <li><a href="/<%= user.role %>" class="btn btn-primary">Dashboard</a></li>
-                <li><a href="/logout">Keluar</a></li>
+                <li>
+                    <span class="nav-user">
+                        <span class="nav-user-avatar" aria-hidden="true"><%= user.username.charAt(0) %></span>
+                        <%= user.username %>
+                    </span>
+                </li>
+                <li><a href="/<%= user.role === 'admin' ? 'admin' : 'user' %>" class="btn btn-primary">Dashboard</a></li>
+                <li><a href="/logout" class="btn btn-outline">Keluar</a></li>
             <% } else { %>
                 <li><a href="/login" class="btn btn-primary">Masuk</a></li>
             <% } %>

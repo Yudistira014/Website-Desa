@@ -1,0 +1,163 @@
+<%
+/* Sidebar kiri untuk halaman Admin.
+   Parameter opsional:
+   - activeMenu = 'ringkasan' | 'berita' | 'laporan' | 'surat' | 'galeri' | 'daftar-berita'
+   - counts = { berita, galeri, laporan, suratMenunggu }
+   - baseHref = '/admin' (untuk halaman edit-berita agar tautan mengarah kembali ke /admin#section)
+*/
+const currentMenu = typeof activeMenu !== 'undefined' ? activeMenu : 'ringkasan';
+const c = typeof counts !== 'undefined' && counts ? counts : {};
+const base = typeof baseHref !== 'undefined' ? baseHref : '';
+%>
+<div class="admin-backdrop" id="admin-backdrop" aria-hidden="true"></div>
+<aside class="admin-sidebar" id="admin-sidebar" aria-label="Menu navigasi admin">
+    <div class="admin-sidebar-head">
+        <a href="/admin" class="admin-brand">
+            <img src="/uploads/Logo_desa.png" alt="Logo <%= desa.nama %>">
+            <div class="admin-brand-text">
+                <strong><%= desa.nama %></strong>
+                <small>Panel Administrasi</small>
+            </div>
+        </a>
+        <button type="button" class="admin-sidebar-close" id="admin-sidebar-close" aria-label="Tutup menu">✕</button>
+    </div>
+
+    <div class="admin-sidebar-body">
+        <div class="admin-nav-group">
+            <span class="admin-nav-label">Kelola Desa</span>
+            <ul class="admin-nav" id="admin-nav">
+                <li>
+                    <a href="<%= base %>#ringkasan" class="admin-nav-link <%= currentMenu === 'ringkasan' ? 'is-active' : '' %>" data-nav-target="ringkasan">
+                        <%- include('icon', { name: 'layers' }) %>
+                        <span>Ringkasan</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="<%= base %>#terbitkan-berita" class="admin-nav-link <%= currentMenu === 'berita' ? 'is-active' : '' %>" data-nav-target="terbitkan-berita">
+                        <%- include('icon', { name: 'megaphone' }) %>
+                        <span>Terbitkan Berita</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="<%= base %>#laporan-warga" class="admin-nav-link <%= currentMenu === 'laporan' ? 'is-active' : '' %>" data-nav-target="laporan-warga">
+                        <%- include('icon', { name: 'inbox' }) %>
+                        <span>Laporan Warga</span>
+                        <% if (typeof c.laporan === 'number') { %>
+                            <span class="admin-nav-badge"><%= c.laporan %></span>
+                        <% } %>
+                    </a>
+                </li>
+                <li>
+                    <a href="<%= base %>#surat-pengantar" class="admin-nav-link <%= currentMenu === 'surat' ? 'is-active' : '' %>" data-nav-target="surat-pengantar">
+                        <%- include('icon', { name: 'document' }) %>
+                        <span>Surat Pengantar</span>
+                        <% if (typeof c.suratMenunggu === 'number' && c.suratMenunggu > 0) { %>
+                            <span class="admin-nav-badge is-warning"><%= c.suratMenunggu %></span>
+                        <% } %>
+                    </a>
+                </li>
+                <li>
+                    <a href="<%= base %>#kelola-galeri" class="admin-nav-link <%= currentMenu === 'galeri' ? 'is-active' : '' %>" data-nav-target="kelola-galeri">
+                        <%- include('icon', { name: 'image' }) %>
+                        <span>Kelola Galeri</span>
+                        <% if (typeof c.galeri === 'number') { %>
+                            <span class="admin-nav-badge"><%= c.galeri %></span>
+                        <% } %>
+                    </a>
+                </li>
+                <li>
+                    <a href="<%= base %>#daftar-berita" class="admin-nav-link <%= currentMenu === 'daftar-berita' ? 'is-active' : '' %>" data-nav-target="daftar-berita">
+                        <%- include('icon', { name: 'news' }) %>
+                        <span>Daftar Berita</span>
+                        <% if (typeof c.berita === 'number') { %>
+                            <span class="admin-nav-badge"><%= c.berita %></span>
+                        <% } %>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="admin-nav-group">
+            <span class="admin-nav-label">Pintasan Situs</span>
+            <ul class="admin-nav">
+                <li>
+                    <a href="/" class="admin-nav-link">
+                        <%- include('icon', { name: 'home' }) %>
+                        <span>Lihat Situs Utama</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/galeri" class="admin-nav-link">
+                        <%- include('icon', { name: 'image' }) %>
+                        <span>Galeri Publik</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="admin-sidebar-foot">
+        <% if (user) { %>
+            <div class="admin-user-card">
+                <span class="nav-user-avatar" aria-hidden="true"><%= user.username.charAt(0) %></span>
+                <div class="admin-user-meta">
+                    <strong><%= user.username %></strong>
+                    <small>Administrator</small>
+                </div>
+            </div>
+        <% } %>
+        <a href="/logout" class="btn btn-danger-soft btn-sm btn-block">
+            <%- include('icon', { name: 'logout' }) %>
+            <span>Keluar</span>
+        </a>
+    </div>
+</aside>
+
+<script>
+    (() => {
+        const sidebar = document.getElementById('admin-sidebar');
+        const backdrop = document.getElementById('admin-backdrop');
+        const closeBtn = document.getElementById('admin-sidebar-close');
+        if (!sidebar) return;
+
+        const setOpen = open => {
+            sidebar.classList.toggle('is-open', open);
+            if (backdrop) backdrop.classList.toggle('is-open', open);
+            document.body.classList.toggle('admin-sidebar-open', open);
+        };
+
+        document.addEventListener('click', e => {
+            if (e.target.closest('[data-admin-menu-toggle]')) {
+                setOpen(!sidebar.classList.contains('is-open'));
+            }
+        });
+        if (closeBtn) closeBtn.addEventListener('click', () => setOpen(false));
+        if (backdrop) backdrop.addEventListener('click', () => setOpen(false));
+
+        const navLinks = sidebar.querySelectorAll('.admin-nav-link[data-nav-target]');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.forEach(l => l.classList.remove('is-active'));
+                link.classList.add('is-active');
+                setOpen(false);
+            });
+        });
+
+        // Sinkronisasi menu aktif saat halaman digulir (scroll spy)
+        const sections = Array.from(navLinks)
+            .map(link => document.getElementById(link.dataset.navTarget))
+            .filter(Boolean);
+
+        if (sections.length > 1 && 'IntersectionObserver' in window) {
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.id;
+                        navLinks.forEach(l => l.classList.toggle('is-active', l.dataset.navTarget === id));
+                    }
+                });
+            }, { rootMargin: '-20% 0px -65% 0px', threshold: 0 });
+            sections.forEach(sec => observer.observe(sec));
+        }
+    })();
+</script>

@@ -1,23 +1,32 @@
-<%- include('partials/head', { title: 'Edit Berita', bodyClass: 'page-muted' }) %>
-<%- include('partials/navbar-dashboard') %>
+<%- include('partials/head', { title: 'Edit Berita', bodyClass: 'page-muted admin-body' }) %>
 
 <% const imgSrc = foto => /^https?:\/\//i.test(foto) ? foto : '/' + foto; %>
 
-<main id="konten">
-    <header class="dash-header">
-        <div class="container container-narrow dash-header-inner">
-            <div>
-                <span class="eyebrow">Panel Administrasi</span>
-                <h1>Edit Berita</h1>
-                <p>Perbarui isi berita dan pastikan informasinya tetap akurat bagi pembaca.</p>
-            </div>
-            <a href="/admin" class="btn btn-outline"><%- include('partials/icon', { name: 'arrow-left' }) %> Kembali</a>
-        </div>
-    </header>
+<div class="admin-shell">
+    <%- include('partials/admin-sidebar', {
+        activeMenu: 'daftar-berita',
+        baseHref: '/admin'
+    }) %>
 
-    <div class="dash-body">
-        <div class="container container-narrow">
-            <section class="card">
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <div class="admin-topbar-left">
+                <button type="button" class="admin-menu-btn" data-admin-menu-toggle aria-label="Buka menu navigasi">
+                    <span></span><span></span><span></span>
+                </button>
+                <div>
+                    <span class="eyebrow">Panel Administrasi</span>
+                    <h1>Edit Berita</h1>
+                    <p>Perbarui isi berita dan pastikan informasinya tetap akurat bagi pembaca.</p>
+                </div>
+            </div>
+            <div class="admin-topbar-actions">
+                <a href="/admin#daftar-berita" class="btn btn-outline btn-sm"><%- include('partials/icon', { name: 'arrow-left' }) %> Kembali</a>
+            </div>
+        </header>
+
+        <main id="konten" class="admin-content">
+            <section class="card" style="max-width: 780px;">
                 <form action="/admin/edit-berita/<%= id %>" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="edit-judul">Judul Berita</label>
@@ -39,13 +48,14 @@
                     </div>
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                        <a href="/admin" class="btn btn-outline">Batal</a>
+                        <a href="/admin#daftar-berita" class="btn btn-outline">Batal</a>
                     </div>
                 </form>
             </section>
-        </div>
-    </div>
-</main>
+        </main>
 
-<%- include('partials/footer', { simple: true }) %>
+        <%- include('partials/footer', { simple: true }) %>
+    </div>
+</div>
+
 <%- include('partials/end') %>

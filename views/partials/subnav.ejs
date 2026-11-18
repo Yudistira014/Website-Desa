@@ -1,0 +1,12 @@
+<%
+/* Tab navigasi antar halaman satu kelompok. Parameter: tabs = [{ label, href }], current = href aktif */
+%>
+<nav class="subnav" aria-label="Navigasi bagian">
+    <div class="container">
+        <ul>
+            <% tabs.forEach(function(tab) { %>
+                <li><a href="<%= tab.href %>" class="<%= tab.href === current ? 'is-active' : '' %>"<% if (tab.href === current) { %> aria-current="page"<% } %>><%= tab.label %></a></li>
+            <% }); %>
+        </ul>
+    </div>
+</nav>

@@ -1,110 +1,58 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LPMD - <%= desa.nama %></title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/style.css?v=20261116">
-</head>
-<body class="bg-light">
+<% const data = desa.pemerintahan.lpmd; %>
+<%- include('partials/head', { title: 'LPMD', bodyClass: 'page-muted' }) %>
+<%- include('partials/navbar', { active: 'pemerintahan', activeSub: '/pemerintahan/lpmd' }) %>
 
-    <nav class="navbar">
-        <div class="nav-brand">
-            <img src="/uploads/Logo_desa.png" alt="Logo Desa" class="brand-icon" />
-            <div class="brand-text"><span><%= desa.nama %></span></div>
-        </div>
-        <button class="menu-toggle" type="button" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="nav-links">
-            <span></span><span></span><span></span>
-        </button>
-        <ul class="nav-links" id="nav-links">
-            <li><a href="/">Beranda</a></li>
-            <li><a href="/galeri">Galeri</a></li>
-            <li><a href="/pemerintahan/desa">Pemerintahan</a></li>
-            <li><a href="/profil">Profil Desa</a></li>
-            <li><a href="/layanan/pengaduan">Pengaduan</a></li>
-            <% if (user) { %>
-                <li><a href="/<%= user.role %>" class="btn-primary">Dashboard</a></li>
-                <li><a href="/logout" style="color: #ef4444; font-weight: bold;">Logout</a></li>
-            <% } else { %>
-                <li><a href="/login" class="btn-primary">Login</a></li>
-            <% } %>
-        </ul>
-    </nav>
+<main id="konten">
+    <%- include('partials/page-header', {
+        heading: data.judul,
+        lead: data.deskripsi,
+        crumbs: [{ label: 'Pemerintahan', href: '/pemerintahan/desa' }, { label: 'LPMD' }]
+    }) %>
+    <%- include('partials/subnav', {
+        tabs: [{ label: 'Pemerintah Desa', href: '/pemerintahan/desa' }, { label: 'BPD', href: '/pemerintahan/bpd' }, { label: 'LPMD', href: '/pemerintahan/lpmd' }],
+        current: '/pemerintahan/lpmd'
+    }) %>
 
-    <main class="lpmd-page">
-        <section class="lpmd-hero">
-            <div class="lpmd-hero-copy">
-                <p class="lpmd-eyebrow">Lembaga Pemberdayaan Masyarakat Desa</p>
-                <h1><%= desa.pemerintahan.lpmd.judul %></h1>
-                <p class="lpmd-lead"><%= desa.pemerintahan.lpmd.deskripsi %></p>
-                <div class="lpmd-actions">
-                    <a class="lpmd-button lpmd-button-primary" href="#agenda">Lihat agenda <span aria-hidden="true">↓</span></a>
-                    <a class="lpmd-button lpmd-button-quiet" href="/layanan/pengaduan">Sampaikan aspirasi <span aria-hidden="true">→</span></a>
-                </div>
-            </div>
-            <div class="lpmd-hero-art" aria-hidden="true">
-                <div class="lpmd-art-orbit lpmd-art-orbit-outer"></div>
-                <div class="lpmd-art-orbit lpmd-art-orbit-inner"></div>
-                <div class="lpmd-art-center">
-                    <span class="lpmd-art-mark">L</span>
-                    <span>LPMD</span>
-                </div>
-                <span class="lpmd-art-dot lpmd-art-dot-one"></span>
-                <span class="lpmd-art-dot lpmd-art-dot-two"></span>
-            </div>
-        </section>
-
-        <section class="lpmd-content" aria-label="Informasi LPMD">
-            <article class="lpmd-info-card lpmd-card-focus">
-                <span class="lpmd-card-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.64 5.64l2.12 2.12m8.48 8.48 2.12 2.12m0-12.72-2.12 2.12m-8.48 8.48-2.12 2.12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.7"/></svg>
-                </span>
-                <p class="lpmd-card-label">Arah kerja</p>
-                <h2>Fokus Pemberdayaan</h2>
-                <p>LPMD bekerja bersama warga untuk memperkuat ekonomi lokal, membangun kolaborasi kelompok, dan mendorong kegiatan produktif yang memberi dampak nyata.</p>
-            </article>
-
-            <article class="lpmd-info-card lpmd-card-impact">
-                <span class="lpmd-card-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none"><path d="M4 19V9m5 10V5m6 14v-7m5 7V8M2 19h20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </span>
-                <p class="lpmd-card-label">Dampak untuk warga</p>
-                <h2>Manfaat yang Terasa</h2>
-                <p>Program pelatihan usaha, pendampingan kelompok tani, dan kegiatan unggulan membantu warga mengembangkan potensi serta meningkatkan kesejahteraan di <%= desa.nama %>.</p>
-            </article>
-
-            <section class="lpmd-agenda" id="agenda">
-                <div class="lpmd-agenda-heading">
-                    <div>
-                        <p class="lpmd-card-label">Rencana aksi</p>
-                        <h2>Agenda Utama</h2>
+    <section class="section">
+        <div class="container stack">
+            <div class="grid grid-2">
+                <article class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'compass' }) %></span> Fokus Pemberdayaan</h2>
                     </div>
-                    <span class="lpmd-agenda-count"><%= desa.pemerintahan.lpmd.tugas.length %> program</span>
-                </div>
-                <ul class="lpmd-agenda-list">
-                    <% desa.pemerintahan.lpmd.tugas.forEach((item, index) => { %>
-                        <li>
-                            <span class="lpmd-agenda-number"><%= String(index + 1).padStart(2, '0') %></span>
-                            <span><%= item %></span>
-                            <span class="lpmd-agenda-arrow" aria-hidden="true">↗</span>
-                        </li>
-                    <% }) %>
-                </ul>
-            </section>
-        </section>
-    </main>
+                    <p>LPMD bekerja bersama warga untuk memperkuat ekonomi lokal, membangun kolaborasi kelompok, dan mendorong kegiatan produktif yang memberi dampak nyata.</p>
+                </article>
 
-    <footer>
-        <div class="footer-content">
-            <div class="footer-info">
-                <h3><%= desa.nama %></h3>
-                <p>Kepala Desa: <%= desa.kepalaDesa %> | Populasi: <%= desa.populasi %> Jiwa</p>
+                <article class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'chart' }) %></span> Manfaat untuk Warga</h2>
+                    </div>
+                    <p>Program pelatihan usaha, pendampingan kelompok tani, dan kegiatan unggulan membantu warga mengembangkan potensi serta meningkatkan kesejahteraan di <%= desa.nama %>.</p>
+                </article>
             </div>
-            <p class="footer-copyright">&copy; 2026 Portal Resmi <%= desa.nama %></p>
-        </div>
-    </footer>
 
-    <script src="/navigation.js?v=20261116"></script>
-</body>
-</html>
+            <article class="card" id="agenda">
+                <div class="card-header">
+                    <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'calendar' }) %></span> Agenda Utama</h2>
+                    <span class="badge badge-primary"><%= data.tugas.length %> program</span>
+                </div>
+                <ol class="list-number">
+                    <% data.tugas.forEach(function(item) { %>
+                        <li><span><%= item %></span></li>
+                    <% }); %>
+                </ol>
+            </article>
+
+            <div class="cta-band">
+                <div>
+                    <h3>Ikut berkontribusi untuk desa</h3>
+                    <p>Usulkan program pemberdayaan atau sampaikan masukan Anda kepada LPMD.</p>
+                </div>
+                <a href="/layanan/pengaduan" class="btn btn-light">Sampaikan Aspirasi <%- include('partials/icon', { name: 'arrow-right' }) %></a>
+            </div>
+        </div>
+    </section>
+</main>
+
+<%- include('partials/footer') %>
+<%- include('partials/end') %>

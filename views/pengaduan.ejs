@@ -1,90 +1,58 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pengaduan - <%= desa.nama %></title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/style.css?v=20261116">
-</head>
-<body class="bg-light">
+<%- include('partials/head', { title: 'Pengaduan & Aspirasi', bodyClass: 'page-muted' }) %>
+<%- include('partials/navbar', { active: 'layanan', activeSub: '/layanan/pengaduan' }) %>
 
-    <nav class="navbar">
-        <div class="nav-brand">
-            <img src="/uploads/Logo_desa.png" alt="Logo Desa" class="brand-icon" />
-            <div class="brand-text"><span><%= desa.nama %></span></div>
-        </div>
-        <button class="menu-toggle" type="button" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="nav-links">
-            <span></span><span></span><span></span>
-        </button>
-        <ul class="nav-links" id="nav-links">
-            <li><a href="/">Beranda</a></li>
-            <li><a href="/galeri">Galeri</a></li>
-            <li><a href="/layanan/pengaduan">Pengaduan</a></li>
-            <li><a href="/profil">Profil Desa</a></li>
-            <li><a href="/pemerintahan/desa">Pemerintahan</a></li>
-            <% if (user) { %>
-                <li><a href="/<%= user.role %>" class="btn-primary">Dashboard</a></li>
-                <li><a href="/logout" style="color: #ef4444; font-weight: bold;">Logout</a></li>
-            <% } else { %>
-                <li><a href="/login" class="btn-primary">Login</a></li>
-            <% } %>
-        </ul>
-    </nav>
+<main id="konten">
+    <%- include('partials/page-header', {
+        heading: 'Pengaduan & Aspirasi',
+        lead: 'Ajukan keluhan, saran, atau permintaan informasi kepada pemerintah desa secara langsung.',
+        crumbs: [{ label: 'Layanan', href: '/#layanan' }, { label: 'Pengaduan & Aspirasi' }]
+    }) %>
 
-    <main class="section">
-        <div class="section-header">
-            <h2>Pengaduan & Aspirasi</h2>
-            <p>Ajukan keluhan, saran, atau permintaan informasi kepada pemerintahan desa secara langsung.</p>
-        </div>
+    <section class="section">
+        <div class="container container-narrow stack">
+            <div class="grid grid-2">
+                <article class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'clipboard' }) %></span> Cara Mengajukan</h2>
+                    </div>
+                    <ol class="list-number">
+                        <li><span>Masuk dengan akun warga, lalu buka menu <strong>Dashboard</strong>.</span></li>
+                        <li><span>Pilih jenis laporan: Saran, Keluhan/Pengaduan, atau Permohonan Informasi.</span></li>
+                        <li><span>Tuliskan detail dengan jelas dan lampirkan foto bila perlu agar cepat ditindaklanjuti.</span></li>
+                    </ol>
+                </article>
 
-        <div class="grid-container" style="max-width: 960px; margin: 0 auto;">
-            <div class="card" style="grid-column: 1 / -1; border-top: 5px solid var(--primary-color);">
-                <h3>Cara Mengajukan Pengaduan</h3>
-                <ul style="list-style: none; margin-top: 20px;">
-                    <li style="margin-bottom: 14px; display: flex; gap: 14px; align-items: flex-start;">
-                        <span style="width: 28px; height: 28px; border-radius: 50%; background: var(--primary-color); color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem;">1</span>
-                        <span style="color: var(--text-light);">Login dengan akun warga di menu <strong>Dashboard</strong>.</span>
-                    </li>
-                    <li style="margin-bottom: 14px; display: flex; gap: 14px; align-items: flex-start;">
-                        <span style="width: 28px; height: 28px; border-radius: 50%; background: var(--primary-color); color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem;">2</span>
-                        <span style="color: var(--text-light);">Pilih jenis laporan: Saran, Keluhan/Pengaduan, atau Permohonan Informasi.</span>
-                    </li>
-                    <li style="margin-bottom: 14px; display: flex; gap: 14px; align-items: flex-start;">
-                        <span style="width: 28px; height: 28px; border-radius: 50%; background: var(--primary-color); color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem;">3</span>
-                        <span style="color: var(--text-light);">Tuliskan detail pengaduan dengan jelas agar dapat ditindaklanjuti cepat.</span>
-                    </li>
-                </ul>
+                <article class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'chat' }) %></span> Contoh Laporan</h2>
+                    </div>
+                    <ul class="list-check">
+                        <li>Kerusakan fasilitas umum</li>
+                        <li>Pelayanan administrasi yang lambat</li>
+                        <li>Permintaan informasi bantuan sosial</li>
+                        <li>Saran peningkatan program desa</li>
+                    </ul>
+                </article>
             </div>
 
-            <div class="card" style="grid-column: 1 / -1; border-top: 5px solid var(--secondary-color);">
-                <h3>Contoh Pengaduan</h3>
-                <p style="font-size: 1rem; color: var(--text-main); line-height: 1.8;">
-                    Contoh laporan yang bisa dikirim: <strong>kerusakan fasilitas umum</strong>, <strong>pelayanan administrasi yang lambat</strong>, <strong>permintaan informasi bantuan sosial</strong>, atau <strong>saran peningkatan program desa.</strong>
-                </p>
-            </div>
-
-            <div class="card" style="grid-column: 1 / -1; border-top: 5px solid rgba(4,120,87,0.4);">
-                <h3>Mulai Pengaduan</h3>
+            <div class="cta-band">
                 <% if (user) { %>
-                    <p style="font-size: 1rem; color: var(--text-main); line-height: 1.8;">Anda sudah masuk sebagai <strong><%= user.username %></strong>. Silakan gunakan halaman <a href="/<%= user.role %>">Dashboard</a> untuk mengirim pengaduan.</p>
+                    <div>
+                        <h3>Mulai pengaduan</h3>
+                        <p>Anda masuk sebagai <strong><%= user.username %></strong>. Kirim laporan melalui dashboard Anda.</p>
+                    </div>
+                    <a href="/<%= user.role %>" class="btn btn-light">Buka Dashboard <%- include('partials/icon', { name: 'arrow-right' }) %></a>
                 <% } else { %>
-                    <p style="font-size: 1rem; color: var(--text-main); line-height: 1.8;">Silakan <a href="/login">login</a> sebagai warga terlebih dahulu agar pengaduan dapat kami proses.</p>
+                    <div>
+                        <h3>Mulai pengaduan</h3>
+                        <p>Silakan masuk sebagai warga terlebih dahulu agar pengaduan dapat kami proses.</p>
+                    </div>
+                    <a href="/login" class="btn btn-light">Masuk Sekarang <%- include('partials/icon', { name: 'arrow-right' }) %></a>
                 <% } %>
             </div>
         </div>
-    </main>
+    </section>
+</main>
 
-    <footer>
-        <div class="footer-content">
-            <div class="footer-info">
-                <h3><%= desa.nama %></h3>
-                <p>Kepala Desa: <%= desa.kepalaDesa %> | Populasi: <%= desa.populasi %> Jiwa</p>
-            </div>
-            <p class="footer-copyright">&copy; 2026 Portal Resmi <%= desa.nama %></p>
-        </div>
-    </footer>
-
-    <script src="/navigation.js?v=20261116"></script>
-</body>
-</html>
+<%- include('partials/footer') %>
+<%- include('partials/end') %>

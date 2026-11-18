@@ -1,208 +1,258 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin - Portal <%= desa.nama %></title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/style.css?v=galeri">
-</head>
-<body class="bg-light">
+<%- include('partials/head', { title: 'Dashboard Admin', bodyClass: 'page-muted' }) %>
+<%- include('partials/navbar-dashboard', { active: 'dashboard' }) %>
 
-    <!-- Navbar Khusus Admin -->
-    <nav class="navbar">
-        <a href="/" class="nav-brand" style="text-decoration: none;">
-            <img src="/uploads/Logo_desa.png" alt="Logo Desa" class="brand-icon" />
-            <div class="brand-text">Admin<span>Panel</span></div>
-        </a>
-        <button class="menu-toggle" type="button" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="nav-links">
-            <span></span><span></span><span></span>
-        </button>
-        <ul class="nav-links" id="nav-links">
-            <li><a href="/admin">Dashboard</a></li>
-            <li><a href="/">Lihat Beranda</a></li>
-            <li><a href="/galeri">Galeri</a></li>
-            <li class="nav-item">
-                <span style="font-weight: 600; color: var(--primary-color); font-size: 0.9rem;">👤 <%= user.username %></span>
-            </li>
-            <li><a href="/logout" class="btn-primary" style="background-color: #ef4444; border: none; padding: 8px 20px;">Keluar</a></li>
-        </ul>
-    </nav>
+<%
+const imgSrc = foto => /^https?:\/\//i.test(foto) ? foto : '/' + foto;
+const daftarBerita = berita || [];
+const daftarGaleri = galeri || [];
+const daftarLaporan = laporanWarga || [];
+const daftarSurat = suratPengantar || [];
+const suratMenunggu = daftarSurat.filter(s => (s.status || 'Menunggu') === 'Menunggu').length;
+const statusBadge = status => status === 'Ditolak' ? 'badge-danger' : (status === 'Disetujui' ? 'badge-success' : 'badge-warning');
+%>
 
-    <main class="section">
-        <div class="section-header">
-            <h2>Panel Administrasi Desa</h2>
-            <p>Selamat datang kembali, <strong><%= user.username %></strong>. Kelola informasi desa Anda di sini.</p>
-        </div>
-
-        <% if (error) { %>
-            <p class="admin-notice admin-notice-error" role="alert"><%= error %></p>
-        <% } %>
-        <% if (success) { %>
-            <p class="admin-notice admin-notice-success" role="status"><%= success %></p>
-        <% } %>
-        <% if (isVercel && !hasVercelBlobConfig) { %>
-            <p class="admin-notice admin-notice-error" role="alert">Hubungkan Vercel Blob dengan akses publik ke project ini agar unggahan galeri dapat disimpan.</p>
-        <% } %>
-
-        <div class="dashboard-grid">
-            <!-- Kolom Kiri: Form Tambah Berita -->
-            <section class="card">
-                <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-                    <span>📢</span> Terbitkan Berita Baru
-                </h3>
-                <form action="/admin/tambah-berita" method="POST" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label>Judul Berita</label>
-                        <input type="text" name="judul" required placeholder="Contoh: Jadwal Musyawarah Desa">
-                    </div>
-                    <div class="form-group">
-                        <label>Ringkasan Informasi</label>
-                        <textarea name="ringkasan" rows="5" required placeholder="Tuliskan isi berita secara singkat dan jelas..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Foto Berita (opsional)</label>
-                        <input type="file" name="fotoBerita" accept="image/*">
-                    </div>
-                    <button type="submit" class="btn-primary" style="width: 100%; border: none; padding: 12px; cursor: pointer;">Posting Berita</button>
-                </form>
-            </section>
-
-            <!-- Kolom Kanan: Daftar Laporan Warga -->
-            <section class="card">
-                <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-                    <span>📩</span> Laporan & Aspirasi Masuk
-                </h3>
-                <div style="max-height: 260px; overflow-y: auto; padding-right: 5px; margin-bottom: 20px;">
-                    <% if (laporanWarga && laporanWarga.length > 0) { %>
-                        <% [...laporanWarga].reverse().forEach(laporan => { %>
-                            <div style="background: var(--bg-light); padding: 15px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid var(--primary-color);">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                                    <strong style="color: var(--primary-dark);"><%= laporan.nama %></strong>
-                                    <span style="font-size: 0.7rem; background: #fff; padding: 2px 8px; border-radius: 10px; border: 1px solid #ddd; color: var(--text-light);"><%= laporan.tipe %></span>
-                                </div>
-                                <p style="font-size: 0.9rem; color: var(--text-main);"><%= laporan.isi %></p>
-                                <% if (laporan.foto) { %>
-                                    <img src="/<%= laporan.foto %>" alt="Foto laporan" style="max-width: 100%; margin-top: 10px; border-radius: 10px; border: 1px solid #ddd;">
-                                <% } %>
-                            </div>
-                        <% }) %>
-                    <% } else { %>
-                        <p style="text-align: center; color: var(--text-light); padding: 20px;">Belum ada laporan dari warga.</p>
-                    <% } %>
-                </div>
-
-                <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-                    <span>📄</span> Surat Pengantar Masuk
-                </h3>
-                <div style="max-height: 260px; overflow-y: auto; padding-right: 5px;">
-                    <% if (suratPengantar && suratPengantar.length > 0) { %>
-                        <% [...suratPengantar].reverse().forEach(surat => { %>
-                            <div style="background: var(--bg-light); padding: 15px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid var(--secondary-color);">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
-                                    <strong style="color: var(--primary-dark);"><%= surat.nama %></strong>
-                                    <span style="font-size: 0.7rem; background: #fff; padding: 2px 8px; border-radius: 10px; border: 1px solid #ddd; color: var(--text-light);">Status: <%= surat.status || 'Menunggu' %></span>
-                                </div>
-                                <p style="margin: 0 0 6px; font-size: 0.9rem; color: var(--text-main);"><strong>Keperluan:</strong> <%= surat.keperluan %></p>
-                                <p style="margin: 0 0 6px; font-size: 0.85rem; color: var(--text-light);"><strong>NIK:</strong> <%= surat.nik %> | <strong>HP:</strong> <%= surat.no_hp %></p>
-                                <p style="margin: 0; font-size: 0.85rem; color: var(--text-main);"><strong>Alamat:</strong> <%= surat.alamat %></p>
-                                <% if (surat.status === 'Ditolak' && surat.alasan_penolakan) { %>
-                                    <p style="margin: 8px 0 0; font-size: 0.85rem; color: #b91c1c;"><strong>Alasan Tolak:</strong> <%= surat.alasan_penolakan %></p>
-                                <% } %>
-                                <% if (surat.status === 'Menunggu') { %>
-                                    <div style="margin-top: 10px;">
-                                        <form action="/admin/surat-pengantar/<%= surat.id %>/status" method="POST" style="margin-bottom: 10px;">
-                                            <input type="hidden" name="action" value="konfirmasi">
-                                            <button type="submit" class="btn-primary" style="padding: 6px 12px; font-size: 0.8rem;">Konfirmasi</button>
-                                        </form>
-                                        <form action="/admin/surat-pengantar/<%= surat.id %>/status" method="POST">
-                                            <input type="hidden" name="action" value="tolak">
-                                            <div style="margin-bottom: 8px;">
-                                                <textarea name="alasanPenolakan" rows="2" required placeholder="Tuliskan alasan penolakan..." style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ddd; resize: vertical;"></textarea>
-                                            </div>
-                                            <button type="submit" class="btn-primary" style="padding: 6px 12px; font-size: 0.8rem; background-color: #ef4444; border: none;">Tolak</button>
-                                        </form>
-                                    </div>
-                                <% } %>
-                            </div>
-                        <% }) %>
-                    <% } else { %>
-                        <p style="text-align: center; color: var(--text-light); padding: 20px;">Belum ada pengajuan surat pengantar.</p>
-                    <% } %>
-                </div>
-            </section>
-        </div>
-
-        <section class="card admin-gallery">
-            <div class="admin-gallery-heading">
-                <div>
-                    <span class="section-kicker">Dokumentasi desa</span>
-                    <h3>Kelola Galeri Kegiatan</h3>
-                    <p>Tambahkan hingga 10 foto untuk satu kegiatan. Foto akan tampil di halaman galeri publik.</p>
-                </div>
-                <a class="admin-gallery-view-link" href="/galeri">Lihat galeri <span aria-hidden="true">→</span></a>
+<main id="konten">
+    <header class="dash-header">
+        <div class="container dash-header-inner">
+            <div>
+                <span class="eyebrow">Panel Administrasi</span>
+                <h1>Selamat datang, <%= user.username %></h1>
+                <p>Kelola berita, galeri, laporan warga, dan pengajuan surat <%= desa.nama %>.</p>
             </div>
-            <form action="/admin/tambah-galeri" method="POST" enctype="multipart/form-data" class="gallery-upload-form" data-cloud-upload="<%= isVercel ? 'true' : 'false' %>">
-                <div class="form-group">
-                    <label for="gallery-title">Nama kegiatan</label>
-                    <input id="gallery-title" type="text" name="judul" maxlength="255" required placeholder="Contoh: Kerja Bakti Lingkungan">
-                </div>
-                <div class="form-group">
-                    <label for="gallery-description">Keterangan (opsional)</label>
-                    <textarea id="gallery-description" name="deskripsi" rows="3" placeholder="Ceritakan singkat kegiatan ini"></textarea>
-                </div>
-                <div class="form-group gallery-file-field">
-                    <label for="gallery-photos">Foto dokumentasi</label>
-                    <input id="gallery-photos" type="file" name="fotoGaleri" accept="image/jpeg,image/png,image/webp" multiple required>
-                    <small>Pilih maksimal 10 foto (maksimal 3 MB per foto).</small>
-                </div>
-                <button type="submit" class="btn-primary gallery-upload-button">Simpan Dokumentasi</button>
-                <p class="gallery-upload-status" aria-live="polite"></p>
-            </form>
+            <a href="/" class="btn btn-outline">Lihat Situs <%- include('partials/icon', { name: 'arrow-right' }) %></a>
+        </div>
+    </header>
 
-            <div class="admin-gallery-list">
-                <% if (galeri && galeri.length) { %>
-                    <% galeri.forEach(function(item) { %>
-                        <article class="admin-gallery-item">
-                            <img src="<%= /^https?:\/\//i.test(item.foto) ? item.foto : '/' + item.foto %>" alt="<%= item.judul %>" loading="lazy" decoding="async">
-                            <div class="admin-gallery-item-info">
-                                <strong><%= item.judul %></strong>
-                                <span><%= item.tanggal %></span>
-                            </div>
-                            <form action="/admin/hapus-galeri/<%= item.id %>" method="POST" onsubmit="return confirm('Hapus dokumentasi ini?')">
-                                <button type="submit" class="gallery-delete-button">Hapus</button>
-                            </form>
-                        </article>
-                    <% }); %>
-                <% } else { %>
-                    <p class="gallery-empty">Belum ada dokumentasi yang disimpan.</p>
-                <% } %>
+    <div class="dash-body">
+        <div class="container">
+            <% if (error) { %>
+                <div class="alert alert-error" role="alert"><%- include('partials/icon', { name: 'alert-circle' }) %> <%= error %></div>
+            <% } %>
+            <% if (success) { %>
+                <div class="alert alert-success" role="status"><%- include('partials/icon', { name: 'check-circle' }) %> <%= success %></div>
+            <% } %>
+            <% if (isVercel && !hasVercelBlobConfig) { %>
+                <div class="alert alert-warning" role="alert"><%- include('partials/icon', { name: 'alert-circle' }) %> Hubungkan Vercel Blob dengan akses publik ke project ini agar unggahan galeri dapat disimpan.</div>
+            <% } %>
+
+            <!-- Ringkasan -->
+            <div class="dash-stats">
+                <div class="card stat-card">
+                    <span class="icon-box"><%- include('partials/icon', { name: 'news' }) %></span>
+                    <div><strong><%= daftarBerita.length %></strong><span>Berita terbit</span></div>
+                </div>
+                <div class="card stat-card">
+                    <span class="icon-box"><%- include('partials/icon', { name: 'image' }) %></span>
+                    <div><strong><%= daftarGaleri.length %></strong><span>Foto galeri</span></div>
+                </div>
+                <div class="card stat-card">
+                    <span class="icon-box"><%- include('partials/icon', { name: 'inbox' }) %></span>
+                    <div><strong><%= daftarLaporan.length %></strong><span>Laporan warga</span></div>
+                </div>
+                <div class="card stat-card">
+                    <span class="icon-box icon-box-accent"><%- include('partials/icon', { name: 'document' }) %></span>
+                    <div><strong><%= suratMenunggu %></strong><span>Surat menunggu</span></div>
+                </div>
             </div>
-        </section>
 
-        <!-- Bagian Bawah: Daftar Berita yang Sudah Ada -->
-        <div class="card" style="margin-top: 30px;">
-            <h3 style="margin-bottom: 20px;">📰 Berita Desa Saat Ini</h3>
-            <div class="grid-container" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
-                <% (berita || []).forEach((b, index) => { %>
-                    <div class="news-card" style="border: 1px solid #eee; padding: 15px; border-radius: 8px;">
-                        <span class="date"><%= b.tanggal %></span>
-                        <h4 style="margin: 10px 0;"><%= b.judul %></h4>
-                        <p style="font-size: 0.85rem; color: var(--text-light);"><%= b.ringkasan.substring(0, 100) %>...</p>
-                        <div style="margin-top: 15px; display: flex; gap: 10px;">
-                            <a href="/admin/edit-berita/<%= b.id %>" class="btn-primary" style="padding: 8px 14px; font-size: 0.9rem; background-color: var(--secondary-color);">Edit</a>
-                            <form action="/admin/hapus-berita/<%= b.id %>" method="POST" onsubmit="return confirm('Hapus berita ini?')">
-                                <button type="submit" class="btn-primary" style="padding: 8px 14px; font-size: 0.9rem; background-color: #ef4444; border: none; cursor: pointer;">Hapus</button>
-                            </form>
+            <div class="dash-grid">
+                <!-- Terbitkan berita -->
+                <section class="card">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'megaphone' }) %></span> Terbitkan Berita Baru</h2>
                         </div>
                     </div>
-                <% }) %>
+                    <form action="/admin/tambah-berita" method="POST" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="berita-judul">Judul Berita</label>
+                            <input id="berita-judul" type="text" name="judul" required placeholder="Contoh: Jadwal Musyawarah Desa">
+                        </div>
+                        <div class="form-group">
+                            <label for="berita-ringkasan">Isi Berita</label>
+                            <textarea id="berita-ringkasan" name="ringkasan" rows="6" required placeholder="Tuliskan isi berita secara singkat dan jelas..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="berita-foto">Foto Berita <span class="optional">(opsional)</span></label>
+                            <input id="berita-foto" type="file" name="fotoBerita" accept="image/*">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Posting Berita</button>
+                    </form>
+                </section>
+
+                <!-- Laporan warga -->
+                <section class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'inbox' }) %></span> Laporan &amp; Aspirasi Masuk</h2>
+                        <span class="badge"><%= daftarLaporan.length %></span>
+                    </div>
+                    <div class="scroll-area">
+                        <% if (daftarLaporan.length > 0) { %>
+                            <div class="item-list">
+                                <% daftarLaporan.forEach(function(laporan) { %>
+                                    <article class="item">
+                                        <div class="item-head">
+                                            <span class="item-title"><%= laporan.nama %></span>
+                                            <span class="badge badge-primary"><%= laporan.tipe %></span>
+                                        </div>
+                                        <% if (laporan.tanggal) { %>
+                                            <div class="item-meta"><span><%= laporan.tanggal %></span></div>
+                                        <% } %>
+                                        <p><%= laporan.isi %></p>
+                                        <% if (laporan.foto) { %>
+                                            <img class="item-image" src="<%= imgSrc(laporan.foto) %>" alt="Foto laporan dari <%= laporan.nama %>" loading="lazy">
+                                        <% } %>
+                                    </article>
+                                <% }); %>
+                            </div>
+                        <% } else { %>
+                            <p class="empty-text">Belum ada laporan dari warga.</p>
+                        <% } %>
+                    </div>
+                </section>
             </div>
+
+            <!-- Surat pengantar -->
+            <section class="card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'document' }) %></span> Surat Pengantar Masuk</h2>
+                        <p class="card-subtitle">Konfirmasi atau tolak pengajuan surat dari warga.</p>
+                    </div>
+                    <span class="badge badge-warning"><%= suratMenunggu %> menunggu</span>
+                </div>
+                <div class="scroll-area">
+                    <% if (daftarSurat.length > 0) { %>
+                        <div class="item-list">
+                            <% daftarSurat.forEach(function(surat) {
+                                const status = surat.status || 'Menunggu';
+                            %>
+                                <article class="item <%= status === 'Ditolak' ? 'is-danger' : 'is-secondary' %>">
+                                    <div class="item-head">
+                                        <span class="item-title"><%= surat.nama %> — <%= surat.keperluan %></span>
+                                        <span class="badge <%= statusBadge(status) %>"><%= status %></span>
+                                    </div>
+                                    <div class="item-meta">
+                                        <% if (surat.tanggal) { %><span><%= surat.tanggal %></span><% } %>
+                                        <span><strong>NIK:</strong> <%= surat.nik %></span>
+                                        <span><strong>HP:</strong> <%= surat.no_hp %></span>
+                                    </div>
+                                    <p><strong>Alamat:</strong> <%= surat.alamat %></p>
+                                    <% if (surat.catatan) { %>
+                                        <p><strong>Catatan:</strong> <%= surat.catatan %></p>
+                                    <% } %>
+                                    <% if (status === 'Ditolak' && surat.alasan_penolakan) { %>
+                                        <p class="item-note-danger"><strong>Alasan penolakan:</strong> <%= surat.alasan_penolakan %></p>
+                                    <% } %>
+                                    <% if (status === 'Menunggu') { %>
+                                        <div class="item-actions">
+                                            <form action="/admin/surat-pengantar/<%= surat.id %>/status" method="POST">
+                                                <input type="hidden" name="action" value="konfirmasi">
+                                                <button type="submit" class="btn btn-primary btn-sm"><%- include('partials/icon', { name: 'check-circle' }) %> Konfirmasi</button>
+                                            </form>
+                                            <form action="/admin/surat-pengantar/<%= surat.id %>/status" method="POST" class="reject-form">
+                                                <input type="hidden" name="action" value="tolak">
+                                                <label class="visually-hidden" for="alasan-<%= surat.id %>">Alasan penolakan</label>
+                                                <textarea id="alasan-<%= surat.id %>" name="alasanPenolakan" rows="1" required placeholder="Alasan penolakan..."></textarea>
+                                                <button type="submit" class="btn btn-danger-soft btn-sm">Tolak</button>
+                                            </form>
+                                        </div>
+                                    <% } %>
+                                </article>
+                            <% }); %>
+                        </div>
+                    <% } else { %>
+                        <p class="empty-text">Belum ada pengajuan surat pengantar.</p>
+                    <% } %>
+                </div>
+            </section>
+
+            <!-- Galeri -->
+            <section class="card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'image' }) %></span> Kelola Galeri Kegiatan</h2>
+                        <p class="card-subtitle">Tambahkan hingga 10 foto untuk satu kegiatan. Foto akan tampil di halaman galeri publik.</p>
+                    </div>
+                    <a class="link-arrow" href="/galeri">Lihat galeri <span aria-hidden="true">→</span></a>
+                </div>
+                <div class="gallery-admin-layout">
+                    <form action="/admin/tambah-galeri" method="POST" enctype="multipart/form-data" class="gallery-upload-form" data-cloud-upload="<%= isVercel ? 'true' : 'false' %>">
+                        <div class="form-group">
+                            <label for="gallery-title">Nama Kegiatan</label>
+                            <input id="gallery-title" type="text" name="judul" maxlength="255" required placeholder="Contoh: Kerja Bakti Lingkungan">
+                        </div>
+                        <div class="form-group">
+                            <label for="gallery-description">Keterangan <span class="optional">(opsional)</span></label>
+                            <textarea id="gallery-description" name="deskripsi" rows="3" placeholder="Ceritakan singkat kegiatan ini"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="gallery-photos">Foto Dokumentasi</label>
+                            <input id="gallery-photos" type="file" name="fotoGaleri" accept="image/jpeg,image/png,image/webp" multiple required>
+                            <small class="form-hint">Maksimal 10 foto, masing-masing maksimal 3 MB (JPEG, PNG, WebP).</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block"><%- include('partials/icon', { name: 'upload' }) %> Simpan Dokumentasi</button>
+                        <p class="gallery-upload-status" aria-live="polite"></p>
+                    </form>
+
+                    <div>
+                        <% if (daftarGaleri.length) { %>
+                            <div class="admin-gallery-list">
+                                <% daftarGaleri.forEach(function(item) { %>
+                                    <article class="admin-gallery-item">
+                                        <img src="<%= imgSrc(item.foto) %>" alt="<%= item.judul %>" loading="lazy" decoding="async">
+                                        <div class="admin-gallery-item-info">
+                                            <strong><%= item.judul %></strong>
+                                            <span><%= item.tanggal %></span>
+                                        </div>
+                                        <form action="/admin/hapus-galeri/<%= item.id %>" method="POST" onsubmit="return confirm('Hapus dokumentasi ini?')">
+                                            <button type="submit" class="btn btn-danger-soft btn-sm btn-block"><%- include('partials/icon', { name: 'trash' }) %> Hapus</button>
+                                        </form>
+                                    </article>
+                                <% }); %>
+                            </div>
+                        <% } else { %>
+                            <div class="empty-state">
+                                <span class="icon-box"><%- include('partials/icon', { name: 'image' }) %></span>
+                                <p>Belum ada dokumentasi yang disimpan.</p>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Daftar berita -->
+            <section class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'news' }) %></span> Berita Desa Saat Ini</h2>
+                    <span class="badge"><%= daftarBerita.length %> berita</span>
+                </div>
+                <% if (daftarBerita.length) { %>
+                    <div class="admin-news-grid">
+                        <% daftarBerita.forEach(function(b) { %>
+                            <article class="admin-news-item">
+                                <span class="meta-date"><%- include('partials/icon', { name: 'calendar' }) %><%= b.tanggal %></span>
+                                <h4><%= b.judul %></h4>
+                                <p><%= (b.ringkasan || '').length > 110 ? b.ringkasan.substring(0, 110) + '…' : b.ringkasan %></p>
+                                <div class="item-actions">
+                                    <a href="/admin/edit-berita/<%= b.id %>" class="btn btn-outline btn-sm"><%- include('partials/icon', { name: 'edit' }) %> Edit</a>
+                                    <form action="/admin/hapus-berita/<%= b.id %>" method="POST" onsubmit="return confirm('Hapus berita ini?')">
+                                        <button type="submit" class="btn btn-danger-soft btn-sm"><%- include('partials/icon', { name: 'trash' }) %> Hapus</button>
+                                    </form>
+                                </div>
+                            </article>
+                        <% }); %>
+                    </div>
+                <% } else { %>
+                    <p class="empty-text">Belum ada berita yang diterbitkan.</p>
+                <% } %>
+            </section>
         </div>
-    </main>
-    <script src="/navigation.js?v=20261116"></script>
-    <% if (isVercel) { %>
-        <script src="/gallery-upload.js?v=1" defer></script>
-    <% } %>
-</body>
-</html>
+    </div>
+</main>
+
+<%- include('partials/footer', { simple: true }) %>
+<% if (isVercel) { %>
+    <script src="/gallery-upload.js?v=1" defer></script>
+<% } %>
+<%- include('partials/end') %>

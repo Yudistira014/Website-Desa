@@ -1,0 +1,35 @@
+<%
+/* Navbar untuk halaman dashboard (admin & warga). */
+const isAdmin = user && user.role === 'admin';
+const dashHref = isAdmin ? '/admin' : '/user';
+%>
+<nav class="navbar" aria-label="Navigasi dashboard">
+    <div class="container navbar-inner">
+        <a href="<%= dashHref %>" class="nav-brand">
+            <img src="/uploads/Logo_desa.png" alt="" class="brand-icon">
+            <span class="brand-text">
+                <strong><%= desa.nama %></strong>
+                <small><%= isAdmin ? 'Panel Administrasi' : 'Layanan Mandiri Warga' %></small>
+            </span>
+        </a>
+
+        <button class="menu-toggle" type="button" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="nav-links">
+            <span></span><span></span><span></span>
+        </button>
+
+        <ul class="nav-links" id="nav-links">
+            <li><a href="<%= dashHref %>" class="<%= typeof active !== 'undefined' && active === 'dashboard' ? 'is-active' : '' %>">Dashboard</a></li>
+            <li><a href="/">Lihat Situs</a></li>
+            <li><a href="/galeri">Galeri</a></li>
+            <% if (user) { %>
+                <li>
+                    <span class="nav-user">
+                        <span class="nav-user-avatar" aria-hidden="true"><%= user.username.charAt(0) %></span>
+                        <%= user.username %>
+                    </span>
+                </li>
+                <li><a href="/logout" class="btn btn-outline">Keluar</a></li>
+            <% } %>
+        </ul>
+    </div>
+</nav>

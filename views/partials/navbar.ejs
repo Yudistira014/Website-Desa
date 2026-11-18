@@ -1,0 +1,60 @@
+<%
+/* Navbar publik. Parameter opsional: active = 'beranda' | 'profil' | 'pemerintahan' | 'layanan' | 'galeri' | 'berita'
+   dan activeSub = href halaman aktif di dalam dropdown. */
+const nav = typeof active !== 'undefined' ? active : '';
+const sub = typeof activeSub !== 'undefined' ? activeSub : '';
+const isOn = key => nav === key ? 'is-active' : '';
+const subOn = href => sub === href ? 'is-active' : '';
+const caret = '<svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+%>
+<nav class="navbar" aria-label="Navigasi utama">
+    <div class="container navbar-inner">
+        <a href="/" class="nav-brand" aria-label="Beranda <%= desa.nama %>">
+            <img src="/uploads/Logo_desa.png" alt="" class="brand-icon">
+            <span class="brand-text">
+                <strong><%= desa.nama %></strong>
+                <small>Portal Resmi Pemerintah Desa</small>
+            </span>
+        </a>
+
+        <button class="menu-toggle" type="button" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="nav-links">
+            <span></span><span></span><span></span>
+        </button>
+
+        <ul class="nav-links" id="nav-links">
+            <li><a href="/" class="<%= isOn('beranda') %>">Beranda</a></li>
+            <li class="nav-item">
+                <a href="/profil" class="<%= isOn('profil') %>">Profil Desa <%- caret %></a>
+                <ul class="dropdown">
+                    <li><a href="/profil/visi-misi" class="<%= subOn('/profil/visi-misi') %>">Visi &amp; Misi</a></li>
+                    <li><a href="/profil/wilayah-desa" class="<%= subOn('/profil/wilayah-desa') %>">Wilayah Desa</a></li>
+                </ul>
+            </li>
+            <li class="nav-item">
+                <a href="/pemerintahan/desa" class="<%= isOn('pemerintahan') %>">Pemerintahan <%- caret %></a>
+                <ul class="dropdown">
+                    <li><a href="/pemerintahan/desa" class="<%= subOn('/pemerintahan/desa') %>">Pemerintah Desa</a></li>
+                    <li><a href="/pemerintahan/bpd" class="<%= subOn('/pemerintahan/bpd') %>">BPD</a></li>
+                    <li><a href="/pemerintahan/lpmd" class="<%= subOn('/pemerintahan/lpmd') %>">LPMD</a></li>
+                </ul>
+            </li>
+            <li class="nav-item">
+                <a href="/#layanan" class="<%= isOn('layanan') %>">Layanan <%- caret %></a>
+                <ul class="dropdown">
+                    <% desa.layanan.forEach(function(item) { %>
+                        <li><a href="/layanan/<%= item.slug %>" class="<%= subOn('/layanan/' + item.slug) %>"><%= item.nama %></a></li>
+                    <% }); %>
+                    <li><a href="/layanan/pengaduan" class="<%= subOn('/layanan/pengaduan') %>">Pengaduan &amp; Aspirasi</a></li>
+                </ul>
+            </li>
+            <li><a href="/#berita" class="<%= isOn('berita') %>">Berita</a></li>
+            <li><a href="/galeri" class="<%= isOn('galeri') %>">Galeri</a></li>
+            <% if (user) { %>
+                <li><a href="/<%= user.role %>" class="btn btn-primary">Dashboard</a></li>
+                <li><a href="/logout">Keluar</a></li>
+            <% } else { %>
+                <li><a href="/login" class="btn btn-primary">Masuk</a></li>
+            <% } %>
+        </ul>
+    </div>
+</nav>

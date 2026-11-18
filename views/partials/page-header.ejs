@@ -1,0 +1,20 @@
+<%
+/* Header halaman dalam. Parameter: heading, lead (opsional), crumbs = [{ label, href }] (opsional) */
+const trail = typeof crumbs !== 'undefined' ? crumbs : [];
+%>
+<header class="page-header">
+    <div class="container">
+        <nav aria-label="Breadcrumb">
+            <ol class="breadcrumb">
+                <li><a href="/">Beranda</a></li>
+                <% trail.forEach(function(crumb) { %>
+                    <li><% if (crumb.href) { %><a href="<%= crumb.href %>"><%= crumb.label %></a><% } else { %><span aria-current="page"><%= crumb.label %></span><% } %></li>
+                <% }); %>
+            </ol>
+        </nav>
+        <h1><%= heading %></h1>
+        <% if (typeof lead !== 'undefined' && lead) { %>
+            <p><%= lead %></p>
+        <% } %>
+    </div>
+</header>

@@ -1,197 +1,207 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beranda - <%= desa.nama %></title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/style.css?v=galeri">
-</head>
-<body>
-   <nav class="navbar">
-        <div class="nav-brand">
-            <img src="/uploads/Logo_desa.png" alt="Logo Desa" class="brand-icon" />
-            <div class="brand-text"><span><%= desa.nama %></span></div>
-        </div>
-        
-        <button class="menu-toggle" type="button" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="nav-links">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
+<%- include('partials/head', { title: 'Beranda' }) %>
+<%- include('partials/navbar', { active: 'beranda' }) %>
 
-        <ul class="nav-links" id="nav-links">
-            <li><a href="/">Beranda</a></li>
-            
-            <li class="nav-item">
-                <a href="#">Profil Desa ▾</a>
-                <ul class="dropdown">
-                    <li><a href="/profil">Visi & Misi</a></li>
-                    <li><a href="/profil/wilayah-desa">Wilayah Desa</a></li>
-                </ul>
-            </li>
-            
-            <li class="nav-item">
-                <a href="#">Pemerintahan ▾</a>
-                <ul class="dropdown">
-                    <li><a href="/pemerintahan/desa">Pemerintah Desa</a></li>
-                    <li><a href="/pemerintahan/bpd">BPD</a></li>
-                    <li><a href="/pemerintahan/lpmd">LPMD</a></li>
-                </ul>
-            </li>
-            
-            <li class="nav-item">
-                <a href="#">Layanan ▾</a>
-                <ul class="dropdown">
-                    <li><a href="#layanan">Persuratan</a></li>
-                    <li><a href="/layanan/pengaduan">Pengaduan</a></li>
-                </ul>
-            </li>
-            
-            <li><a href="/galeri">Galeri</a></li>
-            <li><a href="#berita">Berita</a></li>
-            <li><a href="#kontak">Hubungi Kami</a></li>
+<%
+const serviceIcon = {
+    'surat-pengantar': 'document',
+    'kontak-darurat': 'phone',
+    'data-kependudukan': 'users',
+    'layanan-kesehatan': 'health',
+    'bantuan-sosial': 'heart'
+};
+const imgSrc = foto => /^https?:\/\//i.test(foto) ? foto : '/' + foto;
+%>
 
-            <% if (user) { %>
-                <li><a href="/<%= user.role %>" class="btn-primary">Dashboard</a></li>
-                <li><a href="/logout" style="color: #ef4444; font-weight: bold;">Logout</a></li>
-            <% } else { %>
-                <li><a href="/login" class="btn-primary">Login</a></li>
-            <% } %>
-        </ul>
-    </nav>
-
-    <header class="hero home-hero">
-        <div class="hero-content home-hero-content">
-            <p class="hero-eyebrow"><span aria-hidden="true"></span> Portal Resmi Pemerintah Desa</p>
-            <h1>Selamat Datang di <%= desa.nama %></h1>
-            <p><%= desa.tagline %></p>
-            <div class="hero-actions">
-                <a href="#layanan" class="btn-secondary">Jelajahi Layanan <span aria-hidden="true">→</span></a>
-                <a href="/profil" class="hero-link">Kenali Desa Kami <span aria-hidden="true">→</span></a>
+<main id="konten">
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-inner">
+                <span class="eyebrow"><span class="eyebrow-dot"></span> Portal Resmi Pemerintah Desa</span>
+                <h1>Selamat Datang di <%= desa.nama %></h1>
+                <p class="hero-lead"><%= desa.tagline || 'Pusat informasi, layanan administrasi, dan kabar terbaru untuk seluruh warga desa — mudah diakses kapan saja.' %></p>
+                <div class="hero-actions">
+                    <a href="#layanan" class="btn btn-light">Jelajahi Layanan <%- include('partials/icon', { name: 'arrow-right' }) %></a>
+                    <a href="/profil/visi-misi" class="btn btn-ghost-light">Kenali Desa Kami</a>
+                </div>
             </div>
         </div>
-    </header>
+    </section>
 
-    <section id="layanan" class="section home-services">
-        <div class="section-header">
-            <span class="section-kicker">Layanan untuk warga</span>
-            <h2>Layanan Masyarakat</h2>
-            <p>Akses cepat untuk berbagai kebutuhan administrasi desa.</p>
+    <!-- Ringkasan desa -->
+    <section class="hero-stats" aria-label="Ringkasan desa">
+        <div class="container">
+            <div class="hero-stats-grid">
+                <div class="hero-stat">
+                    <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'user' }) %></span>
+                    <div><strong><%= desa.kepalaDesa %></strong><span>Kepala Desa</span></div>
+                </div>
+                <div class="hero-stat">
+                    <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'users' }) %></span>
+                    <div><strong><%= desa.populasi %> Jiwa</strong><span>Jumlah Penduduk</span></div>
+                </div>
+                <div class="hero-stat">
+                    <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'map' }) %></span>
+                    <div><strong><%= desa.wilayah.dusun.length %> Dusun</strong><span>Wilayah Administratif</span></div>
+                </div>
+                <div class="hero-stat">
+                    <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'layers' }) %></span>
+                    <div><strong><%= desa.layanan.length %> Layanan</strong><span>Layanan Masyarakat</span></div>
+                </div>
+            </div>
         </div>
-        <div class="grid-container service-grid">
-            <% desa.layanan.forEach(function(item) { %>
+    </section>
+
+    <!-- Layanan -->
+    <section id="layanan" class="section">
+        <div class="container">
+            <div class="section-header">
+                <span class="eyebrow">Layanan untuk warga</span>
+                <h2>Layanan Masyarakat</h2>
+                <p>Akses cepat untuk berbagai kebutuhan administrasi dan pelayanan publik desa.</p>
+            </div>
+            <div class="grid grid-3">
+                <% desa.layanan.forEach(function(item) { %>
+                    <article class="card service-card">
+                        <span class="icon-box"><%- include('partials/icon', { name: serviceIcon[item.slug] || 'home' }) %></span>
+                        <h3><%= item.nama %></h3>
+                        <p><%= item.desc %></p>
+                        <a href="/layanan/<%= item.slug %>" class="link-arrow">Pelajari layanan <span aria-hidden="true">→</span></a>
+                    </article>
+                <% }); %>
                 <article class="card service-card">
-                    <span class="icon service-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                            <% if (item.slug === 'surat-pengantar') { %>
-                                <path d="M7 3.75h6.5L18 8.25v12H7z" />
-                                <path d="M13.5 3.75v4.5H18M9.5 12h5M9.5 15.5h5" />
-                            <% } else if (item.slug === 'kontak-darurat') { %>
-                                <path d="M7.5 4.5h2.3l1.2 4-1.8 1.7a14 14 0 0 0 4.6 4.6l1.7-1.8 4 1.2v2.3a2 2 0 0 1-2.2 2A15.5 15.5 0 0 1 5.5 6.7a2 2 0 0 1 2-2.2Z" />
-                                <path d="M15.5 4.5h4M17.5 2.5v4" />
-                            <% } else if (item.slug === 'data-kependudukan') { %>
-                                <circle cx="9" cy="8" r="3" />
-                                <path d="M3.5 19v-1a5.5 5.5 0 0 1 11 0v1zM16 5.5a3 3 0 0 1 0 5.8M17 14a4.5 4.5 0 0 1 3.5 4.4v.6h-3" />
-                            <% } else if (item.slug === 'layanan-kesehatan') { %>
-                                <path d="M12 3.5 19 6v5.5c0 4.2-2.8 7.5-7 9-4.2-1.5-7-4.8-7-9V6z" />
-                                <path d="M12 8v7M8.5 11.5h7" />
-                            <% } else if (item.slug === 'bantuan-sosial') { %>
-                                <path d="M12 19s-7-4.3-7-9.2A4 4 0 0 1 12 7a4 4 0 0 1 7 2.8C19 14.7 12 19 12 19Z" />
-                                <path d="M8.5 13h2l1.2-2.2 1.7 4 1.1-1.8h1" />
-                            <% } else { %>
-                                <path d="M4 10.5 12 4l8 6.5M6.5 9v10h11V9M10 19v-6h4v6" />
-                            <% } %>
-                        </svg>
-                    </span>
-                    <h3><%= item.nama %></h3>
-                    <p><%= item.desc %></p>
-                    <a href="/layanan/<%= item.slug %>" class="service-link">Pelajari layanan <span aria-hidden="true">→</span></a>
+                    <span class="icon-box icon-box-accent"><%- include('partials/icon', { name: 'chat' }) %></span>
+                    <h3>Pengaduan &amp; Aspirasi</h3>
+                    <p>Sampaikan keluhan, saran, atau permohonan informasi langsung kepada pemerintah desa.</p>
+                    <a href="/layanan/pengaduan" class="link-arrow">Sampaikan aspirasi <span aria-hidden="true">→</span></a>
                 </article>
-            <% }); %>
+            </div>
         </div>
     </section>
 
-    <section id="galeri" class="section home-gallery">
-        <div class="section-header">
-            <span class="section-kicker">Dokumentasi kegiatan</span>
-            <h2>Galeri Kegiatan Desa</h2>
-            <p>Potret kegiatan dan kebersamaan warga <%= desa.nama %>.</p>
-        </div>
-        <% if (galeri && galeri.length) { %>
-            <div class="gallery-preview-grid">
-                <% galeri.forEach(function(item) { %>
-                    <a class="gallery-preview-card" href="/galeri" aria-label="Lihat galeri: <%= item.judul %>">
-                        <img src="<%= /^https?:\/\//i.test(item.foto) ? item.foto : '/' + item.foto %>" alt="<%= item.judul %>" loading="lazy" decoding="async">
-                        <span class="gallery-preview-caption">
-                            <span><%= item.tanggal %></span>
-                            <strong><%= item.judul %></strong>
-                        </span>
+    <!-- Tentang desa -->
+    <section class="section section-alt">
+        <div class="container about-grid">
+            <div class="about-copy">
+                <span class="eyebrow">Tentang desa</span>
+                <h2>Mengenal <%= desa.nama %></h2>
+                <p><%= desa.wilayah.deskripsi %></p>
+                <div class="about-links">
+                    <a href="/profil/visi-misi" class="card feature-card">
+                        <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'target' }) %></span>
+                        <div><h3>Visi &amp; Misi</h3><p>Arah kebijakan dan cita-cita pembangunan desa.</p></div>
                     </a>
-                <% }); %>
+                    <a href="/profil/wilayah-desa" class="card feature-card">
+                        <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'map' }) %></span>
+                        <div><h3>Wilayah Desa</h3><p>Kondisi geografis dan pembagian dusun.</p></div>
+                    </a>
+                    <a href="/pemerintahan/desa" class="card feature-card">
+                        <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'building' }) %></span>
+                        <div><h3>Pemerintahan</h3><p>Struktur pemerintah desa, BPD, dan LPMD.</p></div>
+                    </a>
+                </div>
             </div>
-            <div class="gallery-preview-action">
-                <a class="btn-primary" href="/galeri">Lihat Semua Dokumentasi <span aria-hidden="true">→</span></a>
+            <div class="quote-card">
+                <span class="eyebrow">Visi Desa</span>
+                <blockquote>“<%= desa.visi %>”</blockquote>
             </div>
-        <% } else { %>
-            <p class="gallery-empty">Dokumentasi kegiatan akan ditampilkan di sini.</p>
-        <% } %>
+        </div>
     </section>
 
-    <section id="berita" class="section bg-light home-news">
-        <div class="section-header">
-            <span class="section-kicker">Kabar dan kegiatan</span>
-            <h2>Kabar Desa Terbaru</h2>
-            <p>Informasi dan transparansi kegiatan desa terkini.</p>
-        </div>
-        <div class="grid-container news-grid">
+    <!-- Berita -->
+    <section id="berita" class="section">
+        <div class="container">
+            <div class="section-header">
+                <span class="eyebrow">Kabar dan kegiatan</span>
+                <h2>Berita Desa Terbaru</h2>
+                <p>Informasi dan transparansi kegiatan desa terkini.</p>
+            </div>
             <% if (berita && berita.length) { %>
-                <% berita.forEach(function(item) { %>
-                <article class="card news-card">
-                    <% if (item.foto) { %>
-                        <div class="news-card-image">
-                            <img src="/<%= item.foto %>" alt="Foto Berita <%= item.judul %>">
-                        </div>
-                    <% } %>
-                    <div class="news-card-details">
-                        <span class="date"><%= item.tanggal %></span>
-                        <h3><%= item.judul %></h3>
-                        <p class="news-summary"><%= item.ringkasan %></p>
-                        <button type="button" class="read-more" aria-expanded="false">Baca selengkapnya <span aria-hidden="true">↓</span></button>
-                    </div>
-                </article>
-                <% }); %>
+                <div class="grid grid-3">
+                    <% berita.forEach(function(item) { %>
+                        <article class="card news-card">
+                            <div class="news-card-image">
+                                <% if (item.foto) { %>
+                                    <img src="<%= imgSrc(item.foto) %>" alt="<%= item.judul %>" loading="lazy" decoding="async">
+                                <% } else { %>
+                                    <div class="news-card-placeholder"><%- include('partials/icon', { name: 'news' }) %></div>
+                                <% } %>
+                            </div>
+                            <div class="news-card-body">
+                                <span class="meta-date"><%- include('partials/icon', { name: 'calendar' }) %><%= item.tanggal %></span>
+                                <h3><%= item.judul %></h3>
+                                <p class="news-summary"><%= item.ringkasan %></p>
+                                <button type="button" class="read-more" aria-expanded="false"><span class="read-more-label">Baca selengkapnya</span> <span aria-hidden="true" class="read-more-icon">↓</span></button>
+                            </div>
+                        </article>
+                    <% }); %>
+                </div>
             <% } else { %>
-                <p class="news-empty">Belum ada berita terbaru. Silakan kembali lagi nanti.</p>
+                <div class="empty-state">
+                    <span class="icon-box"><%- include('partials/icon', { name: 'news' }) %></span>
+                    <h3>Belum ada berita</h3>
+                    <p>Berita terbaru akan ditampilkan di sini. Silakan kembali lagi nanti.</p>
+                </div>
             <% } %>
         </div>
     </section>
 
-    <footer id="kontak">
-        <div class="footer-content">
-            <div class="footer-info">
-                <h3>Pemerintah <%= desa.nama %></h3>
-                <p>Jl. Raya Pembangunan No. 1, Kecamatan Maju, Kabupaten Sejahtera.</p>
-                <p>Email: kontak@<%= desa.nama.toLowerCase().replace(' ', '') %>.go.id</p>
+    <!-- Galeri -->
+    <section id="galeri" class="section section-alt">
+        <div class="container">
+            <div class="section-header section-header-split">
+                <div>
+                    <span class="eyebrow">Dokumentasi kegiatan</span>
+                    <h2>Galeri Kegiatan Desa</h2>
+                    <p>Potret kegiatan dan kebersamaan warga <%= desa.nama %>.</p>
+                </div>
+                <% if (galeri && galeri.length) { %>
+                    <a class="btn btn-outline" href="/galeri">Lihat semua dokumentasi <%- include('partials/icon', { name: 'arrow-right' }) %></a>
+                <% } %>
             </div>
-            <div class="footer-copyright">
-                <p>&copy; 2026 Portal Resmi <%= desa.nama %>. Dilindungi Hak Cipta.</p>
-            </div>
+            <% if (galeri && galeri.length) { %>
+                <div class="gallery-grid">
+                    <% galeri.forEach(function(item) { %>
+                        <a class="gallery-tile" href="/galeri" aria-label="Lihat galeri: <%= item.judul %>">
+                            <img src="<%= imgSrc(item.foto) %>" alt="<%= item.judul %>" loading="lazy" decoding="async">
+                            <span class="gallery-tile-caption">
+                                <span><%= item.tanggal %></span>
+                                <strong><%= item.judul %></strong>
+                            </span>
+                        </a>
+                    <% }); %>
+                </div>
+            <% } else { %>
+                <div class="empty-state">
+                    <span class="icon-box"><%- include('partials/icon', { name: 'image' }) %></span>
+                    <h3>Belum ada dokumentasi</h3>
+                    <p>Dokumentasi kegiatan desa akan ditampilkan di sini.</p>
+                </div>
+            <% } %>
         </div>
-    </footer>
+    </section>
+</main>
 
-    <script>
-        document.querySelectorAll('.news-card .read-more').forEach(button => {
-            button.addEventListener('click', event => {
-                const card = event.currentTarget.closest('.news-card');
-                if (!card) return;
-                const isExpanded = card.classList.toggle('expanded');
-                event.currentTarget.setAttribute('aria-expanded', String(isExpanded));
-                event.currentTarget.querySelector('span').textContent = isExpanded ? '↑' : '↓';
-                event.currentTarget.firstChild.textContent = isExpanded ? 'Ringkas berita ' : 'Baca selengkapnya ';
-            });
+<%- include('partials/footer') %>
+
+<script>
+    document.querySelectorAll('.news-card .read-more').forEach(button => {
+        const card = button.closest('.news-card');
+        const summary = card && card.querySelector('.news-summary');
+        if (!summary) return;
+
+        // Sembunyikan tombol bila ringkasan sudah tampil seluruhnya.
+        if (summary.scrollHeight <= summary.clientHeight + 2) {
+            button.hidden = true;
+            return;
+        }
+
+        button.addEventListener('click', () => {
+            const isExpanded = card.classList.toggle('expanded');
+            button.setAttribute('aria-expanded', String(isExpanded));
+            button.querySelector('.read-more-label').textContent = isExpanded ? 'Ringkas berita' : 'Baca selengkapnya';
+            button.querySelector('.read-more-icon').textContent = isExpanded ? '↑' : '↓';
         });
-    </script>
-    <script src="/navigation.js?v=20261116"></script>
-</body>
-</html>
+    });
+</script>
+<%- include('partials/end') %>

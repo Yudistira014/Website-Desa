@@ -1,71 +1,57 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wilayah Desa - <%= desa.nama %></title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body class="bg-light">
+<%- include('partials/head', { title: 'Wilayah Desa', bodyClass: 'page-muted' }) %>
+<%- include('partials/navbar', { active: 'profil', activeSub: '/profil/wilayah-desa' }) %>
 
-    <nav class="navbar">
-        <div class="nav-brand">
-            <img src="/uploads/Logo_desa.png" alt="Logo Desa" class="brand-icon" />
-            <div class="brand-text">Desa<span>Sukamakmur</span></div>
-        </div>
-        <button class="menu-toggle" type="button" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="nav-links">
-            <span></span><span></span><span></span>
-        </button>
-        <ul class="nav-links" id="nav-links">
-            <li><a href="/">Beranda</a></li>
-            <li><a href="/galeri">Galeri</a></li>
-            <li><a href="/profil/visi-misi">Profil Desa</a></li>
-            <% if (user) { %>
-                <li><a href="/logout" class="btn-primary">Logout</a></li>
-            <% } else { %>
-                <li><a href="/login" class="btn-primary">Login</a></li>
-            <% } %>
-        </ul>
-    </nav>
+<main id="konten">
+    <%- include('partials/page-header', {
+        heading: 'Wilayah Desa',
+        lead: 'Kondisi geografis dan struktur administratif ' + desa.nama + '.',
+        crumbs: [{ label: 'Profil Desa', href: '/profil' }, { label: 'Wilayah Desa' }]
+    }) %>
+    <%- include('partials/subnav', {
+        tabs: [{ label: 'Visi & Misi', href: '/profil/visi-misi' }, { label: 'Wilayah Desa', href: '/profil/wilayah-desa' }],
+        current: '/profil/wilayah-desa'
+    }) %>
 
-    <main class="section">
-        <div class="section-header">
-            <h2>Wilayah Desa</h2>
-            <p>Penjelasan tentang kondisi geografis dan struktur administratif <%= desa.nama %>.</p>
-        </div>
-
-        <div class="grid-container" style="max-width: 900px; margin: 0 auto;">
-            <div class="card" style="grid-column: 1 / -1; text-align: left; border-top: 5px solid var(--primary-color);">
-                <h3 style="margin-bottom: 15px; color: var(--primary-dark);">Deskripsi Wilayah</h3>
-                <p style="font-size: 1.1rem; color: var(--text-main); line-height: 1.8;">
-                    <%= desa.wilayah.deskripsi %>
-                </p>
+    <section class="section">
+        <div class="container container-narrow stack">
+            <div class="grid grid-3">
+                <div class="card stat-card">
+                    <span class="icon-box"><%- include('partials/icon', { name: 'map' }) %></span>
+                    <div><strong><%= desa.wilayah.dusun.length %></strong><span>Dusun</span></div>
+                </div>
+                <div class="card stat-card">
+                    <span class="icon-box"><%- include('partials/icon', { name: 'users' }) %></span>
+                    <div><strong><%= desa.populasi %></strong><span>Jiwa penduduk</span></div>
+                </div>
+                <div class="card stat-card">
+                    <span class="icon-box"><%- include('partials/icon', { name: 'user' }) %></span>
+                    <div><strong style="font-size: 1rem;"><%= desa.kepalaDesa %></strong><span>Kepala Desa</span></div>
+                </div>
             </div>
 
-            <div class="card" style="grid-column: 1 / -1; border-top: 5px solid var(--secondary-color);">
-                <h3 style="margin-bottom: 20px; color: var(--primary-dark);">Dusun di Desa</h3>
-                <ul style="list-style: none;">
-                    <% desa.wilayah.dusun.forEach((dusun) => { %>
-                        <li style="margin-bottom: 12px; padding: 12px 16px; background: #f8f8f8; border-radius: 8px;">
-                            <%= dusun %>
+            <article class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'compass' }) %></span> Deskripsi Wilayah</h2>
+                </div>
+                <p><%= desa.wilayah.deskripsi %></p>
+            </article>
+
+            <article class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'map-pin' }) %></span> Dusun di <%= desa.nama %></h2>
+                </div>
+                <ul class="tile-list">
+                    <% desa.wilayah.dusun.forEach(function(dusun, index) { %>
+                        <li class="tile">
+                            <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'home' }) %></span>
+                            <span><%= dusun %><small>Wilayah <%= index + 1 %></small></span>
                         </li>
-                    <% }) %>
+                    <% }); %>
                 </ul>
-            </div>
+            </article>
         </div>
-    </main>
+    </section>
+</main>
 
-    <footer>
-        <div class="footer-content">
-            <div class="footer-info">
-                <h3><%= desa.nama %></h3>
-                <p>Kepala Desa: <%= desa.kepalaDesa %> | Populasi: <%= desa.populasi %> Jiwa</p>
-            </div>
-            <p class="footer-copyright">&copy; 2026 Portal Resmi <%= desa.nama %></p>
-        </div>
-    </footer>
-
-    <script src="/navigation.js?v=20261116"></script>
-</body>
-</html>
+<%- include('partials/footer') %>
+<%- include('partials/end') %>

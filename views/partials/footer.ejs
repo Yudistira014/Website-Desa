@@ -1,0 +1,61 @@
+<%
+/* Footer situs. Parameter opsional: simple = true untuk footer ringkas (dashboard). */
+const emailDesa = 'kontak@' + desa.nama.toLowerCase().replace(/\s+/g, '') + '.go.id';
+%>
+<% if (typeof simple !== 'undefined' && simple) { %>
+    <footer class="footer-simple">
+        <div class="container">&copy; 2026 Pemerintah <%= desa.nama %>. Seluruh hak cipta dilindungi.</div>
+    </footer>
+<% } else { %>
+    <footer class="site-footer" id="kontak">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <div class="footer-brand">
+                        <img src="/uploads/Logo_desa.png" alt="">
+                        <div>
+                            <strong>Pemerintah <%= desa.nama %></strong>
+                            <small>Portal Resmi Pemerintah Desa</small>
+                        </div>
+                    </div>
+                    <p>Melayani masyarakat dengan transparan, cepat, dan profesional untuk mewujudkan desa yang mandiri dan sejahtera.</p>
+                </div>
+
+                <div>
+                    <h4>Profil &amp; Pemerintahan</h4>
+                    <ul class="footer-links">
+                        <li><a href="/profil/visi-misi">Visi &amp; Misi</a></li>
+                        <li><a href="/profil/wilayah-desa">Wilayah Desa</a></li>
+                        <li><a href="/pemerintahan/desa">Pemerintah Desa</a></li>
+                        <li><a href="/pemerintahan/bpd">BPD</a></li>
+                        <li><a href="/pemerintahan/lpmd">LPMD</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4>Layanan</h4>
+                    <ul class="footer-links">
+                        <% desa.layanan.slice(0, 4).forEach(function(item) { %>
+                            <li><a href="/layanan/<%= item.slug %>"><%= item.nama %></a></li>
+                        <% }); %>
+                        <li><a href="/layanan/pengaduan">Pengaduan &amp; Aspirasi</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4>Hubungi Kami</h4>
+                    <ul class="footer-contact">
+                        <li><%- include('icon', { name: 'map-pin' }) %><span>Jl. Raya Pembangunan No. 1, Kecamatan Maju, Kabupaten Sejahtera</span></li>
+                        <li><%- include('icon', { name: 'mail' }) %><a href="mailto:<%= emailDesa %>"><%= emailDesa %></a></li>
+                        <li><%- include('icon', { name: 'user' }) %><span>Kepala Desa: <%= desa.kepalaDesa %></span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <span>&copy; 2026 Pemerintah <%= desa.nama %>. Seluruh hak cipta dilindungi.</span>
+                <span>Populasi: <%= desa.populasi %> jiwa</span>
+            </div>
+        </div>
+    </footer>
+<% } %>

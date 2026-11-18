@@ -1,161 +1,165 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= layanan.nama %> - <%= desa.nama %></title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/style.css?v=20261116">
-</head>
-<body class="bg-light">
+<%- include('partials/head', { title: layanan.nama, bodyClass: 'page-muted' }) %>
+<%- include('partials/navbar', { active: 'layanan', activeSub: '/layanan/' + layanan.slug }) %>
 
-    <nav class="navbar">
-        <div class="nav-brand">
-            <img src="/uploads/Logo_desa.png" alt="Logo Desa" class="brand-icon" />
-            <div class="brand-text"><span><%= desa.nama %></span></div>
-        </div>
-        <button class="menu-toggle" type="button" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="nav-links">
-            <span></span><span></span><span></span>
-        </button>
-        <ul class="nav-links" id="nav-links">
-            <li><a href="/">Beranda</a></li>
-            <li><a href="/galeri">Galeri</a></li>
-            <li><a href="#layanan">Layanan</a></li>
-            <li><a href="/layanan/pengaduan">Pengaduan</a></li>
-            <li><a href="/profil">Profil Desa</a></li>
-            <% if (user) { %>
-                <li><a href="/<%= user.role %>" class="btn-primary">Dashboard</a></li>
-                <li><a href="/logout" style="color: #ef4444; font-weight: bold;">Logout</a></li>
-            <% } else { %>
-                <li><a href="/login" class="btn-primary">Login</a></li>
-            <% } %>
-        </ul>
-    </nav>
+<main id="konten">
+    <%- include('partials/page-header', {
+        heading: layanan.nama,
+        lead: layanan.detail.headline,
+        crumbs: [{ label: 'Layanan', href: '/#layanan' }, { label: layanan.nama }]
+    }) %>
 
-    <main class="section">
-        <div class="section-header">
-            <h2><%= layanan.nama %></h2>
-            <p><%= layanan.detail.headline %></p>
-        </div>
+    <section class="section">
+        <div class="container layout-sidebar">
+            <div class="stack">
+                <article class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'document' }) %></span> Tentang Layanan</h2>
+                    </div>
+                    <p><%= layanan.detail.content %></p>
+                </article>
 
-        <div class="grid-container" style="max-width: 1000px; margin: 0 auto;">
-            <div class="card" style="grid-column: 1 / -1; border-top: 5px solid var(--primary-color);">
-                <p style="font-size: 1.05rem; color: var(--text-main); line-height: 1.8;"><%= layanan.detail.content %></p>
-            </div>
-
-            <div class="card" style="border-top: 5px solid var(--secondary-color);">
-                <h3>Cara Menggunakan Layanan</h3>
-                <ol style="margin-top: 20px; color: var(--text-light); line-height: 1.8; padding-left: 18px;">
-                    <% layanan.detail.langkah.forEach(step => { %>
-                        <li style="margin-bottom: 14px;"><%= step %></li>
-                    <% }) %>
-                </ol>
-            </div>
-
-            <div class="card" style="border-top: 5px solid rgba(4,120,87,0.4);">
-                <h3>Syarat & Dokumen</h3>
-                <ul style="list-style: none; margin-top: 20px; color: var(--text-light);">
-                    <% layanan.detail.syarat.forEach(item => { %>
-                        <li style="margin-bottom: 12px; display: flex; gap: 12px; align-items: center;">
-                            <span style="display: inline-flex; width: 24px; height: 24px; border-radius: 50%; background: var(--primary-color); color: white; align-items: center; justify-content: center; font-size: 0.9rem;">✓</span>
-                            <span><%= item %></span>
-                        </li>
-                    <% }) %>
-                </ul>
-            </div>
-        </div>
-
-        <% if (layanan.slug === 'surat-pengantar') { %>
-            <div class="card" style="max-width: 1000px; margin: 40px auto 0; border-top: 5px solid rgba(4,120,87,0.4);">
-                <h3>Form Pengajuan Surat Pengantar</h3>
-                <% if (typeof success !== 'undefined' && success) { %>
-                    <div class="alert-success" style="margin-top: 15px;">Pengajuan surat pengantar berhasil dikirim. Kami akan memprosesnya sesegera mungkin.</div>
-                <% } %>
-                <% if (typeof error !== 'undefined' && error) { %>
-                    <div class="alert-error" style="margin-top: 15px;">Maaf, pengajuan gagal dikirim. Silakan coba lagi.</div>
-                <% } %>
-
-                <% if (user) { %>
-                    <form action="/layanan/<%= layanan.slug %>/ajukan" method="POST" style="margin-top: 20px;">
-                        <div class="form-group">
-                            <label>Nama Lengkap</label>
-                            <input type="text" name="nama" value="<%= user.username %>" required>
+                <div class="grid grid-2">
+                    <article class="card">
+                        <div class="card-header">
+                            <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'clipboard' }) %></span> Cara Menggunakan</h2>
                         </div>
-                        <div class="form-group">
-                            <label>NIK</label>
-                            <input type="text" name="nik" required placeholder="Masukkan NIK Anda">
-                        </div>
-                        <div class="form-group">
-                            <label>Keperluan Surat</label>
-                            <select name="keperluan" required>
-                                <option value="">-- Pilih Keperluan --</option>
-                                <option value="SKCK">SKCK</option>
-                                <option value="KTP">KTP</option>
-                                <option value="KK">KK</option>
-                                <option value="Keterangan">Surat Keterangan</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Alamat Lengkap</label>
-                            <textarea name="alamat" rows="3" required placeholder="Tuliskan alamat tempat tinggal Anda"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>No. HP / WhatsApp</label>
-                            <input type="text" name="noHp" required placeholder="Contoh: 0812xxxx">
-                        </div>
-                        <div class="form-group">
-                            <label>Catatan Tambahan</label>
-                            <textarea name="catatan" rows="4" placeholder="Tulis kebutuhan atau dokumen tambahan jika ada"></textarea>
-                        </div>
-                        <button type="submit" class="btn-primary" style="width: 100%; border: none; padding: 12px; cursor: pointer;">Kirim Pengajuan</button>
-                    </form>
-                <% } else { %>
-                    <p style="margin-top: 15px; color: var(--text-main);">Silakan <a href="/login">login</a> terlebih dahulu untuk mengajukan surat pengantar.</p>
-                <% } %>
-            </div>
-        <% } %>
+                        <ol class="list-number">
+                            <% layanan.detail.langkah.forEach(function(step) { %>
+                                <li><span><%= step %></span></li>
+                            <% }); %>
+                        </ol>
+                    </article>
 
-        <% if (layanan.slug === 'kontak-darurat') { %>
-            <div class="card" style="max-width: 1000px; margin: 40px auto 0; border-top: 5px solid rgba(220, 38, 38, 0.4);">
-                <h3>Kontak Darurat Desa</h3>
-                <p style="margin-top: 15px; color: var(--text-main);">Jika Anda membutuhkan bantuan segera, silakan hubungi salah satu nomor berikut:</p>
-                <div style="margin-top: 20px; display: grid; gap: 18px;">
-                    <% if (layanan.detail.kontak && layanan.detail.kontak.length > 0) { %>
-                        <% layanan.detail.kontak.forEach(function(item) {
-                            var phoneNumber = item.nilai ? item.nilai.replace(/\D/g, '') : '';
-                            var waNumber = phoneNumber.replace(/^0/, '62');
-                        %>
-                            <div style="background: var(--bg-light); padding: 20px; border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-                                <p style="margin: 0 0 6px; font-size: 0.95rem; color: var(--text-light);"><strong><%= item.jenis %></strong></p>
-                                <p style="margin: 0; font-size: 1.1rem; color: var(--text-main);"><%= item.nilai %></p>
-                                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px;">
-                                    <a href="tel:<%= phoneNumber %>" class="btn-primary" style="padding: 10px 14px; text-decoration: none;">Panggil</a>
-                                    <a href="https://wa.me/<%= waNumber %>" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="padding: 10px 14px; text-decoration: none;">Chat WhatsApp</a>
+                    <article class="card">
+                        <div class="card-header">
+                            <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'check-circle' }) %></span> Syarat &amp; Dokumen</h2>
+                        </div>
+                        <ul class="list-check">
+                            <% layanan.detail.syarat.forEach(function(item) { %>
+                                <li><%= item %></li>
+                            <% }); %>
+                        </ul>
+                    </article>
+                </div>
+
+                <% if (layanan.slug === 'surat-pengantar') { %>
+                    <article class="card card-highlight" id="form-pengajuan">
+                        <div class="card-header">
+                            <div>
+                                <h2 class="card-title">Form Pengajuan Surat Pengantar</h2>
+                                <p class="card-subtitle">Lengkapi data berikut. Status pengajuan dapat dipantau dari dashboard warga.</p>
+                            </div>
+                        </div>
+
+                        <% if (typeof success !== 'undefined' && success) { %>
+                            <div class="alert alert-success" role="status"><%- include('partials/icon', { name: 'check-circle' }) %> Pengajuan surat pengantar berhasil dikirim. Kami akan memprosesnya sesegera mungkin.</div>
+                        <% } %>
+                        <% if (typeof error !== 'undefined' && error) { %>
+                            <div class="alert alert-error" role="alert"><%- include('partials/icon', { name: 'alert-circle' }) %> Maaf, pengajuan gagal dikirim. Silakan coba lagi.</div>
+                        <% } %>
+
+                        <% if (user) { %>
+                            <form action="/layanan/<%= layanan.slug %>/ajukan" method="POST">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="sp-nama">Nama Lengkap</label>
+                                        <input id="sp-nama" type="text" name="nama" value="<%= user.username %>" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="sp-nik">NIK</label>
+                                        <input id="sp-nik" type="text" name="nik" inputmode="numeric" required placeholder="16 digit NIK">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="sp-keperluan">Keperluan Surat</label>
+                                        <select id="sp-keperluan" name="keperluan" required>
+                                            <option value="">Pilih keperluan</option>
+                                            <option value="SKCK">SKCK</option>
+                                            <option value="KTP">KTP</option>
+                                            <option value="KK">KK</option>
+                                            <option value="Keterangan">Surat Keterangan</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="sp-hp">No. HP / WhatsApp</label>
+                                        <input id="sp-hp" type="tel" name="noHp" required placeholder="Contoh: 0812xxxxxxxx">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="sp-alamat">Alamat Lengkap</label>
+                                    <textarea id="sp-alamat" name="alamat" rows="3" required placeholder="Tuliskan alamat tempat tinggal Anda"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="sp-catatan">Catatan Tambahan <span class="optional">(opsional)</span></label>
+                                    <textarea id="sp-catatan" name="catatan" rows="3" placeholder="Tulis kebutuhan atau dokumen tambahan jika ada"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-block">Kirim Pengajuan</button>
+                            </form>
+                        <% } else { %>
+                            <div class="callout">
+                                <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'lock' }) %></span>
+                                <div>
+                                    <h3>Masuk terlebih dahulu</h3>
+                                    <p>Silakan <a href="/login">masuk</a> atau <a href="/register">daftar akun</a> untuk mengajukan surat pengantar.</p>
                                 </div>
                             </div>
-                        <% }) %>
-                    <% } else { %>
-                        <p style="font-size: 0.95rem; color: var(--text-main);">Nomor darurat belum tersedia. Silakan kunjungi kantor desa untuk informasi lebih lanjut.</p>
-                    <% } %>
+                        <% } %>
+                    </article>
+                <% } %>
+
+                <% if (layanan.slug === 'kontak-darurat') { %>
+                    <article class="card card-highlight">
+                        <div class="card-header">
+                            <div>
+                                <h2 class="card-title">Nomor Kontak Darurat</h2>
+                                <p class="card-subtitle">Hubungi salah satu nomor berikut bila Anda membutuhkan bantuan segera.</p>
+                            </div>
+                        </div>
+                        <% if (layanan.detail.kontak && layanan.detail.kontak.length > 0) { %>
+                            <div class="grid grid-3">
+                                <% layanan.detail.kontak.forEach(function(item) {
+                                    const phoneNumber = item.nilai ? item.nilai.replace(/\D/g, '') : '';
+                                    const waNumber = phoneNumber.replace(/^0/, '62');
+                                %>
+                                    <div class="contact-card">
+                                        <span class="label"><%= item.jenis %></span>
+                                        <span class="value"><%= item.nilai %></span>
+                                        <div class="actions">
+                                            <a href="tel:<%= phoneNumber %>" class="btn btn-primary btn-sm"><%- include('partials/icon', { name: 'phone' }) %> Panggil</a>
+                                            <a href="https://wa.me/<%= waNumber %>" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm">WhatsApp</a>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            </div>
+                        <% } else { %>
+                            <p class="empty-text">Nomor darurat belum tersedia. Silakan kunjungi kantor desa untuk informasi lebih lanjut.</p>
+                        <% } %>
+                    </article>
+                <% } %>
+            </div>
+
+            <aside class="stack sticky-aside" aria-label="Layanan lainnya">
+                <div class="card">
+                    <h2 class="card-title mb-16">Daftar Layanan</h2>
+                    <nav class="side-nav">
+                        <% desa.layanan.forEach(function(item) { %>
+                            <a href="/layanan/<%= item.slug %>" class="<%= item.slug === layanan.slug ? 'is-active' : '' %>"><%= item.nama %> <span aria-hidden="true">›</span></a>
+                        <% }); %>
+                        <a href="/layanan/pengaduan">Pengaduan &amp; Aspirasi <span aria-hidden="true">›</span></a>
+                    </nav>
                 </div>
-            </div>
-        <% } %>
-
-        <div style="max-width: 1000px; margin: 40px auto 0;">
-            <a href="/" class="btn-secondary">Kembali ke Beranda</a>
+                <div class="callout">
+                    <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'building' }) %></span>
+                    <div>
+                        <h3>Butuh bantuan?</h3>
+                        <p>Kunjungi kantor desa pada jam kerja atau hubungi petugas melalui <a href="/layanan/kontak-darurat">kontak desa</a>.</p>
+                    </div>
+                </div>
+            </aside>
         </div>
-    </main>
+    </section>
+</main>
 
-    <footer>
-        <div class="footer-content">
-            <div class="footer-info">
-                <h3><%= desa.nama %></h3>
-                <p>Kepala Desa: <%= desa.kepalaDesa %> | Populasi: <%= desa.populasi %> Jiwa</p>
-            </div>
-            <p class="footer-copyright">&copy; 2026 Portal Resmi <%= desa.nama %></p>
-        </div>
-    </footer>
-
-    <script src="/navigation.js?v=20261116"></script>
-</body>
-</html>
+<%- include('partials/footer') %>
+<%- include('partials/end') %>

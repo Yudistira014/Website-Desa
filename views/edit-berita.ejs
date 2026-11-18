@@ -1,57 +1,51 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Berita - Portal <%= desa.nama %></title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body class="bg-light">
-    <nav class="navbar">
-        <div class="nav-brand">
-            <img src="/uploads/Logo_desa.png" alt="Logo Desa" class="brand-icon" />
-            <div class="brand-text">Admin<span>Panel</span></div>
-        </div>
-        <button class="menu-toggle" type="button" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="nav-links">
-            <span></span><span></span><span></span>
-        </button>
-        <ul class="nav-links" id="nav-links">
-            <li><a href="/admin">Kembali ke Dashboard</a></li>
-            <li><a href="/galeri">Galeri</a></li>
-        </ul>
-    </nav>
+<%- include('partials/head', { title: 'Edit Berita', bodyClass: 'page-muted' }) %>
+<%- include('partials/navbar-dashboard') %>
 
-    <main class="section bg-light edit-page">
-        <div class="section-header">
-            <h2>Edit Berita</h2>
-            <p class="section-description">Sunting berita desa dengan tampilan profesional dan pastikan informasi tetap akurat bagi pembaca.</p>
-        </div>
+<% const imgSrc = foto => /^https?:\/\//i.test(foto) ? foto : '/' + foto; %>
 
-        <div class="card edit-card animate-fade-in">
-            <form action="/admin/edit-berita/<%= id %>" method="POST" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label>Judul Berita</label>
-                    <input type="text" name="judul" value="<%= berita.judul %>" required>
-                </div>
-                <div class="form-group">
-                    <label>Ringkasan Informasi</label>
-                    <textarea name="ringkasan" rows="8" required><%= berita.ringkasan %></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Foto Berita Baru (opsional)</label>
-                    <input type="file" name="fotoBerita" accept="image/*">
-                </div>
-                <% if (berita.foto) { %>
-                    <div class="current-image-wrapper">
-                        <strong>Foto saat ini</strong>
-                        <img src="/<%= berita.foto %>" alt="Foto Berita">
+<main id="konten">
+    <header class="dash-header">
+        <div class="container container-narrow dash-header-inner">
+            <div>
+                <span class="eyebrow">Panel Administrasi</span>
+                <h1>Edit Berita</h1>
+                <p>Perbarui isi berita dan pastikan informasinya tetap akurat bagi pembaca.</p>
+            </div>
+            <a href="/admin" class="btn btn-outline"><%- include('partials/icon', { name: 'arrow-left' }) %> Kembali</a>
+        </div>
+    </header>
+
+    <div class="dash-body">
+        <div class="container container-narrow">
+            <section class="card">
+                <form action="/admin/edit-berita/<%= id %>" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="edit-judul">Judul Berita</label>
+                        <input id="edit-judul" type="text" name="judul" value="<%= berita.judul %>" required>
                     </div>
-                <% } %>
-                <button type="submit" class="btn-primary" style="width: 100%;">Simpan Perubahan</button>
-            </form>
+                    <div class="form-group">
+                        <label for="edit-ringkasan">Isi Berita</label>
+                        <textarea id="edit-ringkasan" name="ringkasan" rows="9" required><%= berita.ringkasan %></textarea>
+                    </div>
+                    <% if (berita.foto) { %>
+                        <div class="current-image">
+                            <span class="form-label">Foto saat ini</span>
+                            <img src="<%= imgSrc(berita.foto) %>" alt="Foto berita saat ini">
+                        </div>
+                    <% } %>
+                    <div class="form-group">
+                        <label for="edit-foto">Ganti Foto <span class="optional">(opsional)</span></label>
+                        <input id="edit-foto" type="file" name="fotoBerita" accept="image/*">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                        <a href="/admin" class="btn btn-outline">Batal</a>
+                    </div>
+                </form>
+            </section>
         </div>
-    </main>
-    <script src="/navigation.js?v=20261116"></script>
-</body>
-</html>
+    </div>
+</main>
+
+<%- include('partials/footer', { simple: true }) %>
+<%- include('partials/end') %>

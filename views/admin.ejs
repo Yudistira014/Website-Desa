@@ -361,7 +361,7 @@ const totalKK = dataPenduduk.reduce((acc, r) => acc + (Number(r.kk) || 0), 0);
                                     <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'megaphone' }) %></span>
                                     Tulis Berita &amp; Pengumuman
                                 </h2>
-                                <p class="card-subtitle">Lengkapi detail berita di bawah. Pratinjau di sebelah kanan akan menyesuaikan otomatis.</p>
+                                <p class="card-subtitle">Lengkapi detail berita di bawah. Pratinjau di sebelah kanan menyesuaikan otomatis.</p>
                             </div>
                             <a href="/admin/daftar-berita" class="btn btn-outline btn-sm">
                                 <%- include('partials/icon', { name: 'news' }) %>
@@ -383,10 +383,10 @@ const totalKK = dataPenduduk.reduce((acc, r) => acc + (Number(r.kk) || 0), 0);
                                     <label for="berita-ringkasan">Isi Berita / Informasi</label>
                                     <small class="publish-counter"><span id="isi-count">0</span> karakter</small>
                                 </div>
-                                <textarea id="berita-ringkasan" name="ringkasan" rows="9" required placeholder="Tuliskan informasi berita secara lengkap, mulai dari waktu, tempat, hingga tujuan kegiatan..."></textarea>
+                                <textarea id="berita-ringkasan" name="ringkasan" rows="5" required placeholder="Tuliskan informasi berita secara lengkap, mulai dari waktu, tempat, hingga tujuan kegiatan..."></textarea>
                             </div>
 
-                            <div class="form-group">
+                            <div class="form-group mb-0">
                                 <div class="publish-label-row">
                                     <label for="berita-foto">Foto Sampul Berita <span class="optional">(opsional)</span></label>
                                     <button type="button" class="publish-clear-photo" id="clear-berita-foto" hidden>Hapus foto</button>
@@ -395,7 +395,7 @@ const totalKK = dataPenduduk.reduce((acc, r) => acc + (Number(r.kk) || 0), 0);
                                 <label for="berita-foto" class="upload-dropzone" id="berita-dropzone">
                                     <input id="berita-foto" type="file" name="fotoBerita" accept="image/*" class="visually-hidden">
                                     <div class="upload-dropzone-empty" id="dropzone-empty">
-                                        <span class="icon-box"><%- include('partials/icon', { name: 'upload' }) %></span>
+                                        <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'upload' }) %></span>
                                         <div>
                                             <strong>Klik untuk memilih foto</strong> atau tarik gambar ke area ini
                                             <small>Format JPG, PNG, atau WebP (rasio ideal 16:10)</small>
@@ -414,11 +414,11 @@ const totalKK = dataPenduduk.reduce((acc, r) => acc + (Number(r.kk) || 0), 0);
                             <div class="publish-footer">
                                 <div class="publish-meta-note">
                                     <%- include('partials/icon', { name: 'calendar' }) %>
-                                    <span>Tanggal terbit otomatis: <strong><%= tanggalHariIni %></strong></span>
+                                    <span>Terbit: <strong><%= tanggalHariIni %></strong></span>
                                 </div>
                                 <div class="form-actions mt-0">
-                                    <a href="/admin/daftar-berita" class="btn btn-outline">Batal</a>
-                                    <button type="submit" class="btn btn-primary">
+                                    <a href="/admin/daftar-berita" class="btn btn-outline btn-sm">Batal</a>
+                                    <button type="submit" class="btn btn-primary btn-sm">
                                         <%- include('partials/icon', { name: 'check-circle' }) %>
                                         <span>Terbitkan Sekarang</span>
                                     </button>
@@ -427,14 +427,13 @@ const totalKK = dataPenduduk.reduce((acc, r) => acc + (Number(r.kk) || 0), 0);
                         </form>
                     </section>
 
-                    <!-- Kolom Kanan: Pratinjau Langsung & Panduan -->
+                    <!-- Kolom Kanan: Pratinjau Langsung -->
                     <aside class="publish-aside">
                         <div class="card publish-preview-shell">
                             <div class="publish-preview-head">
-                                <span class="eyebrow">Pratinjau Tampilan</span>
+                                <span class="eyebrow">Pratinjau Beranda</span>
                                 <span class="badge badge-primary">Live Preview</span>
                             </div>
-                            <p class="publish-preview-note">Begini tampilan kartu berita Anda di halaman Beranda warga:</p>
 
                             <article class="card news-card publish-preview-card">
                                 <div class="news-card-image">
@@ -450,15 +449,6 @@ const totalKK = dataPenduduk.reduce((acc, r) => acc + (Number(r.kk) || 0), 0);
                                     <span class="read-more">Baca selengkapnya <span aria-hidden="true">↓</span></span>
                                 </div>
                             </article>
-                        </div>
-
-                        <div class="card publish-tips-card">
-                            <h3 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'check-circle' }) %></span> Tips Berita yang Baik</h3>
-                            <ul class="list-check mt-16">
-                                <li>Gunakan judul yang ringkas, jelas, dan informatif.</li>
-                                <li>Cantumkan tanggal, jam, serta lokasi bila berita berupa undangan/agenda warga.</li>
-                                <li>Tambahkan foto dokumentasi yang terang agar menarik perhatian pembaca.</li>
-                            </ul>
                         </div>
                     </aside>
                 </div>

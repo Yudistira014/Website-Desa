@@ -1760,10 +1760,16 @@ textarea {
 }
 
 /* Admin Sidebar Shell -------------------------------------------------------- */
+body.admin-body {
+    overflow-x: hidden;
+}
+
 .admin-shell {
     display: grid;
     grid-template-columns: 270px minmax(0, 1fr);
     min-height: 100vh;
+    width: 100%;
+    overflow-x: clip;
 }
 
 .admin-sidebar {
@@ -1992,7 +1998,7 @@ textarea {
     align-items: center;
     justify-content: space-between;
     gap: 20px;
-    padding: 20px 32px;
+    padding: 16px 28px;
     background: rgba(255, 255, 255, 0.94);
     backdrop-filter: saturate(160%) blur(10px);
     border-bottom: 1px solid var(--line);
@@ -2006,13 +2012,13 @@ textarea {
 }
 
 .admin-topbar h1 {
-    font-size: clamp(1.3rem, 2.2vw, 1.65rem);
+    font-size: clamp(1.25rem, 2vw, 1.5rem);
     margin-top: 2px;
 }
 
 .admin-topbar p {
     margin-top: 2px;
-    font-size: 0.88rem;
+    font-size: 0.85rem;
     color: var(--muted);
 }
 
@@ -2050,7 +2056,7 @@ textarea {
     width: 100%;
     max-width: 1280px;
     margin: 0 auto;
-    padding: 28px 32px 56px;
+    padding: 20px 28px 28px;
 }
 
 .admin-section {
@@ -2399,9 +2405,32 @@ textarea {
 /* Halaman Terbitkan Berita (Editor + Live Preview) --------------------------- */
 .publish-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.85fr);
-    gap: 24px;
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.95fr);
+    gap: 20px;
     align-items: start;
+}
+
+.publish-editor-card,
+.publish-aside,
+.publish-preview-shell {
+    min-width: 0;
+}
+
+.publish-editor-card {
+    padding: 22px 24px;
+}
+
+.publish-editor-card .card-header {
+    padding-bottom: 14px;
+    margin-bottom: 16px;
+}
+
+.publish-editor-card .form-group {
+    margin-bottom: 14px;
+}
+
+.publish-editor-card .form-group.mb-0 {
+    margin-bottom: 0;
 }
 
 .publish-label-row {
@@ -2409,7 +2438,7 @@ textarea {
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    margin-bottom: 7px;
+    margin-bottom: 6px;
 }
 
 .publish-label-row label {
@@ -2417,7 +2446,7 @@ textarea {
 }
 
 .publish-counter {
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     color: var(--muted);
     font-weight: 500;
 }
@@ -2426,7 +2455,7 @@ textarea {
     border: 0;
     background: none;
     color: var(--danger);
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 600;
     cursor: pointer;
     padding: 2px 6px;
@@ -2438,12 +2467,14 @@ textarea {
 }
 
 .upload-dropzone {
+    position: relative;
     display: block;
-    padding: 22px;
+    padding: 14px 16px;
     border: 1.5px dashed var(--line-strong);
     border-radius: var(--radius);
     background: var(--bg);
     cursor: pointer;
+    overflow: hidden;
     transition: border-color var(--ease), background-color var(--ease), box-shadow var(--ease);
 }
 
@@ -2456,7 +2487,8 @@ textarea {
 .upload-dropzone-empty {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
+    font-size: 0.88rem;
 }
 
 .upload-dropzone-empty strong {
@@ -2465,15 +2497,15 @@ textarea {
 
 .upload-dropzone-empty small {
     display: block;
-    margin-top: 3px;
-    font-size: 0.8rem;
+    margin-top: 2px;
+    font-size: 0.76rem;
     color: var(--muted);
 }
 
 .upload-dropzone-picked {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
 }
 
 .upload-dropzone-picked[hidden],
@@ -2482,8 +2514,8 @@ textarea {
 }
 
 .upload-dropzone-picked img {
-    width: 84px;
-    height: 60px;
+    width: 72px;
+    height: 50px;
     object-fit: cover;
     border-radius: 8px;
     border: 1px solid var(--line);
@@ -2497,7 +2529,7 @@ textarea {
 }
 
 .upload-picked-meta strong {
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     color: var(--ink);
     white-space: nowrap;
     overflow: hidden;
@@ -2505,7 +2537,7 @@ textarea {
 }
 
 .upload-picked-meta small {
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     color: var(--muted);
     margin-top: 2px;
 }
@@ -2515,34 +2547,33 @@ textarea {
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 16px;
-    margin-top: 24px;
-    padding-top: 20px;
+    gap: 14px;
+    margin-top: 16px;
+    padding-top: 16px;
     border-top: 1px solid var(--line);
 }
 
 .publish-meta-note {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    font-size: 0.85rem;
+    gap: 7px;
+    font-size: 0.83rem;
     color: var(--muted);
 }
 
 .publish-meta-note svg {
-    width: 16px;
-    height: 16px;
+    width: 15px;
+    height: 15px;
     color: var(--primary-600);
 }
 
 .publish-aside {
     display: grid;
-    gap: 20px;
-    position: sticky;
-    top: 108px;
+    gap: 16px;
 }
 
 .publish-preview-shell {
+    padding: 20px;
     background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
 }
 
@@ -2551,13 +2582,7 @@ textarea {
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    margin-bottom: 6px;
-}
-
-.publish-preview-note {
-    font-size: 0.85rem;
-    color: var(--muted);
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .publish-preview-card {
@@ -2568,14 +2593,19 @@ textarea {
     transform: none;
 }
 
+.publish-preview-card .news-card-image {
+    aspect-ratio: 16 / 9;
+    max-height: 170px;
+}
+
+.publish-preview-card .news-card-body {
+    padding: 16px 18px 18px;
+    gap: 8px;
+}
+
 .publish-preview-card .news-card-image img[hidden],
 .publish-preview-card .news-card-placeholder[hidden] {
     display: none !important;
-}
-
-.publish-tips-card .list-check {
-    font-size: 0.88rem;
-    color: var(--text);
 }
 
 /* 14. Auth ------------------------------------------------------------------- */
@@ -3050,10 +3080,13 @@ textarea {
 
 .visually-hidden {
     position: absolute !important;
+    left: 0;
+    top: 0;
     width: 1px;
     height: 1px;
     overflow: hidden;
     clip: rect(0 0 0 0);
+    clip-path: inset(50%);
     white-space: nowrap;
 }
 

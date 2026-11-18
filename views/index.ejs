@@ -15,13 +15,16 @@ const imgSrc = foto => /^https?:\/\//i.test(foto) ? foto : '/' + foto;
 <main id="konten">
     <!-- Hero -->
     <section class="hero">
+        <div class="hero-bg" aria-hidden="true"></div>
+        <div class="hero-orb hero-orb-1" aria-hidden="true"></div>
+        <div class="hero-orb hero-orb-2" aria-hidden="true"></div>
         <div class="container">
             <div class="hero-inner">
-                <span class="eyebrow"><span class="eyebrow-dot"></span> Portal Resmi Pemerintah Desa</span>
-                <h1>Selamat Datang di <%= desa.nama %></h1>
-                <p class="hero-lead"><%= desa.tagline || 'Pusat informasi, layanan administrasi, dan kabar terbaru untuk seluruh warga desa — mudah diakses kapan saja.' %></p>
-                <div class="hero-actions">
-                    <a href="#layanan" class="btn btn-light">Jelajahi Layanan <%- include('partials/icon', { name: 'arrow-right' }) %></a>
+                <span class="eyebrow hero-enter hero-enter-1"><span class="eyebrow-dot"></span> Portal Resmi Pemerintah Desa</span>
+                <h1 class="hero-enter hero-enter-2">Selamat Datang di <span class="hero-highlight"><%= desa.nama %></span></h1>
+                <p class="hero-lead hero-enter hero-enter-3"><%= desa.tagline || 'Pusat informasi, layanan administrasi, dan kabar terbaru untuk seluruh warga desa — mudah diakses kapan saja.' %></p>
+                <div class="hero-actions hero-enter hero-enter-4">
+                    <a href="#layanan" class="btn btn-light btn-shine">Jelajahi Layanan <%- include('partials/icon', { name: 'arrow-right' }) %></a>
                     <a href="/profil/visi-misi" class="btn btn-ghost-light">Kenali Desa Kami</a>
                 </div>
             </div>
@@ -31,22 +34,22 @@ const imgSrc = foto => /^https?:\/\//i.test(foto) ? foto : '/' + foto;
     <!-- Ringkasan desa -->
     <section class="hero-stats" aria-label="Ringkasan desa">
         <div class="container">
-            <div class="hero-stats-grid">
+            <div class="hero-stats-grid" data-reveal="up">
                 <div class="hero-stat">
                     <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'user' }) %></span>
                     <div><strong><%= desa.kepalaDesa %></strong><span>Kepala Desa</span></div>
                 </div>
                 <div class="hero-stat">
                     <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'users' }) %></span>
-                    <div><strong><%= desa.populasi %> Jiwa</strong><span>Jumlah Penduduk</span></div>
+                    <div><strong><span data-countup="<%= desa.populasi %>"><%= desa.populasi %></span> Jiwa</strong><span>Jumlah Penduduk</span></div>
                 </div>
                 <div class="hero-stat">
                     <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'map' }) %></span>
-                    <div><strong><%= desa.wilayah.dusun.length %> Dusun</strong><span>Wilayah Administratif</span></div>
+                    <div><strong><span data-countup="<%= desa.wilayah.dusun.length %>"><%= desa.wilayah.dusun.length %></span> Dusun</strong><span>Wilayah Administratif</span></div>
                 </div>
                 <div class="hero-stat">
                     <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'layers' }) %></span>
-                    <div><strong><%= desa.layanan.length %> Layanan</strong><span>Layanan Masyarakat</span></div>
+                    <div><strong><span data-countup="<%= desa.layanan.length %>"><%= desa.layanan.length %></span> Layanan</strong><span>Layanan Masyarakat</span></div>
                 </div>
             </div>
         </div>
@@ -55,21 +58,21 @@ const imgSrc = foto => /^https?:\/\//i.test(foto) ? foto : '/' + foto;
     <!-- Layanan -->
     <section id="layanan" class="section">
         <div class="container">
-            <div class="section-header">
+            <div class="section-header" data-reveal="up">
                 <span class="eyebrow">Layanan untuk warga</span>
                 <h2>Layanan Masyarakat</h2>
                 <p>Akses cepat untuk berbagai kebutuhan administrasi dan pelayanan publik desa.</p>
             </div>
             <div class="grid grid-3">
-                <% desa.layanan.forEach(function(item) { %>
-                    <article class="card service-card">
+                <% desa.layanan.forEach(function(item, idx) { %>
+                    <article class="card service-card" data-reveal="up" style="--reveal-delay: <%= idx * 80 %>ms">
                         <span class="icon-box"><%- include('partials/icon', { name: serviceIcon[item.slug] || 'home' }) %></span>
                         <h3><%= item.nama %></h3>
                         <p><%= item.desc %></p>
                         <a href="/layanan/<%= item.slug %>" class="link-arrow">Pelajari layanan <span aria-hidden="true">→</span></a>
                     </article>
                 <% }); %>
-                <article class="card service-card">
+                <article class="card service-card" data-reveal="up" style="--reveal-delay: <%= desa.layanan.length * 80 %>ms">
                     <span class="icon-box icon-box-accent"><%- include('partials/icon', { name: 'chat' }) %></span>
                     <h3>Pengaduan &amp; Aspirasi</h3>
                     <p>Sampaikan keluhan, saran, atau permohonan informasi langsung kepada pemerintah desa.</p>
@@ -82,26 +85,26 @@ const imgSrc = foto => /^https?:\/\//i.test(foto) ? foto : '/' + foto;
     <!-- Tentang desa -->
     <section class="section section-alt">
         <div class="container about-grid">
-            <div class="about-copy">
+            <div class="about-copy" data-reveal="left">
                 <span class="eyebrow">Tentang desa</span>
                 <h2>Mengenal <%= desa.nama %></h2>
                 <p><%= desa.wilayah.deskripsi %></p>
                 <div class="about-links">
-                    <a href="/profil/visi-misi" class="card feature-card">
+                    <a href="/profil/visi-misi" class="card feature-card" data-reveal="up" style="--reveal-delay: 80ms">
                         <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'target' }) %></span>
                         <div><h3>Visi &amp; Misi</h3><p>Arah kebijakan dan cita-cita pembangunan desa.</p></div>
                     </a>
-                    <a href="/profil/wilayah-desa" class="card feature-card">
+                    <a href="/profil/wilayah-desa" class="card feature-card" data-reveal="up" style="--reveal-delay: 160ms">
                         <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'map' }) %></span>
                         <div><h3>Wilayah Desa</h3><p>Kondisi geografis dan pembagian dusun.</p></div>
                     </a>
-                    <a href="/pemerintahan/desa" class="card feature-card">
+                    <a href="/pemerintahan/desa" class="card feature-card" data-reveal="up" style="--reveal-delay: 240ms">
                         <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'building' }) %></span>
                         <div><h3>Pemerintahan</h3><p>Struktur pemerintah desa, BPD, dan LPMD.</p></div>
                     </a>
                 </div>
             </div>
-            <div class="quote-card">
+            <div class="quote-card quote-card-animated" data-reveal="right">
                 <span class="eyebrow">Visi Desa</span>
                 <blockquote>“<%= desa.visi %>”</blockquote>
             </div>
@@ -111,15 +114,15 @@ const imgSrc = foto => /^https?:\/\//i.test(foto) ? foto : '/' + foto;
     <!-- Berita -->
     <section id="berita" class="section">
         <div class="container">
-            <div class="section-header">
+            <div class="section-header" data-reveal="up">
                 <span class="eyebrow">Kabar dan kegiatan</span>
                 <h2>Berita Desa Terbaru</h2>
                 <p>Informasi dan transparansi kegiatan desa terkini.</p>
             </div>
             <% if (berita && berita.length) { %>
                 <div class="grid grid-3">
-                    <% berita.forEach(function(item) { %>
-                        <article class="card news-card">
+                    <% berita.forEach(function(item, idx) { %>
+                        <article class="card news-card" data-reveal="up" style="--reveal-delay: <%= idx * 95 %>ms">
                             <div class="news-card-image">
                                 <% if (item.foto) { %>
                                     <img src="<%= imgSrc(item.foto) %>" alt="<%= item.judul %>" loading="lazy" decoding="async">
@@ -137,7 +140,7 @@ const imgSrc = foto => /^https?:\/\//i.test(foto) ? foto : '/' + foto;
                     <% }); %>
                 </div>
             <% } else { %>
-                <div class="empty-state">
+                <div class="empty-state" data-reveal="up">
                     <span class="icon-box"><%- include('partials/icon', { name: 'news' }) %></span>
                     <h3>Belum ada berita</h3>
                     <p>Berita terbaru akan ditampilkan di sini. Silakan kembali lagi nanti.</p>
@@ -149,7 +152,7 @@ const imgSrc = foto => /^https?:\/\//i.test(foto) ? foto : '/' + foto;
     <!-- Galeri -->
     <section id="galeri" class="section section-alt">
         <div class="container">
-            <div class="section-header section-header-split">
+            <div class="section-header section-header-split" data-reveal="up">
                 <div>
                     <span class="eyebrow">Dokumentasi kegiatan</span>
                     <h2>Galeri Kegiatan Desa</h2>
@@ -161,8 +164,8 @@ const imgSrc = foto => /^https?:\/\//i.test(foto) ? foto : '/' + foto;
             </div>
             <% if (galeri && galeri.length) { %>
                 <div class="gallery-grid">
-                    <% galeri.forEach(function(item) { %>
-                        <a class="gallery-tile" href="/galeri" aria-label="Lihat galeri: <%= item.judul %>">
+                    <% galeri.forEach(function(item, idx) { %>
+                        <a class="gallery-tile" href="/galeri" aria-label="Lihat galeri: <%= item.judul %>" data-reveal="scale" style="--reveal-delay: <%= idx * 80 %>ms">
                             <img src="<%= imgSrc(item.foto) %>" alt="<%= item.judul %>" loading="lazy" decoding="async">
                             <span class="gallery-tile-caption">
                                 <span><%= item.tanggal %></span>
@@ -172,7 +175,7 @@ const imgSrc = foto => /^https?:\/\//i.test(foto) ? foto : '/' + foto;
                     <% }); %>
                 </div>
             <% } else { %>
-                <div class="empty-state">
+                <div class="empty-state" data-reveal="up">
                     <span class="icon-box"><%- include('partials/icon', { name: 'image' }) %></span>
                     <h3>Belum ada dokumentasi</h3>
                     <p>Dokumentasi kegiatan desa akan ditampilkan di sini.</p>
@@ -185,23 +188,77 @@ const imgSrc = foto => /^https?:\/\//i.test(foto) ? foto : '/' + foto;
 <%- include('partials/footer') %>
 
 <script>
-    document.querySelectorAll('.news-card .read-more').forEach(button => {
-        const card = button.closest('.news-card');
-        const summary = card && card.querySelector('.news-summary');
-        if (!summary) return;
+    (() => {
+        // 1. Expand / collapse ringkasan berita
+        document.querySelectorAll('.news-card .read-more').forEach(button => {
+            const card = button.closest('.news-card');
+            const summary = card && card.querySelector('.news-summary');
+            if (!summary) return;
 
-        // Sembunyikan tombol bila ringkasan sudah tampil seluruhnya.
-        if (summary.scrollHeight <= summary.clientHeight + 2) {
-            button.hidden = true;
-            return;
+            if (summary.scrollHeight <= summary.clientHeight + 2) {
+                button.hidden = true;
+                return;
+            }
+
+            button.addEventListener('click', () => {
+                const isExpanded = card.classList.toggle('expanded');
+                button.setAttribute('aria-expanded', String(isExpanded));
+                button.querySelector('.read-more-label').textContent = isExpanded ? 'Ringkas berita' : 'Baca selengkapnya';
+                button.querySelector('.read-more-icon').textContent = isExpanded ? '↑' : '↓';
+            });
+        });
+
+        // 2. Scroll-reveal modern dengan IntersectionObserver
+        const revealEls = document.querySelectorAll('[data-reveal]');
+        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (prefersReduced || !('IntersectionObserver' in window)) {
+            revealEls.forEach(el => el.classList.add('is-visible'));
+        } else {
+            const revealObserver = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        obs.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.14, rootMargin: '0px 0px -40px 0px' });
+
+            revealEls.forEach(el => revealObserver.observe(el));
         }
 
-        button.addEventListener('click', () => {
-            const isExpanded = card.classList.toggle('expanded');
-            button.setAttribute('aria-expanded', String(isExpanded));
-            button.querySelector('.read-more-label').textContent = isExpanded ? 'Ringkas berita' : 'Baca selengkapnya';
-            button.querySelector('.read-more-icon').textContent = isExpanded ? '↑' : '↓';
-        });
-    });
+        // 3. Animasi hitung angka (Count-Up) pada bar statistik
+        const countEls = document.querySelectorAll('[data-countup]');
+        const animateCount = el => {
+            const raw = (el.getAttribute('data-countup') || '').trim();
+            const target = Number.parseInt(raw.replace(/\D/g, ''), 10);
+            if (!Number.isFinite(target) || target <= 0 || prefersReduced) return;
+
+            const useLocale = raw.includes('.') || target >= 1000;
+            const duration = 1400;
+            const start = performance.now();
+
+            const step = now => {
+                const progress = Math.min(1, (now - start) / duration);
+                const eased = 1 - Math.pow(1 - progress, 4); // easeOutQuart
+                const current = Math.round(target * eased);
+                el.textContent = useLocale ? current.toLocaleString('id-ID') : String(current);
+                if (progress < 1) requestAnimationFrame(step);
+            };
+            requestAnimationFrame(step);
+        };
+
+        if ('IntersectionObserver' in window && !prefersReduced) {
+            const countObserver = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animateCount(entry.target);
+                        obs.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+            countEls.forEach(el => countObserver.observe(el));
+        }
+    })();
 </script>
 <%- include('partials/end') %>

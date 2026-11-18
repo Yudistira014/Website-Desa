@@ -345,33 +345,123 @@ const totalKK = dataPenduduk.reduce((acc, r) => acc + (Number(r.kk) || 0), 0);
                 </section>
             <% } else if (activeSection === 'terbitkan-berita') { %>
                 <!-- HALAMAN 3: TERBITKAN BERITA -->
-                <section class="card admin-section" style="max-width: 780px;">
-                    <div class="card-header">
-                        <div>
-                            <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'megaphone' }) %></span> Formulir Berita Baru</h2>
-                            <p class="card-subtitle">Berita yang diposting akan langsung tampil di halaman utama portal desa.</p>
+                <%
+                    const tanggalHariIni = new Date().toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                    });
+                %>
+                <div class="publish-layout admin-section">
+                    <!-- Kolom Kiri: Editor Berita -->
+                    <section class="card publish-editor-card">
+                        <div class="card-header">
+                            <div>
+                                <h2 class="card-title">
+                                    <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'megaphone' }) %></span>
+                                    Tulis Berita &amp; Pengumuman
+                                </h2>
+                                <p class="card-subtitle">Lengkapi detail berita di bawah. Pratinjau di sebelah kanan akan menyesuaikan otomatis.</p>
+                            </div>
+                            <a href="/admin/daftar-berita" class="btn btn-outline btn-sm">
+                                <%- include('partials/icon', { name: 'news' }) %>
+                                <span>Daftar Berita (<%= daftarBerita.length %>)</span>
+                            </a>
                         </div>
-                        <a href="/admin/daftar-berita" class="btn btn-outline btn-sm">Lihat Daftar Berita (<%= daftarBerita.length %>)</a>
-                    </div>
-                    <form action="/admin/tambah-berita" method="POST" enctype="multipart/form-data">
-                        <div class="form-group">
-                            <label for="berita-judul">Judul Berita</label>
-                            <input id="berita-judul" type="text" name="judul" required placeholder="Contoh: Jadwal Musyawarah Desa">
+
+                        <form action="/admin/tambah-berita" method="POST" enctype="multipart/form-data" id="publish-news-form">
+                            <div class="form-group">
+                                <div class="publish-label-row">
+                                    <label for="berita-judul">Judul Berita</label>
+                                    <small class="publish-counter"><span id="judul-count">0</span>/150 karakter</small>
+                                </div>
+                                <input id="berita-judul" type="text" name="judul" maxlength="150" required placeholder="Contoh: Jadwal Musyawarah Perencanaan Pembangunan Desa">
+                            </div>
+
+                            <div class="form-group">
+                                <div class="publish-label-row">
+                                    <label for="berita-ringkasan">Isi Berita / Informasi</label>
+                                    <small class="publish-counter"><span id="isi-count">0</span> karakter</small>
+                                </div>
+                                <textarea id="berita-ringkasan" name="ringkasan" rows="9" required placeholder="Tuliskan informasi berita secara lengkap, mulai dari waktu, tempat, hingga tujuan kegiatan..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="publish-label-row">
+                                    <label for="berita-foto">Foto Sampul Berita <span class="optional">(opsional)</span></label>
+                                    <button type="button" class="publish-clear-photo" id="clear-berita-foto" hidden>Hapus foto</button>
+                                </div>
+
+                                <label for="berita-foto" class="upload-dropzone" id="berita-dropzone">
+                                    <input id="berita-foto" type="file" name="fotoBerita" accept="image/*" class="visually-hidden">
+                                    <div class="upload-dropzone-empty" id="dropzone-empty">
+                                        <span class="icon-box"><%- include('partials/icon', { name: 'upload' }) %></span>
+                                        <div>
+                                            <strong>Klik untuk memilih foto</strong> atau tarik gambar ke area ini
+                                            <small>Format JPG, PNG, atau WebP (rasio ideal 16:10)</small>
+                                        </div>
+                                    </div>
+                                    <div class="upload-dropzone-picked" id="dropzone-picked" hidden>
+                                        <img id="dropzone-thumb" src="" alt="Pratinjau foto">
+                                        <div class="upload-picked-meta">
+                                            <strong id="dropzone-filename">foto.jpg</strong>
+                                            <small id="dropzone-filesize">0 KB — Klik untuk mengganti foto</small>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="publish-footer">
+                                <div class="publish-meta-note">
+                                    <%- include('partials/icon', { name: 'calendar' }) %>
+                                    <span>Tanggal terbit otomatis: <strong><%= tanggalHariIni %></strong></span>
+                                </div>
+                                <div class="form-actions mt-0">
+                                    <a href="/admin/daftar-berita" class="btn btn-outline">Batal</a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <%- include('partials/icon', { name: 'check-circle' }) %>
+                                        <span>Terbitkan Sekarang</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </section>
+
+                    <!-- Kolom Kanan: Pratinjau Langsung & Panduan -->
+                    <aside class="publish-aside">
+                        <div class="card publish-preview-shell">
+                            <div class="publish-preview-head">
+                                <span class="eyebrow">Pratinjau Tampilan</span>
+                                <span class="badge badge-primary">Live Preview</span>
+                            </div>
+                            <p class="publish-preview-note">Begini tampilan kartu berita Anda di halaman Beranda warga:</p>
+
+                            <article class="card news-card publish-preview-card">
+                                <div class="news-card-image">
+                                    <img id="preview-news-img" src="" alt="Pratinjau Foto Berita" hidden>
+                                    <div class="news-card-placeholder" id="preview-news-placeholder">
+                                        <%- include('partials/icon', { name: 'news' }) %>
+                                    </div>
+                                </div>
+                                <div class="news-card-body">
+                                    <span class="meta-date"><%- include('partials/icon', { name: 'calendar' }) %><%= tanggalHariIni %></span>
+                                    <h3 id="preview-news-title">Judul berita akan tampil di sini...</h3>
+                                    <p class="news-summary" id="preview-news-summary">Tuliskan isi berita pada formulir di samping untuk melihat pratinjau ringkasan berita secara langsung.</p>
+                                    <span class="read-more">Baca selengkapnya <span aria-hidden="true">↓</span></span>
+                                </div>
+                            </article>
                         </div>
-                        <div class="form-group">
-                            <label for="berita-ringkasan">Isi Berita</label>
-                            <textarea id="berita-ringkasan" name="ringkasan" rows="8" required placeholder="Tuliskan isi berita secara singkat dan jelas..."></textarea>
+
+                        <div class="card publish-tips-card">
+                            <h3 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'check-circle' }) %></span> Tips Berita yang Baik</h3>
+                            <ul class="list-check mt-16">
+                                <li>Gunakan judul yang ringkas, jelas, dan informatif.</li>
+                                <li>Cantumkan tanggal, jam, serta lokasi bila berita berupa undangan/agenda warga.</li>
+                                <li>Tambahkan foto dokumentasi yang terang agar menarik perhatian pembaca.</li>
+                            </ul>
                         </div>
-                        <div class="form-group">
-                            <label for="berita-foto">Foto Berita <span class="optional">(opsional)</span></label>
-                            <input id="berita-foto" type="file" name="fotoBerita" accept="image/*">
-                        </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Posting Berita</button>
-                            <a href="/admin/daftar-berita" class="btn btn-outline">Batal</a>
-                        </div>
-                    </form>
-                </section>
+                    </aside>
+                </div>
             <% } else if (activeSection === 'laporan-warga') { %>
                 <!-- HALAMAN 4: LAPORAN WARGA -->
                 <section class="card admin-section">
@@ -563,6 +653,103 @@ const totalKK = dataPenduduk.reduce((acc, r) => acc + (Number(r.kk) || 0), 0);
 
 <% if (activeSection === 'kelola-galeri' && isVercel) { %>
     <script src="/gallery-upload.js?v=1" defer></script>
+<% } %>
+<% if (activeSection === 'terbitkan-berita') { %>
+<script>
+    (() => {
+        const inputJudul = document.getElementById('berita-judul');
+        const inputIsi = document.getElementById('berita-ringkasan');
+        const inputFoto = document.getElementById('berita-foto');
+        const dropzone = document.getElementById('berita-dropzone');
+        const dzEmpty = document.getElementById('dropzone-empty');
+        const dzPicked = document.getElementById('dropzone-picked');
+        const dzThumb = document.getElementById('dropzone-thumb');
+        const dzName = document.getElementById('dropzone-filename');
+        const dzSize = document.getElementById('dropzone-filesize');
+        const clearBtn = document.getElementById('clear-berita-foto');
+
+        const previewTitle = document.getElementById('preview-news-title');
+        const previewSummary = document.getElementById('preview-news-summary');
+        const previewImg = document.getElementById('preview-news-img');
+        const previewPlaceholder = document.getElementById('preview-news-placeholder');
+        const judulCount = document.getElementById('judul-count');
+        const isiCount = document.getElementById('isi-count');
+
+        if (!inputJudul || !inputIsi) return;
+
+        let currentObjectUrl = null;
+
+        inputJudul.addEventListener('input', () => {
+            const val = inputJudul.value.trim();
+            judulCount.textContent = inputJudul.value.length;
+            previewTitle.textContent = val || 'Judul berita akan tampil di sini...';
+        });
+
+        inputIsi.addEventListener('input', () => {
+            const val = inputIsi.value.trim();
+            isiCount.textContent = inputIsi.value.length;
+            previewSummary.textContent = val || 'Tuliskan isi berita pada formulir di samping untuk melihat pratinjau ringkasan berita secara langsung.';
+        });
+
+        const showPhotoPreview = file => {
+            if (currentObjectUrl) {
+                URL.revokeObjectURL(currentObjectUrl);
+                currentObjectUrl = null;
+            }
+            if (!file || !file.type.startsWith('image/')) {
+                dzEmpty.hidden = false;
+                dzPicked.hidden = true;
+                clearBtn.hidden = true;
+                previewImg.hidden = true;
+                previewImg.removeAttribute('src');
+                previewPlaceholder.hidden = false;
+                return;
+            }
+
+            currentObjectUrl = URL.createObjectURL(file);
+            dzThumb.src = currentObjectUrl;
+            dzName.textContent = file.name;
+            const kb = Math.max(1, Math.round(file.size / 1024));
+            dzSize.textContent = (kb >= 1024 ? (kb / 1024).toFixed(1) + ' MB' : kb + ' KB') + ' — Klik untuk mengganti foto';
+            dzEmpty.hidden = true;
+            dzPicked.hidden = false;
+            clearBtn.hidden = false;
+
+            previewImg.src = currentObjectUrl;
+            previewImg.hidden = false;
+            previewPlaceholder.hidden = true;
+        };
+
+        inputFoto.addEventListener('change', () => {
+            showPhotoPreview(inputFoto.files && inputFoto.files[0]);
+        });
+
+        clearBtn.addEventListener('click', () => {
+            inputFoto.value = '';
+            showPhotoPreview(null);
+        });
+
+        ['dragenter', 'dragover'].forEach(evt => {
+            dropzone.addEventListener(evt, e => {
+                e.preventDefault();
+                dropzone.classList.add('is-dragover');
+            });
+        });
+        ['dragleave', 'drop'].forEach(evt => {
+            dropzone.addEventListener(evt, e => {
+                e.preventDefault();
+                dropzone.classList.remove('is-dragover');
+            });
+        });
+        dropzone.addEventListener('drop', e => {
+            const files = e.dataTransfer && e.dataTransfer.files;
+            if (files && files.length > 0) {
+                inputFoto.files = files;
+                showPhotoPreview(files[0]);
+            }
+        });
+    })();
+</script>
 <% } %>
 <% if (activeSection === 'kependudukan') { %>
 <script>

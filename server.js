@@ -16,8 +16,8 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(process.cwd(), 'views'));
 app.use(express.static(path.join(process.cwd(), 'public')));
 
-const storage = multer.diskStorage({
-    // (DIUBAH UNTUK VERCEL)
+// Storage lokal (khusus pengembangan di komputer)
+const diskStorage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, path.join(process.cwd(), 'public', 'uploads')),
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -26,16 +26,39 @@ const storage = multer.diskStorage({
     }
 });
 
+// Gunakan memoryStorage agar kompatibel dengan Vercel Blob (untuk berita & laporan)
 const upload = multer({
-    storage,
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 }, // Maksimal 5 MB
     fileFilter: (req, file, cb) => {
         if (/^image\//.test(file.mimetype)) {
             cb(null, true);
         } else {
-            cb(new Error('Hanya file gambar yang diizinkan')); 
+            cb(new Error('Hanya file gambar yang diizinkan'));
         }
     }
 });
+
+// Helper simpan gambar: otomatis ke Vercel Blob jika token tersedia / di Vercel, atau ke folder lokal
+async function saveUploadedImage(file, folder = 'uploads') {
+    if (!file) return null;
+
+    const ext = path.extname(file.originalname) || '.jpg';
+    const filename = `${file.fieldname}-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+
+    if (process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL === '1') {
+        const blob = await put(`${folder}/${filename}`, file.buffer, {
+            access: 'public',
+            contentType: file.mimetype
+        });
+        return blob.url;
+    }
+
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+    await fs.mkdir(uploadDir, { recursive: true });
+    await fs.writeFile(path.join(uploadDir, filename), file.buffer);
+    return `uploads/${filename}`;
+}
 
 const galleryImageTypes = {
     'image/jpeg': 'jpg',
@@ -51,7 +74,7 @@ const galleryImageFilter = (req, file, cb) => {
 };
 const galleryImageLimits = { fileSize: 3 * 1024 * 1024 };
 const galleryDiskUpload = multer({
-    storage,
+    storage: diskStorage,
     limits: galleryImageLimits,
     fileFilter: galleryImageFilter
 });
@@ -201,123 +224,6 @@ const db = mysql.createPool({
     connectionLimit: 10,
     queueLimit: 0
 });
-
-async function verifyDatabaseConnection() {
-    try {
-        const connection = await db.getConnection();
-        await connection.ping();
-        
-        // MEMBUAT TABEL OTOMATIS JIKA BELUM ADA DI TIDB
-        await connection.query(`
-            CREATE TABLE IF NOT EXISTS laporan (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                nama VARCHAR(100),
-                tipe VARCHAR(50),
-                isi TEXT,
-                status VARCHAR(50),
-                tanggal VARCHAR(100),
-                foto VARCHAR(255)
-            )
-        `);
-        await connection.query(`
-            CREATE TABLE IF NOT EXISTS surat_pengantar (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                nama VARCHAR(100),
-                nik VARCHAR(50),
-                keperluan VARCHAR(100),
-                alamat TEXT,
-                no_hp VARCHAR(50),
-                catatan TEXT,
-                alasan_penolakan TEXT,
-                status VARCHAR(50),
-                tanggal VARCHAR(100)
-            )
-        `);
-        await connection.query(`
-            CREATE TABLE IF NOT EXISTS berita (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                judul VARCHAR(255),
-                tanggal VARCHAR(100),
-                ringkasan TEXT,
-                foto VARCHAR(255)
-            )
-        `);
-        await connection.query(`
-            CREATE TABLE IF NOT EXISTS galeri (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                judul VARCHAR(255) NOT NULL,
-                tanggal VARCHAR(100) NOT NULL,
-                deskripsi TEXT,
-                foto VARCHAR(255) NOT NULL
-            )
-        `);
-        await connection.query(`
-            CREATE TABLE IF NOT EXISTS users (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                username VARCHAR(100),
-                password VARCHAR(255),
-                role VARCHAR(50)
-            )
-        `);
-        await connection.query(`
-            CREATE TABLE IF NOT EXISTS kependudukan (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                dusun VARCHAR(100) NOT NULL UNIQUE,
-                laki_laki INT NOT NULL DEFAULT 0,
-                perempuan INT NOT NULL DEFAULT 0,
-                kk INT NOT NULL DEFAULT 0,
-                balita INT NOT NULL DEFAULT 0,
-                anak_remaja INT NOT NULL DEFAULT 0,
-                dewasa INT NOT NULL DEFAULT 0,
-                lansia INT NOT NULL DEFAULT 0
-            )
-        `);
-        await ensureDefaultKependudukan(connection);
-        await syncTotalPopulasi(connection);
-        
-        connection.release();
-        console.log(`Database MySQL terhubung: ${process.env.DB_NAME || 'web_desa'}`);
-    } catch (err) {
-        console.error('Gagal terhubung ke database MySQL:', err.message);
-    }
-}
-
-const defaultKependudukan = [
-    { dusun: 'Dusun Karang', laki_laki: 620, perempuan: 605, kk: 340, balita: 95, anak_remaja: 260, dewasa: 710, lansia: 160 },
-    { dusun: 'Dusun Mulyo', laki_laki: 590, perempuan: 580, kk: 325, balita: 88, anak_remaja: 245, dewasa: 690, lansia: 147 },
-    { dusun: 'Dusun Makmur', laki_laki: 555, perempuan: 550, kk: 310, balita: 82, anak_remaja: 230, dewasa: 655, lansia: 138 }
-];
-
-async function ensureDefaultKependudukan(conn = db) {
-    try {
-        const [[{ total }]] = await conn.query('SELECT COUNT(*) AS total FROM kependudukan');
-        if (Number(total) === 0) {
-            const values = defaultKependudukan.map(d => [
-                d.dusun, d.laki_laki, d.perempuan, d.kk, d.balita, d.anak_remaja, d.dewasa, d.lansia
-            ]);
-            await conn.query(
-                'INSERT INTO kependudukan (dusun, laki_laki, perempuan, kk, balita, anak_remaja, dewasa, lansia) VALUES ?',
-                [values]
-            );
-        }
-    } catch (err) {
-        console.error('Gagal menyiapkan data awal kependudukan:', err.message);
-    }
-}
-
-async function syncTotalPopulasi(conn = db) {
-    try {
-        const [rows] = await conn.query('SELECT laki_laki, perempuan FROM kependudukan');
-        if (rows.length > 0) {
-            const totalJiwa = rows.reduce((sum, r) => sum + (Number(r.laki_laki) || 0) + (Number(r.perempuan) || 0), 0);
-            if (totalJiwa > 0) {
-                infoDesa.populasi = totalJiwa.toLocaleString('id-ID');
-            }
-        }
-    } catch (err) {}
-}
-
-verifyDatabaseConnection();
 
 // --- DATABASE SIMULASI (Data Asli Anda + Data Fitur Baru) ---
 const infoDesa = {
@@ -490,6 +396,123 @@ const infoDesa = {
 };
 
 app.locals.desa = infoDesa;
+
+const defaultKependudukan = [
+    { dusun: 'Dusun Karang', laki_laki: 620, perempuan: 605, kk: 340, balita: 95, anak_remaja: 260, dewasa: 710, lansia: 160 },
+    { dusun: 'Dusun Mulyo', laki_laki: 590, perempuan: 580, kk: 325, balita: 88, anak_remaja: 245, dewasa: 690, lansia: 147 },
+    { dusun: 'Dusun Makmur', laki_laki: 555, perempuan: 550, kk: 310, balita: 82, anak_remaja: 230, dewasa: 655, lansia: 138 }
+];
+
+async function ensureDefaultKependudukan(conn = db) {
+    try {
+        const [[{ total }]] = await conn.query('SELECT COUNT(*) AS total FROM kependudukan');
+        if (Number(total) === 0) {
+            const values = defaultKependudukan.map(d => [
+                d.dusun, d.laki_laki, d.perempuan, d.kk, d.balita, d.anak_remaja, d.dewasa, d.lansia
+            ]);
+            await conn.query(
+                'INSERT INTO kependudukan (dusun, laki_laki, perempuan, kk, balita, anak_remaja, dewasa, lansia) VALUES ?',
+                [values]
+            );
+        }
+    } catch (err) {
+        console.error('Gagal menyiapkan data awal kependudukan:', err.message);
+    }
+}
+
+async function syncTotalPopulasi(conn = db) {
+    try {
+        const [rows] = await conn.query('SELECT laki_laki, perempuan FROM kependudukan');
+        if (rows.length > 0) {
+            const totalJiwa = rows.reduce((sum, r) => sum + (Number(r.laki_laki) || 0) + (Number(r.perempuan) || 0), 0);
+            if (totalJiwa > 0) {
+                infoDesa.populasi = totalJiwa.toLocaleString('id-ID');
+            }
+        }
+    } catch (err) {}
+}
+
+async function verifyDatabaseConnection() {
+    try {
+        const connection = await db.getConnection();
+        await connection.ping();
+
+        // MEMBUAT TABEL OTOMATIS JIKA BELUM ADA DI TIDB
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS laporan (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                nama VARCHAR(100),
+                tipe VARCHAR(50),
+                isi TEXT,
+                status VARCHAR(50),
+                tanggal VARCHAR(100),
+                foto VARCHAR(255)
+            )
+        `);
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS surat_pengantar (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                nama VARCHAR(100),
+                nik VARCHAR(50),
+                keperluan VARCHAR(100),
+                alamat TEXT,
+                no_hp VARCHAR(50),
+                catatan TEXT,
+                alasan_penolakan TEXT,
+                status VARCHAR(50),
+                tanggal VARCHAR(100)
+            )
+        `);
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS berita (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                judul VARCHAR(255),
+                tanggal VARCHAR(100),
+                ringkasan TEXT,
+                foto VARCHAR(255)
+            )
+        `);
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS galeri (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                judul VARCHAR(255) NOT NULL,
+                tanggal VARCHAR(100) NOT NULL,
+                deskripsi TEXT,
+                foto VARCHAR(255) NOT NULL
+            )
+        `);
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(100),
+                password VARCHAR(255),
+                role VARCHAR(50)
+            )
+        `);
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS kependudukan (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                dusun VARCHAR(100) NOT NULL UNIQUE,
+                laki_laki INT NOT NULL DEFAULT 0,
+                perempuan INT NOT NULL DEFAULT 0,
+                kk INT NOT NULL DEFAULT 0,
+                balita INT NOT NULL DEFAULT 0,
+                anak_remaja INT NOT NULL DEFAULT 0,
+                dewasa INT NOT NULL DEFAULT 0,
+                lansia INT NOT NULL DEFAULT 0
+            )
+        `);
+        await ensureDefaultKependudukan(connection);
+        await syncTotalPopulasi(connection);
+
+        connection.release();
+        console.log(`Database MySQL terhubung: ${process.env.DB_NAME || 'web_desa'}`);
+    } catch (err) {
+        console.error('Gagal terhubung ke database MySQL:', err.message);
+    }
+}
+
+verifyDatabaseConnection();
 
 // --- MIDDLEWARE KEAMANAN ---
 function cekAdmin(req, res, next) {
@@ -674,10 +697,10 @@ app.post('/register', async (req, res) => {
 
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
-    
+
     try {
         const [rows] = await db.query('SELECT * FROM users WHERE username = ? AND password = ?', [username, password]);
-        
+
         if (rows.length > 0) {
             const user = rows[0];
             const sessionUser = { username: user.username, role: user.role };
@@ -840,10 +863,10 @@ app.post('/admin/surat-pengantar/:id/status', cekAdmin, async (req, res) => {
 
 app.post('/admin/tambah-berita', cekAdmin, upload.single('fotoBerita'), async (req, res) => {
     const { judul, ringkasan } = req.body;
-    const foto = req.file ? `uploads/${req.file.filename}` : null;
     const tanggalHariIni = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-    
+
     try {
+        const foto = await saveUploadedImage(req.file, 'berita');
         if (foto) {
             await db.query('INSERT INTO berita (judul, tanggal, ringkasan, foto) VALUES (?, ?, ?, ?)', [judul, tanggalHariIni, ringkasan, foto]);
         } else {
@@ -851,7 +874,8 @@ app.post('/admin/tambah-berita', cekAdmin, upload.single('fotoBerita'), async (r
         }
         res.redirect('/admin/daftar-berita?success=Berita baru berhasil diterbitkan');
     } catch (err) {
-        if (foto && err.code === 'ER_BAD_FIELD_ERROR') {
+        console.error('Gagal menambah berita:', err.message);
+        if (req.file && err.code === 'ER_BAD_FIELD_ERROR') {
             try {
                 await db.query('INSERT INTO berita (judul, tanggal, ringkasan) VALUES (?, ?, ?)', [judul, tanggalHariIni, ringkasan]);
                 return res.redirect('/admin/daftar-berita?success=Berita baru berhasil diterbitkan');
@@ -1005,8 +1029,8 @@ app.get('/admin/edit-berita/:id', cekAdmin, async (req, res) => {
 app.post('/admin/edit-berita/:id', cekAdmin, upload.single('fotoBerita'), async (req, res) => {
     const id = req.params.id;
     const { judul, ringkasan } = req.body;
-    const foto = req.file ? `uploads/${req.file.filename}` : null;
     try {
+        const foto = await saveUploadedImage(req.file, 'berita');
         if (foto) {
             await db.query('UPDATE berita SET judul = ?, ringkasan = ?, foto = ? WHERE id = ?', [judul, ringkasan, foto, id]);
         } else {
@@ -1014,7 +1038,8 @@ app.post('/admin/edit-berita/:id', cekAdmin, upload.single('fotoBerita'), async 
         }
         res.redirect('/admin/daftar-berita?success=Berita berhasil diperbarui');
     } catch (err) {
-        if (foto && err.code === 'ER_BAD_FIELD_ERROR') {
+        console.error('Gagal memperbarui berita:', err.message);
+        if (req.file && err.code === 'ER_BAD_FIELD_ERROR') {
             try {
                 await db.query('UPDATE berita SET judul = ?, ringkasan = ? WHERE id = ?', [judul, ringkasan, id]);
                 return res.redirect('/admin/daftar-berita?success=Berita berhasil diperbarui');
@@ -1027,7 +1052,11 @@ app.post('/admin/edit-berita/:id', cekAdmin, upload.single('fotoBerita'), async 
 app.post('/admin/hapus-berita/:id', cekAdmin, async (req, res) => {
     const id = req.params.id;
     try {
+        const [rows] = await db.query('SELECT foto FROM berita WHERE id = ?', [id]);
         await db.query('DELETE FROM berita WHERE id = ?', [id]);
+        if (rows.length > 0 && isGalleryBlobUrl(rows[0].foto)) {
+            await del(rows[0].foto).catch(() => {});
+        }
         res.redirect('/admin/daftar-berita?success=Berita berhasil dihapus');
     } catch (err) {
         res.redirect('/admin/daftar-berita?error=Gagal menghapus berita');
@@ -1047,10 +1076,10 @@ app.get('/user', cekUser, async (req, res) => {
 
 app.post('/user/kirim-laporan', cekUser, upload.single('fotoLaporan'), async (req, res) => {
     const { tipe, isi } = req.body;
-    const foto = req.file ? `uploads/${req.file.filename}` : null;
     const tanggal = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-    
+
     try {
+        const foto = await saveUploadedImage(req.file, 'laporan');
         if (foto) {
             await db.query(
                 'INSERT INTO laporan (nama, tipe, isi, status, tanggal, foto) VALUES (?, ?, ?, ?, ?, ?)',
@@ -1064,6 +1093,7 @@ app.post('/user/kirim-laporan', cekUser, upload.single('fotoLaporan'), async (re
         }
         res.redirect('/user');
     } catch (err) {
+        console.error('Gagal mengirim laporan:', err.message);
         res.redirect('/user?error=Gagal mengirim laporan');
     }
 });
@@ -1084,8 +1114,8 @@ app.get('/user/edit-laporan/:id', cekUser, async (req, res) => {
 app.post('/user/edit-laporan/:id', cekUser, upload.single('fotoLaporan'), async (req, res) => {
     const { id } = req.params;
     const { tipe, isi } = req.body;
-    const foto = req.file ? `uploads/${req.file.filename}` : null;
     try {
+        const foto = await saveUploadedImage(req.file, 'laporan');
         if (foto) {
             await db.query('UPDATE laporan SET tipe = ?, isi = ?, foto = ? WHERE id = ? AND nama = ?', [tipe, isi, foto, id, req.session.user.username]);
         } else {
@@ -1093,6 +1123,7 @@ app.post('/user/edit-laporan/:id', cekUser, upload.single('fotoLaporan'), async 
         }
         res.redirect('/user');
     } catch (err) {
+        console.error('Gagal memperbarui laporan:', err.message);
         res.redirect('/user?error=Gagal memperbarui laporan');
     }
 });
@@ -1100,7 +1131,11 @@ app.post('/user/edit-laporan/:id', cekUser, upload.single('fotoLaporan'), async 
 app.post('/user/hapus-laporan/:id', cekUser, async (req, res) => {
     const { id } = req.params;
     try {
+        const [rows] = await db.query('SELECT foto FROM laporan WHERE id = ? AND nama = ?', [id, req.session.user.username]);
         await db.query('DELETE FROM laporan WHERE id = ? AND nama = ?', [id, req.session.user.username]);
+        if (rows.length > 0 && isGalleryBlobUrl(rows[0].foto)) {
+            await del(rows[0].foto).catch(() => {});
+        }
         res.redirect('/user');
     } catch (err) {
         res.redirect('/user?error=Gagal menghapus laporan');

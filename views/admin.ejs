@@ -1,6 +1,44 @@
-<%- include('partials/head', { title: 'Dashboard Admin', bodyClass: 'page-muted admin-body' }) %>
-
 <%
+const activeSection = typeof section !== 'undefined' && section ? section : 'ringkasan';
+const pageTitles = {
+    'ringkasan': {
+        title: 'Ringkasan Dashboard',
+        heading: 'Selamat datang, ' + user.username,
+        sub: 'Ringkasan aktivitas, layanan warga, dan informasi ' + desa.nama + '.'
+    },
+    'kependudukan': {
+        title: 'Grafik Kependudukan',
+        heading: 'Grafik & Hitung Kependudukan',
+        sub: 'Visualisasi dan kalkulator otomatis data penduduk ' + desa.nama + ' per dusun.'
+    },
+    'terbitkan-berita': {
+        title: 'Terbitkan Berita',
+        heading: 'Terbitkan Berita Baru',
+        sub: 'Buat dan publikasikan berita atau pengumuman terbaru untuk warga desa.'
+    },
+    'laporan-warga': {
+        title: 'Laporan Warga',
+        heading: 'Laporan & Aspirasi Masuk',
+        sub: 'Daftar laporan, keluhan, dan saran yang dikirimkan oleh warga.'
+    },
+    'surat-pengantar': {
+        title: 'Surat Pengantar',
+        heading: 'Pengajuan Surat Pengantar',
+        sub: 'Verifikasi, konfirmasi, atau tolak permohonan surat pengantar dari warga.'
+    },
+    'kelola-galeri': {
+        title: 'Kelola Galeri',
+        heading: 'Kelola Galeri Kegiatan',
+        sub: 'Unggah dokumentasi foto kegiatan desa untuk ditampilkan di galeri publik.'
+    },
+    'daftar-berita': {
+        title: 'Daftar Berita',
+        heading: 'Daftar Berita Desa',
+        sub: 'Kelola, sunting, atau hapus berita yang sudah diterbitkan.'
+    }
+};
+const pageMeta = pageTitles[activeSection] || pageTitles['ringkasan'];
+
 const imgSrc = foto => /^https?:\/\//i.test(foto) ? foto : '/' + foto;
 const daftarBerita = berita || [];
 const daftarGaleri = galeri || [];
@@ -13,11 +51,14 @@ const dataPenduduk = (typeof kependudukan !== 'undefined' && Array.isArray(kepen
     { dusun: 'Dusun Mulyo', laki_laki: 590, perempuan: 580, kk: 325, balita: 88, anak_remaja: 245, dewasa: 690, lansia: 147 },
     { dusun: 'Dusun Makmur', laki_laki: 555, perempuan: 550, kk: 310, balita: 82, anak_remaja: 230, dewasa: 655, lansia: 138 }
 ];
+const totalPopulasi = dataPenduduk.reduce((acc, r) => acc + (Number(r.laki_laki) || 0) + (Number(r.perempuan) || 0), 0);
+const totalKK = dataPenduduk.reduce((acc, r) => acc + (Number(r.kk) || 0), 0);
 %>
+<%- include('partials/head', { title: pageMeta.title + ' - Admin', bodyClass: 'page-muted admin-body' }) %>
 
 <div class="admin-shell">
     <%- include('partials/admin-sidebar', {
-        activeMenu: 'ringkasan',
+        activeMenu: activeSection,
         counts: {
             berita: daftarBerita.length,
             galeri: daftarGaleri.length,
@@ -34,8 +75,8 @@ const dataPenduduk = (typeof kependudukan !== 'undefined' && Array.isArray(kepen
                 </button>
                 <div>
                     <span class="eyebrow">Panel Administrasi</span>
-                    <h1>Selamat datang, <%= user.username %></h1>
-                    <p>Kelola berita, galeri, laporan warga, dan pengajuan surat <%= desa.nama %>.</p>
+                    <h1><%= pageMeta.heading %></h1>
+                    <p><%= pageMeta.sub %></p>
                 </div>
             </div>
             <div class="admin-topbar-actions">
@@ -50,191 +91,267 @@ const dataPenduduk = (typeof kependudukan !== 'undefined' && Array.isArray(kepen
             <% if (success) { %>
                 <div class="alert alert-success" role="status"><%- include('partials/icon', { name: 'check-circle' }) %> <%= success %></div>
             <% } %>
-            <% if (isVercel && !hasVercelBlobConfig) { %>
+            <% if (activeSection === 'kelola-galeri' && isVercel && !hasVercelBlobConfig) { %>
                 <div class="alert alert-warning" role="alert"><%- include('partials/icon', { name: 'alert-circle' }) %> Hubungkan Vercel Blob dengan akses publik ke project ini agar unggahan galeri dapat disimpan.</div>
             <% } %>
 
-            <!-- Ringkasan -->
-            <section id="ringkasan" class="admin-section">
-                <div class="dash-stats">
-                    <a href="#daftar-berita" class="card stat-card stat-card-link">
-                        <span class="icon-box"><%- include('partials/icon', { name: 'news' }) %></span>
-                        <div><strong><%= daftarBerita.length %></strong><span>Berita terbit</span></div>
-                    </a>
-                    <a href="#kelola-galeri" class="card stat-card stat-card-link">
-                        <span class="icon-box"><%- include('partials/icon', { name: 'image' }) %></span>
-                        <div><strong><%= daftarGaleri.length %></strong><span>Foto galeri</span></div>
-                    </a>
-                    <a href="#laporan-warga" class="card stat-card stat-card-link">
-                        <span class="icon-box"><%- include('partials/icon', { name: 'inbox' }) %></span>
-                        <div><strong><%= daftarLaporan.length %></strong><span>Laporan warga</span></div>
-                    </a>
-                    <a href="#surat-pengantar" class="card stat-card stat-card-link">
-                        <span class="icon-box icon-box-accent"><%- include('partials/icon', { name: 'document' }) %></span>
-                        <div><strong><%= suratMenunggu %></strong><span>Surat menunggu</span></div>
-                    </a>
-                </div>
-            </section>
+            <% if (activeSection === 'ringkasan') { %>
+                <!-- HALAMAN 1: RINGKASAN -->
+                <section class="admin-section">
+                    <div class="dash-stats">
+                        <a href="/admin/kependudukan" class="card stat-card stat-card-link">
+                            <span class="icon-box"><%- include('partials/icon', { name: 'users' }) %></span>
+                            <div><strong><%= totalPopulasi.toLocaleString('id-ID') %></strong><span>Total penduduk (<%= totalKK.toLocaleString('id-ID') %> KK)</span></div>
+                        </a>
+                        <a href="/admin/daftar-berita" class="card stat-card stat-card-link">
+                            <span class="icon-box"><%- include('partials/icon', { name: 'news' }) %></span>
+                            <div><strong><%= daftarBerita.length %></strong><span>Berita terbit</span></div>
+                        </a>
+                        <a href="/admin/laporan-warga" class="card stat-card stat-card-link">
+                            <span class="icon-box"><%- include('partials/icon', { name: 'inbox' }) %></span>
+                            <div><strong><%= daftarLaporan.length %></strong><span>Laporan warga</span></div>
+                        </a>
+                        <a href="/admin/surat-pengantar" class="card stat-card stat-card-link">
+                            <span class="icon-box icon-box-accent"><%- include('partials/icon', { name: 'document' }) %></span>
+                            <div><strong><%= suratMenunggu %></strong><span>Surat menunggu</span></div>
+                        </a>
+                    </div>
 
-            <!-- Grafik & Hitung Kependudukan Otomatis -->
-            <section id="kependudukan" class="card admin-section pop-card">
-                <div class="card-header">
-                    <div>
-                        <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'chart' }) %></span> Grafik &amp; Hitung Kependudukan Otomatis</h2>
-                        <p class="card-subtitle">Ubah angka pada tabel di bawah — total jiwa, rasio, dan seluruh grafik dihitung otomatis secara langsung.</p>
-                    </div>
-                    <span class="badge badge-primary">Otomatis &amp; Real-time</span>
-                </div>
-
-                <!-- Kartu metrik hasil hitung otomatis -->
-                <div class="pop-summary-grid">
-                    <div class="pop-metric">
-                        <span class="pop-metric-label">Total Penduduk</span>
-                        <strong class="pop-metric-value" id="pop-total-jiwa">0</strong>
-                        <small class="pop-metric-sub"><span id="pop-dusun-count"><%= dataPenduduk.length %></span> wilayah dusun</small>
-                    </div>
-                    <div class="pop-metric">
-                        <span class="pop-metric-label">Laki-laki</span>
-                        <strong class="pop-metric-value is-male" id="pop-total-laki">0</strong>
-                        <small class="pop-metric-sub"><span id="pop-pct-laki">0%</span> dari populasi</small>
-                    </div>
-                    <div class="pop-metric">
-                        <span class="pop-metric-label">Perempuan</span>
-                        <strong class="pop-metric-value is-female" id="pop-total-perempuan">0</strong>
-                        <small class="pop-metric-sub"><span id="pop-pct-perempuan">0%</span> dari populasi</small>
-                    </div>
-                    <div class="pop-metric">
-                        <span class="pop-metric-label">Kepala Keluarga (KK)</span>
-                        <strong class="pop-metric-value" id="pop-total-kk">0</strong>
-                        <small class="pop-metric-sub">Rata-rata <span id="pop-avg-kk">0</span> jiwa/KK</small>
-                    </div>
-                </div>
-
-                <!-- 3 Visualisasi Grafik -->
-                <div class="pop-charts-grid">
-                    <!-- 1. Grafik Batang Per Dusun -->
-                    <div class="pop-chart-box">
-                        <div class="pop-chart-head">
-                            <h3>Distribusi Penduduk per Dusun</h3>
-                            <div class="pop-legend-inline">
-                                <span><i class="pop-dot is-male"></i> Laki-laki</span>
-                                <span><i class="pop-dot is-female"></i> Perempuan</span>
+                    <!-- Aksi Cepat Menu Halaman -->
+                    <div class="card mb-16">
+                        <div class="card-header">
+                            <div>
+                                <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'layers' }) %></span> Menu Kelola Cepat</h2>
+                                <p class="card-subtitle">Pilih modul administrasi desa yang ingin Anda kelola.</p>
                             </div>
                         </div>
-                        <div class="pop-dusun-bars" id="pop-dusun-bars"></div>
+                        <div class="quick-grid">
+                            <a href="/admin/kependudukan" class="card feature-card">
+                                <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'chart' }) %></span>
+                                <div><h3>Grafik Kependudukan</h3><p>Hitung &amp; perbarui statistik penduduk per dusun.</p></div>
+                            </a>
+                            <a href="/admin/terbitkan-berita" class="card feature-card">
+                                <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'megaphone' }) %></span>
+                                <div><h3>Terbitkan Berita</h3><p>Tulis berita atau pengumuman baru untuk warga.</p></div>
+                            </a>
+                            <a href="/admin/kelola-galeri" class="card feature-card">
+                                <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'image' }) %></span>
+                                <div><h3>Kelola Galeri (<%= daftarGaleri.length %>)</h3><p>Unggah dokumentasi foto kegiatan desa.</p></div>
+                            </a>
+                            <a href="/admin/daftar-berita" class="card feature-card">
+                                <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'news' }) %></span>
+                                <div><h3>Daftar Berita (<%= daftarBerita.length %>)</h3><p>Edit atau hapus berita yang telah terbit.</p></div>
+                            </a>
+                        </div>
                     </div>
 
-                    <!-- 2. Grafik Donut Jenis Kelamin -->
-                    <div class="pop-chart-box">
-                        <div class="pop-chart-head">
-                            <h3>Komposisi Jenis Kelamin</h3>
-                            <span class="badge" id="pop-sex-ratio">Rasio 100</span>
-                        </div>
-                        <div class="pop-donut-wrap">
-                            <div class="pop-donut" id="pop-gender-donut">
-                                <div class="pop-donut-hole">
-                                    <strong id="pop-donut-total">0</strong>
-                                    <span>Total Jiwa</span>
-                                </div>
+                    <!-- Aktivitas Terbaru (Preview 3 Surat & 3 Laporan) -->
+                    <div class="dash-grid">
+                        <section class="card">
+                            <div class="card-header">
+                                <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'document' }) %></span> Pengajuan Surat Terbaru</h2>
+                                <a href="/admin/surat-pengantar" class="link-arrow">Kelola semua <span aria-hidden="true">→</span></a>
                             </div>
-                            <div class="pop-donut-legend">
-                                <div class="pop-legend-row">
-                                    <span class="pop-legend-name"><i class="pop-dot is-male"></i> Laki-laki</span>
-                                    <strong id="pop-legend-laki">0 (0%)</strong>
+                            <% if (daftarSurat.length > 0) { %>
+                                <div class="item-list">
+                                    <% daftarSurat.slice(0, 3).forEach(function(surat) {
+                                        const status = surat.status || 'Menunggu';
+                                    %>
+                                        <article class="item <%= status === 'Ditolak' ? 'is-danger' : 'is-secondary' %>">
+                                            <div class="item-head">
+                                                <span class="item-title"><%= surat.nama %> — <%= surat.keperluan %></span>
+                                                <span class="badge <%= statusBadge(status) %>"><%= status %></span>
+                                            </div>
+                                            <div class="item-meta">
+                                                <% if (surat.tanggal) { %><span><%= surat.tanggal %></span><% } %>
+                                                <span><strong>NIK:</strong> <%= surat.nik %></span>
+                                            </div>
+                                        </article>
+                                    <% }); %>
                                 </div>
-                                <div class="pop-legend-row">
-                                    <span class="pop-legend-name"><i class="pop-dot is-female"></i> Perempuan</span>
-                                    <strong id="pop-legend-perempuan">0 (0%)</strong>
-                                </div>
-                                <div class="pop-legend-row is-total">
-                                    <span class="pop-legend-name">Selisih</span>
-                                    <strong id="pop-legend-diff">0 jiwa</strong>
-                                </div>
+                            <% } else { %>
+                                <p class="empty-text">Belum ada pengajuan surat pengantar.</p>
+                            <% } %>
+                        </section>
+
+                        <section class="card">
+                            <div class="card-header">
+                                <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'inbox' }) %></span> Laporan Warga Terbaru</h2>
+                                <a href="/admin/laporan-warga" class="link-arrow">Lihat semua <span aria-hidden="true">→</span></a>
                             </div>
-                        </div>
+                            <% if (daftarLaporan.length > 0) { %>
+                                <div class="item-list">
+                                    <% daftarLaporan.slice(0, 3).forEach(function(laporan) { %>
+                                        <article class="item">
+                                            <div class="item-head">
+                                                <span class="item-title"><%= laporan.nama %></span>
+                                                <span class="badge badge-primary"><%= laporan.tipe %></span>
+                                            </div>
+                                            <p><%= (laporan.isi || '').length > 90 ? laporan.isi.substring(0, 90) + '…' : laporan.isi %></p>
+                                        </article>
+                                    <% }); %>
+                                </div>
+                            <% } else { %>
+                                <p class="empty-text">Belum ada laporan dari warga.</p>
+                            <% } %>
+                        </section>
                     </div>
-
-                    <!-- 3. Grafik Distribusi Kelompok Usia -->
-                    <div class="pop-chart-box">
-                        <div class="pop-chart-head">
-                            <h3>Kelompok Usia Penduduk</h3>
-                            <span class="badge badge-primary" id="pop-age-total-badge">0 jiwa</span>
-                        </div>
-                        <div class="pop-age-bars" id="pop-age-bars"></div>
-                    </div>
-                </div>
-
-                <!-- Tabel Kalkulator Input Kependudukan per Dusun -->
-                <form action="/admin/kependudukan" method="POST" id="pop-calc-form" class="pop-form">
-                    <div class="pop-table-head">
-                        <div>
-                            <h3>Kalkulator Data Kependudukan per Dusun</h3>
-                            <p>Ketik perubahan angka di bawah untuk menghitung ulang grafik secara otomatis, lalu klik <strong>Simpan Data</strong>.</p>
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-sm">
-                            <%- include('partials/icon', { name: 'check-circle' }) %>
-                            <span>Simpan Data Kependudukan</span>
-                        </button>
-                    </div>
-
-                    <div class="pop-table-wrap">
-                        <table class="pop-table">
-                            <thead>
-                                <tr>
-                                    <th>Wilayah Dusun</th>
-                                    <th>Laki-laki</th>
-                                    <th>Perempuan</th>
-                                    <th>Jumlah KK</th>
-                                    <th>Balita<br><small>(0–5 th)</small></th>
-                                    <th>Anak &amp; Remaja<br><small>(6–17 th)</small></th>
-                                    <th>Dewasa<br><small>(18–59 th)</small></th>
-                                    <th>Lansia<br><small>(60+ th)</small></th>
-                                    <th>Total Jiwa<br><small>(Otomatis)</small></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <% dataPenduduk.forEach(function(row, idx) { %>
-                                    <tr data-pop-row="<%= idx %>">
-                                        <td>
-                                            <strong class="pop-dusun-name"><%= row.dusun %></strong>
-                                            <input type="hidden" name="dusun" value="<%= row.dusun %>">
-                                        </td>
-                                        <td><input type="number" min="0" name="laki_laki" value="<%= row.laki_laki %>" class="pop-input" data-field="laki" aria-label="Laki-laki <%= row.dusun %>"></td>
-                                        <td><input type="number" min="0" name="perempuan" value="<%= row.perempuan %>" class="pop-input" data-field="perempuan" aria-label="Perempuan <%= row.dusun %>"></td>
-                                        <td><input type="number" min="0" name="kk" value="<%= row.kk %>" class="pop-input" data-field="kk" aria-label="KK <%= row.dusun %>"></td>
-                                        <td><input type="number" min="0" name="balita" value="<%= row.balita %>" class="pop-input" data-field="balita" aria-label="Balita <%= row.dusun %>"></td>
-                                        <td><input type="number" min="0" name="anak_remaja" value="<%= row.anak_remaja %>" class="pop-input" data-field="remaja" aria-label="Anak & Remaja <%= row.dusun %>"></td>
-                                        <td><input type="number" min="0" name="dewasa" value="<%= row.dewasa %>" class="pop-input" data-field="dewasa" aria-label="Dewasa <%= row.dusun %>"></td>
-                                        <td><input type="number" min="0" name="lansia" value="<%= row.lansia %>" class="pop-input" data-field="lansia" aria-label="Lansia <%= row.dusun %>"></td>
-                                        <td class="pop-row-total"><strong data-row-total>0</strong><span>jiwa</span></td>
-                                    </tr>
-                                <% }); %>
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <th>Total Desa</th>
-                                    <th id="tfoot-laki">0</th>
-                                    <th id="tfoot-perempuan">0</th>
-                                    <th id="tfoot-kk">0</th>
-                                    <th id="tfoot-balita">0</th>
-                                    <th id="tfoot-remaja">0</th>
-                                    <th id="tfoot-dewasa">0</th>
-                                    <th id="tfoot-lansia">0</th>
-                                    <th id="tfoot-total">0</th>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </form>
-            </section>
-
-            <div class="dash-grid">
-                <!-- Terbitkan berita -->
-                <section id="terbitkan-berita" class="card admin-section">
+                </section>
+            <% } else if (activeSection === 'kependudukan') { %>
+                <!-- HALAMAN 2: GRAFIK & HITUNG KEPENDUDUKAN OTOMATIS -->
+                <section class="card admin-section pop-card">
                     <div class="card-header">
                         <div>
-                            <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'megaphone' }) %></span> Terbitkan Berita Baru</h2>
+                            <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'chart' }) %></span> Grafik &amp; Hitung Kependudukan Otomatis</h2>
+                            <p class="card-subtitle">Ubah angka pada tabel di bawah — total jiwa, rasio, dan seluruh grafik dihitung otomatis secara langsung.</p>
                         </div>
+                        <span class="badge badge-primary">Otomatis &amp; Real-time</span>
+                    </div>
+
+                    <div class="pop-summary-grid">
+                        <div class="pop-metric">
+                            <span class="pop-metric-label">Total Penduduk</span>
+                            <strong class="pop-metric-value" id="pop-total-jiwa">0</strong>
+                            <small class="pop-metric-sub"><span id="pop-dusun-count"><%= dataPenduduk.length %></span> wilayah dusun</small>
+                        </div>
+                        <div class="pop-metric">
+                            <span class="pop-metric-label">Laki-laki</span>
+                            <strong class="pop-metric-value is-male" id="pop-total-laki">0</strong>
+                            <small class="pop-metric-sub"><span id="pop-pct-laki">0%</span> dari populasi</small>
+                        </div>
+                        <div class="pop-metric">
+                            <span class="pop-metric-label">Perempuan</span>
+                            <strong class="pop-metric-value is-female" id="pop-total-perempuan">0</strong>
+                            <small class="pop-metric-sub"><span id="pop-pct-perempuan">0%</span> dari populasi</small>
+                        </div>
+                        <div class="pop-metric">
+                            <span class="pop-metric-label">Kepala Keluarga (KK)</span>
+                            <strong class="pop-metric-value" id="pop-total-kk">0</strong>
+                            <small class="pop-metric-sub">Rata-rata <span id="pop-avg-kk">0</span> jiwa/KK</small>
+                        </div>
+                    </div>
+
+                    <div class="pop-charts-grid">
+                        <div class="pop-chart-box">
+                            <div class="pop-chart-head">
+                                <h3>Distribusi Penduduk per Dusun</h3>
+                                <div class="pop-legend-inline">
+                                    <span><i class="pop-dot is-male"></i> Laki-laki</span>
+                                    <span><i class="pop-dot is-female"></i> Perempuan</span>
+                                </div>
+                            </div>
+                            <div class="pop-dusun-bars" id="pop-dusun-bars"></div>
+                        </div>
+
+                        <div class="pop-chart-box">
+                            <div class="pop-chart-head">
+                                <h3>Komposisi Jenis Kelamin</h3>
+                                <span class="badge" id="pop-sex-ratio">Rasio 100</span>
+                            </div>
+                            <div class="pop-donut-wrap">
+                                <div class="pop-donut" id="pop-gender-donut">
+                                    <div class="pop-donut-hole">
+                                        <strong id="pop-donut-total">0</strong>
+                                        <span>Total Jiwa</span>
+                                    </div>
+                                </div>
+                                <div class="pop-donut-legend">
+                                    <div class="pop-legend-row">
+                                        <span class="pop-legend-name"><i class="pop-dot is-male"></i> Laki-laki</span>
+                                        <strong id="pop-legend-laki">0 (0%)</strong>
+                                    </div>
+                                    <div class="pop-legend-row">
+                                        <span class="pop-legend-name"><i class="pop-dot is-female"></i> Perempuan</span>
+                                        <strong id="pop-legend-perempuan">0 (0%)</strong>
+                                    </div>
+                                    <div class="pop-legend-row is-total">
+                                        <span class="pop-legend-name">Selisih</span>
+                                        <strong id="pop-legend-diff">0 jiwa</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pop-chart-box">
+                            <div class="pop-chart-head">
+                                <h3>Kelompok Usia Penduduk</h3>
+                                <span class="badge badge-primary" id="pop-age-total-badge">0 jiwa</span>
+                            </div>
+                            <div class="pop-age-bars" id="pop-age-bars"></div>
+                        </div>
+                    </div>
+
+                    <form action="/admin/kependudukan" method="POST" id="pop-calc-form" class="pop-form">
+                        <div class="pop-table-head">
+                            <div>
+                                <h3>Kalkulator Data Kependudukan per Dusun</h3>
+                                <p>Ketik perubahan angka di bawah untuk menghitung ulang grafik secara otomatis, lalu klik <strong>Simpan Data</strong>.</p>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <%- include('partials/icon', { name: 'check-circle' }) %>
+                                <span>Simpan Data Kependudukan</span>
+                            </button>
+                        </div>
+
+                        <div class="pop-table-wrap">
+                            <table class="pop-table">
+                                <thead>
+                                    <tr>
+                                        <th>Wilayah Dusun</th>
+                                        <th>Laki-laki</th>
+                                        <th>Perempuan</th>
+                                        <th>Jumlah KK</th>
+                                        <th>Balita<br><small>(0–5 th)</small></th>
+                                        <th>Anak &amp; Remaja<br><small>(6–17 th)</small></th>
+                                        <th>Dewasa<br><small>(18–59 th)</small></th>
+                                        <th>Lansia<br><small>(60+ th)</small></th>
+                                        <th>Total Jiwa<br><small>(Otomatis)</small></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% dataPenduduk.forEach(function(row, idx) { %>
+                                        <tr data-pop-row="<%= idx %>">
+                                            <td>
+                                                <strong class="pop-dusun-name"><%= row.dusun %></strong>
+                                                <input type="hidden" name="dusun" value="<%= row.dusun %>">
+                                            </td>
+                                            <td><input type="number" min="0" name="laki_laki" value="<%= row.laki_laki %>" class="pop-input" data-field="laki" aria-label="Laki-laki <%= row.dusun %>"></td>
+                                            <td><input type="number" min="0" name="perempuan" value="<%= row.perempuan %>" class="pop-input" data-field="perempuan" aria-label="Perempuan <%= row.dusun %>"></td>
+                                            <td><input type="number" min="0" name="kk" value="<%= row.kk %>" class="pop-input" data-field="kk" aria-label="KK <%= row.dusun %>"></td>
+                                            <td><input type="number" min="0" name="balita" value="<%= row.balita %>" class="pop-input" data-field="balita" aria-label="Balita <%= row.dusun %>"></td>
+                                            <td><input type="number" min="0" name="anak_remaja" value="<%= row.anak_remaja %>" class="pop-input" data-field="remaja" aria-label="Anak & Remaja <%= row.dusun %>"></td>
+                                            <td><input type="number" min="0" name="dewasa" value="<%= row.dewasa %>" class="pop-input" data-field="dewasa" aria-label="Dewasa <%= row.dusun %>"></td>
+                                            <td><input type="number" min="0" name="lansia" value="<%= row.lansia %>" class="pop-input" data-field="lansia" aria-label="Lansia <%= row.dusun %>"></td>
+                                            <td class="pop-row-total"><strong data-row-total>0</strong><span>jiwa</span></td>
+                                        </tr>
+                                    <% }); %>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th>Total Desa</th>
+                                        <th id="tfoot-laki">0</th>
+                                        <th id="tfoot-perempuan">0</th>
+                                        <th id="tfoot-kk">0</th>
+                                        <th id="tfoot-balita">0</th>
+                                        <th id="tfoot-remaja">0</th>
+                                        <th id="tfoot-dewasa">0</th>
+                                        <th id="tfoot-lansia">0</th>
+                                        <th id="tfoot-total">0</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </form>
+                </section>
+            <% } else if (activeSection === 'terbitkan-berita') { %>
+                <!-- HALAMAN 3: TERBITKAN BERITA -->
+                <section class="card admin-section" style="max-width: 780px;">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'megaphone' }) %></span> Formulir Berita Baru</h2>
+                            <p class="card-subtitle">Berita yang diposting akan langsung tampil di halaman utama portal desa.</p>
+                        </div>
+                        <a href="/admin/daftar-berita" class="btn btn-outline btn-sm">Lihat Daftar Berita (<%= daftarBerita.length %>)</a>
                     </div>
                     <form action="/admin/tambah-berita" method="POST" enctype="multipart/form-data">
                         <div class="form-group">
@@ -243,58 +360,64 @@ const dataPenduduk = (typeof kependudukan !== 'undefined' && Array.isArray(kepen
                         </div>
                         <div class="form-group">
                             <label for="berita-ringkasan">Isi Berita</label>
-                            <textarea id="berita-ringkasan" name="ringkasan" rows="6" required placeholder="Tuliskan isi berita secara singkat dan jelas..."></textarea>
+                            <textarea id="berita-ringkasan" name="ringkasan" rows="8" required placeholder="Tuliskan isi berita secara singkat dan jelas..."></textarea>
                         </div>
                         <div class="form-group">
                             <label for="berita-foto">Foto Berita <span class="optional">(opsional)</span></label>
                             <input id="berita-foto" type="file" name="fotoBerita" accept="image/*">
                         </div>
-                        <button type="submit" class="btn btn-primary btn-block">Posting Berita</button>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Posting Berita</button>
+                            <a href="/admin/daftar-berita" class="btn btn-outline">Batal</a>
+                        </div>
                     </form>
                 </section>
-
-                <!-- Laporan warga -->
-                <section id="laporan-warga" class="card admin-section">
+            <% } else if (activeSection === 'laporan-warga') { %>
+                <!-- HALAMAN 4: LAPORAN WARGA -->
+                <section class="card admin-section">
                     <div class="card-header">
-                        <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'inbox' }) %></span> Laporan &amp; Aspirasi Masuk</h2>
-                        <span class="badge"><%= daftarLaporan.length %></span>
+                        <div>
+                            <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'inbox' }) %></span> Daftar Laporan &amp; Aspirasi Warga</h2>
+                            <p class="card-subtitle">Seluruh masukan, saran, dan pengaduan yang dikirim warga melalui portal.</p>
+                        </div>
+                        <span class="badge"><%= daftarLaporan.length %> laporan</span>
                     </div>
-                    <div class="scroll-area">
-                        <% if (daftarLaporan.length > 0) { %>
-                            <div class="item-list">
-                                <% daftarLaporan.forEach(function(laporan) { %>
-                                    <article class="item">
-                                        <div class="item-head">
-                                            <span class="item-title"><%= laporan.nama %></span>
-                                            <span class="badge badge-primary"><%= laporan.tipe %></span>
-                                        </div>
-                                        <% if (laporan.tanggal) { %>
-                                            <div class="item-meta"><span><%= laporan.tanggal %></span></div>
-                                        <% } %>
-                                        <p><%= laporan.isi %></p>
-                                        <% if (laporan.foto) { %>
-                                            <img class="item-image" src="<%= imgSrc(laporan.foto) %>" alt="Foto laporan dari <%= laporan.nama %>" loading="lazy">
-                                        <% } %>
-                                    </article>
-                                <% }); %>
-                            </div>
-                        <% } else { %>
-                            <p class="empty-text">Belum ada laporan dari warga.</p>
-                        <% } %>
-                    </div>
+                    <% if (daftarLaporan.length > 0) { %>
+                        <div class="item-list">
+                            <% daftarLaporan.forEach(function(laporan) { %>
+                                <article class="item">
+                                    <div class="item-head">
+                                        <span class="item-title"><%= laporan.nama %></span>
+                                        <span class="badge badge-primary"><%= laporan.tipe %></span>
+                                    </div>
+                                    <% if (laporan.tanggal) { %>
+                                        <div class="item-meta"><span><%= laporan.tanggal %></span></div>
+                                    <% } %>
+                                    <p><%= laporan.isi %></p>
+                                    <% if (laporan.foto) { %>
+                                        <img class="item-image" src="<%= imgSrc(laporan.foto) %>" alt="Foto laporan dari <%= laporan.nama %>" loading="lazy">
+                                    <% } %>
+                                </article>
+                            <% }); %>
+                        </div>
+                    <% } else { %>
+                        <div class="empty-state">
+                            <span class="icon-box"><%- include('partials/icon', { name: 'inbox' }) %></span>
+                            <h3>Belum ada laporan</h3>
+                            <p>Laporan dan aspirasi yang dikirim oleh warga akan muncul di halaman ini.</p>
+                        </div>
+                    <% } %>
                 </section>
-            </div>
-
-            <!-- Surat pengantar -->
-            <section id="surat-pengantar" class="card admin-section">
-                <div class="card-header">
-                    <div>
-                        <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'document' }) %></span> Surat Pengantar Masuk</h2>
-                        <p class="card-subtitle">Konfirmasi atau tolak pengajuan surat dari warga.</p>
+            <% } else if (activeSection === 'surat-pengantar') { %>
+                <!-- HALAMAN 5: SURAT PENGANTAR -->
+                <section class="card admin-section">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'document' }) %></span> Daftar Pengajuan Surat Pengantar</h2>
+                            <p class="card-subtitle">Konfirmasi atau tolak pengajuan surat dari warga.</p>
+                        </div>
+                        <span class="badge badge-warning"><%= suratMenunggu %> menunggu</span>
                     </div>
-                    <span class="badge badge-warning"><%= suratMenunggu %> menunggu</span>
-                </div>
-                <div class="scroll-area">
                     <% if (daftarSurat.length > 0) { %>
                         <div class="item-list">
                             <% daftarSurat.forEach(function(surat) {
@@ -335,100 +458,113 @@ const dataPenduduk = (typeof kependudukan !== 'undefined' && Array.isArray(kepen
                             <% }); %>
                         </div>
                     <% } else { %>
-                        <p class="empty-text">Belum ada pengajuan surat pengantar.</p>
+                        <div class="empty-state">
+                            <span class="icon-box"><%- include('partials/icon', { name: 'document' }) %></span>
+                            <h3>Belum ada pengajuan surat</h3>
+                            <p>Permohonan surat pengantar dari warga akan tampil di halaman ini.</p>
+                        </div>
                     <% } %>
-                </div>
-            </section>
-
-            <!-- Galeri -->
-            <section id="kelola-galeri" class="card admin-section">
-                <div class="card-header">
-                    <div>
-                        <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'image' }) %></span> Kelola Galeri Kegiatan</h2>
-                        <p class="card-subtitle">Tambahkan hingga 10 foto untuk satu kegiatan. Foto akan tampil di halaman galeri publik.</p>
+                </section>
+            <% } else if (activeSection === 'kelola-galeri') { %>
+                <!-- HALAMAN 6: KELOLA GALERI -->
+                <section class="card admin-section">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'image' }) %></span> Kelola Galeri Kegiatan</h2>
+                            <p class="card-subtitle">Tambahkan hingga 10 foto untuk satu kegiatan. Foto akan tampil di halaman galeri publik.</p>
+                        </div>
+                        <a class="link-arrow" href="/galeri">Lihat galeri publik <span aria-hidden="true">→</span></a>
                     </div>
-                    <a class="link-arrow" href="/galeri">Lihat galeri <span aria-hidden="true">→</span></a>
-                </div>
-                <div class="gallery-admin-layout">
-                    <form action="/admin/tambah-galeri" method="POST" enctype="multipart/form-data" class="gallery-upload-form" data-cloud-upload="<%= isVercel ? 'true' : 'false' %>">
-                        <div class="form-group">
-                            <label for="gallery-title">Nama Kegiatan</label>
-                            <input id="gallery-title" type="text" name="judul" maxlength="255" required placeholder="Contoh: Kerja Bakti Lingkungan">
-                        </div>
-                        <div class="form-group">
-                            <label for="gallery-description">Keterangan <span class="optional">(opsional)</span></label>
-                            <textarea id="gallery-description" name="deskripsi" rows="3" placeholder="Ceritakan singkat kegiatan ini"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="gallery-photos">Foto Dokumentasi</label>
-                            <input id="gallery-photos" type="file" name="fotoGaleri" accept="image/jpeg,image/png,image/webp" multiple required>
-                            <small class="form-hint">Maksimal 10 foto, masing-masing maksimal 3 MB (JPEG, PNG, WebP).</small>
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-block"><%- include('partials/icon', { name: 'upload' }) %> Simpan Dokumentasi</button>
-                        <p class="gallery-upload-status" aria-live="polite"></p>
-                    </form>
-
-                    <div>
-                        <% if (daftarGaleri.length) { %>
-                            <div class="admin-gallery-list">
-                                <% daftarGaleri.forEach(function(item) { %>
-                                    <article class="admin-gallery-item">
-                                        <img src="<%= imgSrc(item.foto) %>" alt="<%= item.judul %>" loading="lazy" decoding="async">
-                                        <div class="admin-gallery-item-info">
-                                            <strong><%= item.judul %></strong>
-                                            <span><%= item.tanggal %></span>
-                                        </div>
-                                        <form action="/admin/hapus-galeri/<%= item.id %>" method="POST" onsubmit="return confirm('Hapus dokumentasi ini?')">
-                                            <button type="submit" class="btn btn-danger-soft btn-sm btn-block"><%- include('partials/icon', { name: 'trash' }) %> Hapus</button>
-                                        </form>
-                                    </article>
-                                <% }); %>
+                    <div class="gallery-admin-layout">
+                        <form action="/admin/tambah-galeri" method="POST" enctype="multipart/form-data" class="gallery-upload-form" data-cloud-upload="<%= isVercel ? 'true' : 'false' %>">
+                            <div class="form-group">
+                                <label for="gallery-title">Nama Kegiatan</label>
+                                <input id="gallery-title" type="text" name="judul" maxlength="255" required placeholder="Contoh: Kerja Bakti Lingkungan">
                             </div>
-                        <% } else { %>
-                            <div class="empty-state">
-                                <span class="icon-box"><%- include('partials/icon', { name: 'image' }) %></span>
-                                <p>Belum ada dokumentasi yang disimpan.</p>
+                            <div class="form-group">
+                                <label for="gallery-description">Keterangan <span class="optional">(opsional)</span></label>
+                                <textarea id="gallery-description" name="deskripsi" rows="3" placeholder="Ceritakan singkat kegiatan ini"></textarea>
                             </div>
-                        <% } %>
-                    </div>
-                </div>
-            </section>
+                            <div class="form-group">
+                                <label for="gallery-photos">Foto Dokumentasi</label>
+                                <input id="gallery-photos" type="file" name="fotoGaleri" accept="image/jpeg,image/png,image/webp" multiple required>
+                                <small class="form-hint">Maksimal 10 foto, masing-masing maksimal 3 MB (JPEG, PNG, WebP).</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block"><%- include('partials/icon', { name: 'upload' }) %> Simpan Dokumentasi</button>
+                            <p class="gallery-upload-status" aria-live="polite"></p>
+                        </form>
 
-            <!-- Daftar berita -->
-            <section id="daftar-berita" class="card admin-section">
-                <div class="card-header">
-                    <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'news' }) %></span> Berita Desa Saat Ini</h2>
-                    <span class="badge"><%= daftarBerita.length %> berita</span>
-                </div>
-                <% if (daftarBerita.length) { %>
-                    <div class="admin-news-grid">
-                        <% daftarBerita.forEach(function(b) { %>
-                            <article class="admin-news-item">
-                                <span class="meta-date"><%- include('partials/icon', { name: 'calendar' }) %><%= b.tanggal %></span>
-                                <h4><%= b.judul %></h4>
-                                <p><%= (b.ringkasan || '').length > 110 ? b.ringkasan.substring(0, 110) + '…' : b.ringkasan %></p>
-                                <div class="item-actions">
-                                    <a href="/admin/edit-berita/<%= b.id %>" class="btn btn-outline btn-sm"><%- include('partials/icon', { name: 'edit' }) %> Edit</a>
-                                    <form action="/admin/hapus-berita/<%= b.id %>" method="POST" onsubmit="return confirm('Hapus berita ini?')">
-                                        <button type="submit" class="btn btn-danger-soft btn-sm"><%- include('partials/icon', { name: 'trash' }) %> Hapus</button>
-                                    </form>
+                        <div>
+                            <% if (daftarGaleri.length) { %>
+                                <div class="admin-gallery-list">
+                                    <% daftarGaleri.forEach(function(item) { %>
+                                        <article class="admin-gallery-item">
+                                            <img src="<%= imgSrc(item.foto) %>" alt="<%= item.judul %>" loading="lazy" decoding="async">
+                                            <div class="admin-gallery-item-info">
+                                                <strong><%= item.judul %></strong>
+                                                <span><%= item.tanggal %></span>
+                                            </div>
+                                            <form action="/admin/hapus-galeri/<%= item.id %>" method="POST" onsubmit="return confirm('Hapus dokumentasi ini?')">
+                                                <button type="submit" class="btn btn-danger-soft btn-sm btn-block"><%- include('partials/icon', { name: 'trash' }) %> Hapus</button>
+                                            </form>
+                                        </article>
+                                    <% }); %>
                                 </div>
-                            </article>
-                        <% }); %>
+                            <% } else { %>
+                                <div class="empty-state">
+                                    <span class="icon-box"><%- include('partials/icon', { name: 'image' }) %></span>
+                                    <p>Belum ada dokumentasi yang disimpan.</p>
+                                </div>
+                            <% } %>
+                        </div>
                     </div>
-                <% } else { %>
-                    <p class="empty-text">Belum ada berita yang diterbitkan.</p>
-                <% } %>
-            </section>
+                </section>
+            <% } else if (activeSection === 'daftar-berita') { %>
+                <!-- HALAMAN 7: DAFTAR BERITA -->
+                <section class="card admin-section">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'news' }) %></span> Berita Desa Saat Ini</h2>
+                            <p class="card-subtitle">Kelola seluruh berita yang telah dipublikasikan.</p>
+                        </div>
+                        <a href="/admin/terbitkan-berita" class="btn btn-primary btn-sm"><%- include('partials/icon', { name: 'megaphone' }) %> Tambah Berita Baru</a>
+                    </div>
+                    <% if (daftarBerita.length) { %>
+                        <div class="admin-news-grid">
+                            <% daftarBerita.forEach(function(b) { %>
+                                <article class="admin-news-item">
+                                    <span class="meta-date"><%- include('partials/icon', { name: 'calendar' }) %><%= b.tanggal %></span>
+                                    <h4><%= b.judul %></h4>
+                                    <p><%= (b.ringkasan || '').length > 130 ? b.ringkasan.substring(0, 130) + '…' : b.ringkasan %></p>
+                                    <div class="item-actions">
+                                        <a href="/admin/edit-berita/<%= b.id %>" class="btn btn-outline btn-sm"><%- include('partials/icon', { name: 'edit' }) %> Edit</a>
+                                        <form action="/admin/hapus-berita/<%= b.id %>" method="POST" onsubmit="return confirm('Hapus berita ini?')">
+                                            <button type="submit" class="btn btn-danger-soft btn-sm"><%- include('partials/icon', { name: 'trash' }) %> Hapus</button>
+                                        </form>
+                                    </div>
+                                </article>
+                            <% }); %>
+                        </div>
+                    <% } else { %>
+                        <div class="empty-state">
+                            <span class="icon-box"><%- include('partials/icon', { name: 'news' }) %></span>
+                            <h3>Belum ada berita</h3>
+                            <p>Silakan terbitkan berita pertama untuk warga desa.</p>
+                            <a href="/admin/terbitkan-berita" class="btn btn-primary">Terbitkan Berita</a>
+                        </div>
+                    <% } %>
+                </section>
+            <% } %>
         </main>
 
         <%- include('partials/footer', { simple: true }) %>
     </div>
 </div>
 
-<% if (isVercel) { %>
+<% if (activeSection === 'kelola-galeri' && isVercel) { %>
     <script src="/gallery-upload.js?v=1" defer></script>
 <% } %>
+<% if (activeSection === 'kependudukan') { %>
 <script>
     (() => {
         const form = document.getElementById('pop-calc-form');
@@ -496,7 +632,6 @@ const dataPenduduk = (typeof kependudukan !== 'undefined' && Array.isArray(kepen
             const avgKk = sumKk > 0 ? (totalJiwa / sumKk).toFixed(1).replace('.', ',') : '0';
             const sexRatio = sumPerempuan > 0 ? Math.round((sumLaki / sumPerempuan) * 100) : 0;
 
-            // Update kartu ringkasan atas
             elTotalJiwa.textContent = fmt(totalJiwa);
             elTotalLaki.textContent = fmt(sumLaki);
             elTotalPerempuan.textContent = fmt(sumPerempuan);
@@ -505,7 +640,6 @@ const dataPenduduk = (typeof kependudukan !== 'undefined' && Array.isArray(kepen
             elPctPerempuan.textContent = pctPerempuan.toFixed(1).replace('.', ',') + '%';
             elAvgKk.textContent = avgKk;
 
-            // Update baris total tabel
             document.getElementById('tfoot-laki').textContent = fmt(sumLaki);
             document.getElementById('tfoot-perempuan').textContent = fmt(sumPerempuan);
             document.getElementById('tfoot-kk').textContent = fmt(sumKk);
@@ -515,7 +649,6 @@ const dataPenduduk = (typeof kependudukan !== 'undefined' && Array.isArray(kepen
             document.getElementById('tfoot-lansia').textContent = fmt(sumLansia);
             document.getElementById('tfoot-total').textContent = fmt(totalJiwa) + ' jiwa';
 
-            // 1. Render grafik batang per dusun
             const maxDusun = Math.max(1, ...dusunStats.map(d => d.total));
             elDusunBars.innerHTML = dusunStats.map(d => {
                 const widthLaki = ((d.laki / maxDusun) * 100).toFixed(1);
@@ -539,7 +672,6 @@ const dataPenduduk = (typeof kependudukan !== 'undefined' && Array.isArray(kepen
                 `;
             }).join('');
 
-            // 2. Render grafik donut jenis kelamin
             const degLaki = totalJiwa > 0 ? (sumLaki / totalJiwa) * 360 : 180;
             elGenderDonut.style.background = `conic-gradient(#136148 0deg ${degLaki}deg, #d9a521 ${degLaki}deg 360deg)`;
             elDonutTotal.textContent = fmt(totalJiwa);
@@ -548,7 +680,6 @@ const dataPenduduk = (typeof kependudukan !== 'undefined' && Array.isArray(kepen
             elLegendPerempuan.textContent = `${fmt(sumPerempuan)} (${pctPerempuan.toFixed(1).replace('.', ',')}%)`;
             elLegendDiff.textContent = `${fmt(Math.abs(sumLaki - sumPerempuan))} jiwa`;
 
-            // 3. Render grafik kelompok usia
             const totalUsia = sumBalita + sumRemaja + sumDewasa + sumLansia;
             const ageGroups = [
                 { label: 'Balita (0–5 th)', count: sumBalita, cls: 'is-age-1' },
@@ -577,4 +708,5 @@ const dataPenduduk = (typeof kependudukan !== 'undefined' && Array.isArray(kepen
         recalc();
     })();
 </script>
+<% } %>
 <%- include('partials/end') %>

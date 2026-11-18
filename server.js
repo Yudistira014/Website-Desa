@@ -707,7 +707,17 @@ app.get('/logout', (req, res) => {
 });
 
 // --- RUTE KHUSUS ADMIN ---
-app.get('/admin', cekAdmin, async (req, res) => {
+const adminValidSections = new Set([
+    'ringkasan',
+    'kependudukan',
+    'terbitkan-berita',
+    'laporan-warga',
+    'surat-pengantar',
+    'kelola-galeri',
+    'daftar-berita'
+]);
+
+async function renderAdminDashboard(req, res, section = 'ringkasan') {
     try {
         const [berita] = await db.query('SELECT * FROM berita ORDER BY id DESC');
         const [laporan] = await db.query('SELECT * FROM laporan ORDER BY id DESC');
@@ -723,6 +733,7 @@ app.get('/admin', cekAdmin, async (req, res) => {
         res.render('admin', {
             desa: infoDesa,
             user: req.session.user,
+            section,
             berita,
             galeri,
             laporanWarga: laporan,
@@ -736,6 +747,15 @@ app.get('/admin', cekAdmin, async (req, res) => {
     } catch (err) {
         res.status(500).send("Database Error di Halaman Admin: " + err.message);
     }
+}
+
+app.get('/admin', cekAdmin, (req, res) => renderAdminDashboard(req, res, 'ringkasan'));
+
+app.get('/admin/:section', cekAdmin, (req, res, next) => {
+    const { section } = req.params;
+    if (!adminValidSections.has(section)) return next();
+    if (section === 'ringkasan') return res.redirect('/admin');
+    return renderAdminDashboard(req, res, section);
 });
 
 app.post('/admin/kependudukan', cekAdmin, async (req, res) => {
@@ -776,10 +796,10 @@ app.post('/admin/kependudukan', cekAdmin, async (req, res) => {
             );
         }
         await syncTotalPopulasi();
-        res.redirect('/admin?success=Data statistik kependudukan berhasil diperbarui#kependudukan');
+        res.redirect('/admin/kependudukan?success=Data statistik kependudukan berhasil diperbarui');
     } catch (err) {
         console.error('Gagal menyimpan kependudukan:', err.message);
-        res.redirect('/admin?error=Gagal menyimpan data kependudukan#kependudukan');
+        res.redirect('/admin/kependudukan?error=Gagal menyimpan data kependudukan');
     }
 });
 
@@ -793,18 +813,18 @@ app.post('/admin/surat-pengantar/:id/status', cekAdmin, async (req, res) => {
     } else if (action === 'tolak') {
         status = 'Ditolak';
     } else {
-        return res.redirect('/admin');
+        return res.redirect('/admin/surat-pengantar');
     }
 
     try {
         const [rows] = await db.query('SELECT status, alasan_penolakan FROM surat_pengantar WHERE id = ?', [id]);
         if (rows.length === 0) {
-            return res.redirect('/admin');
+            return res.redirect('/admin/surat-pengantar');
         }
 
         const surat = rows[0];
         if (surat.status === 'Ditolak' && surat.alasan_penolakan) {
-            return res.redirect('/admin');
+            return res.redirect('/admin/surat-pengantar');
         }
 
         if (action === 'tolak') {
@@ -812,9 +832,9 @@ app.post('/admin/surat-pengantar/:id/status', cekAdmin, async (req, res) => {
         } else {
             await db.query('UPDATE surat_pengantar SET status = ?, alasan_penolakan = NULL WHERE id = ?', [status, id]);
         }
-        res.redirect('/admin');
+        res.redirect('/admin/surat-pengantar?success=Status surat pengantar berhasil diperbarui');
     } catch (err) {
-        res.redirect('/admin');
+        res.redirect('/admin/surat-pengantar?error=Gagal memperbarui status surat');
     }
 });
 
@@ -829,15 +849,15 @@ app.post('/admin/tambah-berita', cekAdmin, upload.single('fotoBerita'), async (r
         } else {
             await db.query('INSERT INTO berita (judul, tanggal, ringkasan) VALUES (?, ?, ?)', [judul, tanggalHariIni, ringkasan]);
         }
-        res.redirect('/admin');
+        res.redirect('/admin/daftar-berita?success=Berita baru berhasil diterbitkan');
     } catch (err) {
         if (foto && err.code === 'ER_BAD_FIELD_ERROR') {
             try {
                 await db.query('INSERT INTO berita (judul, tanggal, ringkasan) VALUES (?, ?, ?)', [judul, tanggalHariIni, ringkasan]);
-                return res.redirect('/admin');
+                return res.redirect('/admin/daftar-berita?success=Berita baru berhasil diterbitkan');
             } catch (innerErr) {}
         }
-        res.redirect('/admin?error=Gagal menambah berita');
+        res.redirect('/admin/terbitkan-berita?error=Gagal menambah berita');
     }
 });
 
@@ -881,7 +901,7 @@ app.post('/admin/tambah-galeri-remote', cekAdmin, async (req, res) => {
 
     try {
         await db.query('INSERT INTO galeri (judul, tanggal, deskripsi, foto) VALUES ?', [values]);
-        res.json({ redirect: '/admin?success=Dokumentasi berhasil ditambahkan ke galeri' });
+        res.json({ redirect: '/admin/kelola-galeri?success=Dokumentasi berhasil ditambahkan ke galeri' });
     } catch (err) {
         console.error('Gagal menyimpan dokumentasi galeri:', err.message);
         res.status(500).json({ error: 'Gagal menyimpan dokumentasi galeri' });
@@ -903,12 +923,12 @@ app.post('/admin/hapus-upload-galeri-temp', cekAdmin, async (req, res) => {
 
 app.post('/admin/tambah-galeri', cekAdmin, (req, res, next) => {
     if (process.env.VERCEL === '1') {
-        return res.redirect('/admin?error=Aktifkan JavaScript untuk mengunggah foto galeri');
+        return res.redirect('/admin/kelola-galeri?error=Aktifkan JavaScript untuk mengunggah foto galeri');
     }
     galleryDiskUpload.array('fotoGaleri', 10)(req, res, err => {
         if (err) {
             console.error('Gagal menerima unggahan galeri:', err.message);
-            return res.redirect('/admin?error=Gagal menerima foto galeri');
+            return res.redirect('/admin/kelola-galeri?error=Gagal menerima foto galeri');
         }
         next();
     });
@@ -919,7 +939,7 @@ app.post('/admin/tambah-galeri', cekAdmin, (req, res, next) => {
 
     if (!judul || judul.length > 255 || files.length === 0) {
         await cleanupGalleryUploads(files);
-        return res.redirect('/admin?error=Lengkapi judul dan pilih foto galeri');
+        return res.redirect('/admin/kelola-galeri?error=Lengkapi judul dan pilih foto galeri');
     }
 
     const tanggal = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -927,23 +947,23 @@ app.post('/admin/tambah-galeri', cekAdmin, (req, res, next) => {
 
     try {
         await db.query('INSERT INTO galeri (judul, tanggal, deskripsi, foto) VALUES ?', [values]);
-        res.redirect('/admin?success=Dokumentasi berhasil ditambahkan ke galeri');
+        res.redirect('/admin/kelola-galeri?success=Dokumentasi berhasil ditambahkan ke galeri');
     } catch (err) {
         console.error('Gagal menyimpan dokumentasi galeri:', err.message);
         await cleanupGalleryUploads(files);
-        res.redirect('/admin?error=Gagal menyimpan dokumentasi galeri');
+        res.redirect('/admin/kelola-galeri?error=Gagal menyimpan dokumentasi galeri');
     }
 });
 
 app.post('/admin/hapus-galeri/:id', cekAdmin, async (req, res) => {
     const id = Number(req.params.id);
     if (!Number.isSafeInteger(id) || id < 1) {
-        return res.redirect('/admin?error=Dokumentasi galeri tidak valid');
+        return res.redirect('/admin/kelola-galeri?error=Dokumentasi galeri tidak valid');
     }
 
     try {
         const [rows] = await db.query('SELECT foto FROM galeri WHERE id = ?', [id]);
-        if (rows.length === 0) return res.redirect('/admin?error=Dokumentasi galeri tidak ditemukan');
+        if (rows.length === 0) return res.redirect('/admin/kelola-galeri?error=Dokumentasi galeri tidak ditemukan');
 
         await db.query('DELETE FROM galeri WHERE id = ?', [id]);
         if (isGalleryBlobUrl(rows[0].foto)) {
@@ -956,15 +976,15 @@ app.post('/admin/hapus-galeri/:id', cekAdmin, async (req, res) => {
                 } catch (err) {
                     if (err.code !== 'ENOENT') {
                         console.error('Gagal menghapus file dokumentasi galeri:', err.message);
-                        return res.redirect('/admin?error=Dokumentasi dihapus, tetapi file gagal dibersihkan');
+                        return res.redirect('/admin/kelola-galeri?error=Dokumentasi dihapus, tetapi file gagal dibersihkan');
                     }
                 }
             }
         }
-        res.redirect('/admin?success=Dokumentasi galeri berhasil dihapus');
+        res.redirect('/admin/kelola-galeri?success=Dokumentasi galeri berhasil dihapus');
     } catch (err) {
         console.error('Gagal menghapus dokumentasi galeri:', err.message);
-        res.redirect('/admin?error=Gagal menghapus dokumentasi galeri');
+        res.redirect('/admin/kelola-galeri?error=Gagal menghapus dokumentasi galeri');
     }
 });
 
@@ -975,10 +995,10 @@ app.get('/admin/edit-berita/:id', cekAdmin, async (req, res) => {
         if (rows.length > 0) {
             res.render('edit-berita', { user: req.session.user, berita: rows[0], id });
         } else {
-            res.redirect('/admin');
+            res.redirect('/admin/daftar-berita');
         }
     } catch (err) {
-        res.redirect('/admin');
+        res.redirect('/admin/daftar-berita');
     }
 });
 
@@ -992,15 +1012,15 @@ app.post('/admin/edit-berita/:id', cekAdmin, upload.single('fotoBerita'), async 
         } else {
             await db.query('UPDATE berita SET judul = ?, ringkasan = ? WHERE id = ?', [judul, ringkasan, id]);
         }
-        res.redirect('/admin');
+        res.redirect('/admin/daftar-berita?success=Berita berhasil diperbarui');
     } catch (err) {
         if (foto && err.code === 'ER_BAD_FIELD_ERROR') {
             try {
                 await db.query('UPDATE berita SET judul = ?, ringkasan = ? WHERE id = ?', [judul, ringkasan, id]);
-                return res.redirect('/admin');
+                return res.redirect('/admin/daftar-berita?success=Berita berhasil diperbarui');
             } catch (innerErr) {}
         }
-        res.redirect('/admin');
+        res.redirect('/admin/daftar-berita?error=Gagal memperbarui berita');
     }
 });
 
@@ -1008,9 +1028,9 @@ app.post('/admin/hapus-berita/:id', cekAdmin, async (req, res) => {
     const id = req.params.id;
     try {
         await db.query('DELETE FROM berita WHERE id = ?', [id]);
-        res.redirect('/admin');
+        res.redirect('/admin/daftar-berita?success=Berita berhasil dihapus');
     } catch (err) {
-        res.redirect('/admin');
+        res.redirect('/admin/daftar-berita?error=Gagal menghapus berita');
     }
 });
 

@@ -1,13 +1,18 @@
 <%
 /* Sidebar kiri untuk halaman Admin.
    Parameter opsional:
-   - activeMenu = 'ringkasan' | 'berita' | 'laporan' | 'surat' | 'galeri' | 'daftar-berita'
+   - activeMenu = 'ringkasan' | 'kependudukan' | 'terbitkan-berita' | 'laporan-warga' | 'surat-pengantar' | 'kelola-galeri' | 'daftar-berita'
    - counts = { berita, galeri, laporan, suratMenunggu }
-   - baseHref = '/admin' (untuk halaman edit-berita agar tautan mengarah kembali ke /admin#section)
 */
-const currentMenu = typeof activeMenu !== 'undefined' ? activeMenu : 'ringkasan';
+const rawMenu = typeof activeMenu !== 'undefined' ? activeMenu : 'ringkasan';
+const aliasMap = {
+    berita: 'terbitkan-berita',
+    laporan: 'laporan-warga',
+    surat: 'surat-pengantar',
+    galeri: 'kelola-galeri'
+};
+const currentMenu = aliasMap[rawMenu] || rawMenu;
 const c = typeof counts !== 'undefined' && counts ? counts : {};
-const base = typeof baseHref !== 'undefined' ? baseHref : '';
 %>
 <div class="admin-backdrop" id="admin-backdrop" aria-hidden="true"></div>
 <aside class="admin-sidebar" id="admin-sidebar" aria-label="Menu navigasi admin">
@@ -27,25 +32,25 @@ const base = typeof baseHref !== 'undefined' ? baseHref : '';
             <span class="admin-nav-label">Kelola Desa</span>
             <ul class="admin-nav" id="admin-nav">
                 <li>
-                    <a href="<%= base %>#ringkasan" class="admin-nav-link <%= currentMenu === 'ringkasan' ? 'is-active' : '' %>" data-nav-target="ringkasan">
+                    <a href="/admin" class="admin-nav-link <%= currentMenu === 'ringkasan' ? 'is-active' : '' %>">
                         <%- include('icon', { name: 'layers' }) %>
                         <span>Ringkasan</span>
                     </a>
                 </li>
                 <li>
-                    <a href="<%= base %>#kependudukan" class="admin-nav-link <%= currentMenu === 'kependudukan' ? 'is-active' : '' %>" data-nav-target="kependudukan">
+                    <a href="/admin/kependudukan" class="admin-nav-link <%= currentMenu === 'kependudukan' ? 'is-active' : '' %>">
                         <%- include('icon', { name: 'chart' }) %>
                         <span>Grafik Kependudukan</span>
                     </a>
                 </li>
                 <li>
-                    <a href="<%= base %>#terbitkan-berita" class="admin-nav-link <%= currentMenu === 'berita' ? 'is-active' : '' %>" data-nav-target="terbitkan-berita">
+                    <a href="/admin/terbitkan-berita" class="admin-nav-link <%= currentMenu === 'terbitkan-berita' ? 'is-active' : '' %>">
                         <%- include('icon', { name: 'megaphone' }) %>
                         <span>Terbitkan Berita</span>
                     </a>
                 </li>
                 <li>
-                    <a href="<%= base %>#laporan-warga" class="admin-nav-link <%= currentMenu === 'laporan' ? 'is-active' : '' %>" data-nav-target="laporan-warga">
+                    <a href="/admin/laporan-warga" class="admin-nav-link <%= currentMenu === 'laporan-warga' ? 'is-active' : '' %>">
                         <%- include('icon', { name: 'inbox' }) %>
                         <span>Laporan Warga</span>
                         <% if (typeof c.laporan === 'number') { %>
@@ -54,7 +59,7 @@ const base = typeof baseHref !== 'undefined' ? baseHref : '';
                     </a>
                 </li>
                 <li>
-                    <a href="<%= base %>#surat-pengantar" class="admin-nav-link <%= currentMenu === 'surat' ? 'is-active' : '' %>" data-nav-target="surat-pengantar">
+                    <a href="/admin/surat-pengantar" class="admin-nav-link <%= currentMenu === 'surat-pengantar' ? 'is-active' : '' %>">
                         <%- include('icon', { name: 'document' }) %>
                         <span>Surat Pengantar</span>
                         <% if (typeof c.suratMenunggu === 'number' && c.suratMenunggu > 0) { %>
@@ -63,7 +68,7 @@ const base = typeof baseHref !== 'undefined' ? baseHref : '';
                     </a>
                 </li>
                 <li>
-                    <a href="<%= base %>#kelola-galeri" class="admin-nav-link <%= currentMenu === 'galeri' ? 'is-active' : '' %>" data-nav-target="kelola-galeri">
+                    <a href="/admin/kelola-galeri" class="admin-nav-link <%= currentMenu === 'kelola-galeri' ? 'is-active' : '' %>">
                         <%- include('icon', { name: 'image' }) %>
                         <span>Kelola Galeri</span>
                         <% if (typeof c.galeri === 'number') { %>
@@ -72,7 +77,7 @@ const base = typeof baseHref !== 'undefined' ? baseHref : '';
                     </a>
                 </li>
                 <li>
-                    <a href="<%= base %>#daftar-berita" class="admin-nav-link <%= currentMenu === 'daftar-berita' ? 'is-active' : '' %>" data-nav-target="daftar-berita">
+                    <a href="/admin/daftar-berita" class="admin-nav-link <%= currentMenu === 'daftar-berita' ? 'is-active' : '' %>">
                         <%- include('icon', { name: 'news' }) %>
                         <span>Daftar Berita</span>
                         <% if (typeof c.berita === 'number') { %>
@@ -121,31 +126,5 @@ const base = typeof baseHref !== 'undefined' ? baseHref : '';
         });
         if (closeBtn) closeBtn.addEventListener('click', () => setOpen(false));
         if (backdrop) backdrop.addEventListener('click', () => setOpen(false));
-
-        const navLinks = sidebar.querySelectorAll('.admin-nav-link[data-nav-target]');
-        navLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                navLinks.forEach(l => l.classList.remove('is-active'));
-                link.classList.add('is-active');
-                setOpen(false);
-            });
-        });
-
-        // Sinkronisasi menu aktif saat halaman digulir (scroll spy)
-        const sections = Array.from(navLinks)
-            .map(link => document.getElementById(link.dataset.navTarget))
-            .filter(Boolean);
-
-        if (sections.length > 1 && 'IntersectionObserver' in window) {
-            const observer = new IntersectionObserver(entries => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const id = entry.target.id;
-                        navLinks.forEach(l => l.classList.toggle('is-active', l.dataset.navTarget === id));
-                    }
-                });
-            }, { rootMargin: '-20% 0px -65% 0px', threshold: 0 });
-            sections.forEach(sec => observer.observe(sec));
-        }
     })();
 </script>

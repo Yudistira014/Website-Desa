@@ -5,24 +5,48 @@
         <aside class="auth-aside">
             <a href="/" class="auth-brand">
                 <img src="/uploads/Logo_desa.png" alt="Logo <%= desa.nama %>">
-                <span><%= desa.nama %></span>
+                <span class="auth-brand-text">
+                    <strong><%= desa.nama %></strong>
+                    <small>Portal Resmi Pemerintah Desa</small>
+                </span>
             </a>
 
             <div>
+                <span class="auth-pill"><span class="auth-pill-dot"></span> Layanan Digital Warga</span>
                 <h1>Selamat Datang Kembali</h1>
                 <p>Silakan masuk untuk melanjutkan akses ke layanan administrasi dan informasi desa Anda.</p>
             </div>
 
             <ul class="auth-features">
-                <li>Layanan Administrasi Mandiri</li>
-                <li>Pantau Status Pelaporan &amp; Surat</li>
-                <li>Informasi Desa Terkini</li>
+                <li>
+                    <span class="auth-feature-icon"><%- include('partials/icon', { name: 'document' }) %></span>
+                    <span>Layanan Administrasi Mandiri</span>
+                </li>
+                <li>
+                    <span class="auth-feature-icon"><%- include('partials/icon', { name: 'check-circle' }) %></span>
+                    <span>Pantau Status Pelaporan &amp; Surat</span>
+                </li>
+                <li>
+                    <span class="auth-feature-icon"><%- include('partials/icon', { name: 'news' }) %></span>
+                    <span>Informasi Desa Terkini</span>
+                </li>
             </ul>
         </aside>
 
         <section class="auth-main">
-            <h2>Masuk ke Akun</h2>
-            <p>Masukkan username dan kata sandi Anda.</p>
+            <a href="/" class="auth-mobile-brand">
+                <img src="/uploads/Logo_desa.png" alt="Logo <%= desa.nama %>">
+                <div>
+                    <strong><%= desa.nama %></strong>
+                    <small>Portal Resmi Pemerintah Desa</small>
+                </div>
+            </a>
+
+            <div class="auth-header">
+                <span class="eyebrow">Akses Akun</span>
+                <h2>Masuk ke Akun</h2>
+                <p>Masukkan username dan kata sandi Anda.</p>
+            </div>
 
             <% if (typeof error !== 'undefined' && error) { %>
                 <div class="alert alert-error" role="alert">
@@ -58,14 +82,20 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-block mt-16">
-                    Masuk <%- include('partials/icon', { name: 'arrow-right' }) %>
+                <button type="submit" class="btn btn-primary btn-block auth-submit">
+                    <span>Masuk</span>
+                    <%- include('partials/icon', { name: 'arrow-right' }) %>
                 </button>
             </form>
 
             <div class="auth-footer">
                 <p>Belum punya akun? <a href="/register">Daftar di sini</a></p>
-                <p><a href="/">← Kembali ke Beranda</a></p>
+                <p>
+                    <a href="/" class="auth-back-link">
+                        <%- include('partials/icon', { name: 'arrow-left' }) %>
+                        <span>Kembali ke Beranda</span>
+                    </a>
+                </p>
             </div>
         </section>
     </div>

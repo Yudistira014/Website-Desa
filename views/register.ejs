@@ -5,24 +5,48 @@
         <aside class="auth-aside">
             <a href="/" class="auth-brand">
                 <img src="/uploads/Logo_desa.png" alt="Logo <%= desa.nama %>">
-                <span><%= desa.nama %></span>
+                <span class="auth-brand-text">
+                    <strong><%= desa.nama %></strong>
+                    <small>Portal Resmi Pemerintah Desa</small>
+                </span>
             </a>
 
             <div>
+                <span class="auth-pill"><span class="auth-pill-dot"></span> Pendaftaran Warga</span>
                 <h1>Bergabung Bersama Kami</h1>
                 <p>Akses berbagai layanan administrasi secara digital, kapan saja dan di mana saja. Lebih cepat dan transparan.</p>
             </div>
 
             <ul class="auth-features">
-                <li>Pendaftaran Cepat &amp; Mudah</li>
-                <li>Keamanan Data Terjamin</li>
-                <li>Layanan Mandiri 24 Jam</li>
+                <li>
+                    <span class="auth-feature-icon"><%- include('partials/icon', { name: 'check-circle' }) %></span>
+                    <span>Pendaftaran Cepat &amp; Mudah</span>
+                </li>
+                <li>
+                    <span class="auth-feature-icon"><%- include('partials/icon', { name: 'lock' }) %></span>
+                    <span>Keamanan Data Terjamin</span>
+                </li>
+                <li>
+                    <span class="auth-feature-icon"><%- include('partials/icon', { name: 'document' }) %></span>
+                    <span>Layanan Mandiri 24 Jam</span>
+                </li>
             </ul>
         </aside>
 
         <section class="auth-main">
-            <h2>Daftar Akun Baru</h2>
-            <p>Lengkapi formulir di bawah ini untuk membuat akun warga.</p>
+            <a href="/" class="auth-mobile-brand">
+                <img src="/uploads/Logo_desa.png" alt="Logo <%= desa.nama %>">
+                <div>
+                    <strong><%= desa.nama %></strong>
+                    <small>Portal Resmi Pemerintah Desa</small>
+                </div>
+            </a>
+
+            <div class="auth-header">
+                <span class="eyebrow">Akun Baru</span>
+                <h2>Daftar Akun Warga</h2>
+                <p>Lengkapi formulir di bawah ini untuk membuat akun.</p>
+            </div>
 
             <% if (typeof error !== 'undefined' && error) { %>
                 <div class="alert alert-error" role="alert">
@@ -64,14 +88,20 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-block mt-16">
-                    Daftar Sekarang <%- include('partials/icon', { name: 'arrow-right' }) %>
+                <button type="submit" class="btn btn-primary btn-block auth-submit">
+                    <span>Daftar Sekarang</span>
+                    <%- include('partials/icon', { name: 'arrow-right' }) %>
                 </button>
             </form>
 
             <div class="auth-footer">
                 <p>Sudah punya akun? <a href="/login">Masuk di sini</a></p>
-                <p><a href="/">← Kembali ke Beranda</a></p>
+                <p>
+                    <a href="/" class="auth-back-link">
+                        <%- include('partials/icon', { name: 'arrow-left' }) %>
+                        <span>Kembali ke Beranda</span>
+                    </a>
+                </p>
             </div>
         </section>
     </div>

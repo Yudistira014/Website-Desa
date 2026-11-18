@@ -208,6 +208,17 @@ textarea {
     transition: background-color var(--ease), border-color var(--ease), color var(--ease), box-shadow var(--ease), transform var(--ease);
 }
 
+.btn svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.btn-sm svg {
+    width: 15px;
+    height: 15px;
+}
+
 .btn:hover {
     transform: translateY(-1px);
 }
@@ -1750,24 +1761,29 @@ textarea {
 
 /* 14. Auth ------------------------------------------------------------------- */
 .auth-page {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    padding: 32px 20px;
-    background: var(--bg);
+    padding: 36px 20px;
+    background:
+        radial-gradient(circle at 12% 18%, rgba(31, 150, 112, 0.14) 0%, transparent 45%),
+        radial-gradient(circle at 88% 82%, rgba(217, 165, 33, 0.12) 0%, transparent 45%),
+        var(--bg);
 }
 
 .auth-card {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1.05fr 1fr;
     width: 100%;
-    max-width: 900px;
+    max-width: 960px;
+    min-height: 580px;
     overflow: hidden;
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 22px;
-    box-shadow: var(--shadow-lg);
+    border-radius: 24px;
+    box-shadow: 0 24px 64px rgba(10, 58, 43, 0.12), 0 4px 16px rgba(10, 58, 43, 0.05);
 }
 
 .auth-aside {
@@ -1776,20 +1792,49 @@ textarea {
     flex-direction: column;
     justify-content: space-between;
     gap: 32px;
-    padding: 44px 40px;
+    padding: 44px 42px;
     overflow: hidden;
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.85);
     background:
-        linear-gradient(160deg, rgba(10, 58, 43, 0.95), rgba(19, 97, 72, 0.9)),
+        linear-gradient(155deg, rgba(10, 58, 43, 0.94) 0%, rgba(19, 97, 72, 0.88) 55%, rgba(24, 122, 90, 0.92) 100%),
         url('/uploads/Bacground_desa.jpg') center / cover no-repeat;
 }
 
+.auth-aside::before {
+    content: '';
+    position: absolute;
+    right: -110px;
+    top: -110px;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    border: 52px solid rgba(255, 255, 255, 0.06);
+    pointer-events: none;
+}
+
+.auth-aside::after {
+    content: '';
+    position: absolute;
+    left: -70px;
+    bottom: -90px;
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    border: 40px solid rgba(255, 255, 255, 0.05);
+    pointer-events: none;
+}
+
+.auth-aside > * {
+    position: relative;
+    z-index: 1;
+}
+
 .auth-brand {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 12px;
+    gap: 13px;
     color: #fff;
-    font-weight: 700;
+    width: fit-content;
 }
 
 .auth-brand:hover {
@@ -1797,59 +1842,155 @@ textarea {
 }
 
 .auth-brand img {
-    width: 44px;
-    height: 44px;
+    width: 46px;
+    height: 46px;
     object-fit: contain;
-    padding: 4px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.95);
+    padding: 5px;
+    border-radius: 13px;
+    background: #fff;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
+}
+
+.auth-brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+}
+
+.auth-brand-text strong {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.auth-brand-text small {
+    font-size: 0.74rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.auth-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 13px;
+    margin-bottom: 16px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.13);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #fff;
+}
+
+.auth-pill-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent-500);
 }
 
 .auth-aside h1 {
     color: #fff;
-    font-size: 1.75rem;
-    margin-bottom: 10px;
+    font-size: clamp(1.65rem, 2.6vw, 2.05rem);
+    line-height: 1.25;
+    margin-bottom: 12px;
 }
 
 .auth-aside p {
     font-size: 0.94rem;
+    line-height: 1.65;
+    color: rgba(255, 255, 255, 0.82);
 }
 
 .auth-features {
     display: grid;
-    gap: 12px;
-    font-size: 0.9rem;
+    gap: 11px;
+    font-size: 0.88rem;
 }
 
 .auth-features li {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(6px);
+    color: #fff;
+    font-weight: 500;
 }
 
-.auth-features li::before {
-    content: '';
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--accent-500);
+.auth-feature-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: rgba(217, 165, 33, 0.24);
+    color: #fde68a;
+    flex-shrink: 0;
+}
+
+.auth-feature-icon svg {
+    width: 15px;
+    height: 15px;
 }
 
 .auth-main {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 48px 44px;
+    padding: 48px 46px;
+}
+
+.auth-mobile-brand {
+    display: none;
+    align-items: center;
+    gap: 11px;
+    margin-bottom: 24px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink);
+}
+
+.auth-mobile-brand img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.auth-mobile-brand strong {
+    display: block;
+    font-size: 0.98rem;
+    line-height: 1.2;
+}
+
+.auth-mobile-brand small {
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+
+.auth-header {
+    margin-bottom: 26px;
+}
+
+.auth-header .eyebrow {
+    margin-bottom: 8px;
 }
 
 .auth-main h2 {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
+    letter-spacing: -0.02em;
 }
 
-.auth-main > p {
-    margin: 6px 0 28px;
+.auth-header p {
+    margin-top: 6px;
     color: var(--muted);
-    font-size: 0.94rem;
+    font-size: 0.93rem;
 }
 
 .input-wrap {
@@ -1858,17 +1999,35 @@ textarea {
 
 .input-wrap .input-icon {
     position: absolute;
-    left: 13px;
+    left: 14px;
     top: 50%;
     width: 18px;
     height: 18px;
     color: var(--muted);
     transform: translateY(-50%);
     pointer-events: none;
+    transition: color var(--ease);
+}
+
+.input-wrap:focus-within .input-icon {
+    color: var(--primary-600);
 }
 
 .form-group .input-wrap input {
-    padding-left: 42px;
+    height: 46px;
+    padding: 11px 14px 11px 44px;
+    border-radius: 10px;
+    background: var(--bg);
+    border-color: var(--line);
+}
+
+.form-group .input-wrap input:hover {
+    border-color: var(--line-strong);
+}
+
+.form-group .input-wrap input:focus {
+    background: var(--surface);
+    border-color: var(--primary-500);
 }
 
 .form-group .input-wrap.has-toggle input {
@@ -1884,11 +2043,12 @@ textarea {
     width: 34px;
     height: 34px;
     border: 0;
-    border-radius: 6px;
+    border-radius: 8px;
     background: none;
     color: var(--muted);
     cursor: pointer;
     transform: translateY(-50%);
+    transition: color var(--ease), background-color var(--ease);
 }
 
 .password-toggle:hover {
@@ -1905,19 +2065,50 @@ textarea {
 .password-toggle[aria-pressed="true"] .icon-show { display: none; }
 .password-toggle[aria-pressed="true"] .icon-hide { display: block; }
 
+.auth-submit {
+    height: 48px;
+    margin-top: 10px;
+    border-radius: 10px;
+    font-size: 0.96rem;
+    box-shadow: 0 8px 20px rgba(19, 97, 72, 0.22);
+}
+
 .auth-footer {
-    margin-top: 24px;
+    margin-top: 26px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
     text-align: center;
     font-size: 0.9rem;
     color: var(--muted);
 }
 
 .auth-footer p + p {
-    margin-top: 8px;
+    margin-top: 10px;
 }
 
 .auth-footer a {
     font-weight: 600;
+}
+
+.auth-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    font-size: 0.86rem;
+    font-weight: 600;
+}
+
+.auth-back-link svg {
+    width: 15px;
+    height: 15px;
+}
+
+.auth-back-link:hover {
+    background: var(--bg);
+    color: var(--ink);
 }
 
 /* 15. Footer ----------------------------------------------------------------- */
@@ -2179,10 +2370,15 @@ textarea {
     .auth-card {
         grid-template-columns: 1fr;
         max-width: 480px;
+        min-height: 0;
     }
 
     .auth-aside {
         display: none;
+    }
+
+    .auth-mobile-brand {
+        display: flex;
     }
 }
 

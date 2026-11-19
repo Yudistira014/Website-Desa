@@ -977,14 +977,13 @@ const bantuanMenunggu = daftarBantuan.length - bantuanTersalurkan;
 
                             <% if (daftarBantuan.length > 0) { %>
                                 <div class="pop-table-wrap table-responsive-cards">
-                                    <table class="pop-table fin-table" id="aid-table">
+                                    <table class="pop-table fin-table aid-table" id="aid-table">
                                         <thead>
                                             <tr>
                                                 <th>Data Warga</th>
-                                                <th>Kriteria &amp; Program</th>
-                                                <th>Nilai Bantuan</th>
-                                                <th>Status</th>
-                                                <th style="width: 190px; text-align: right;">Aksi</th>
+                                                <th>Program &amp; Kriteria</th>
+                                                <th>Nilai &amp; Status</th>
+                                                <th class="aid-col-actions">Aksi</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -993,32 +992,31 @@ const bantuanMenunggu = daftarBantuan.length - bantuanTersalurkan;
                                             %>
                                                 <tr data-aid-row="<%= item.status %>">
                                                     <td data-label="Data Warga">
-                                                        <div>
+                                                        <div class="aid-cell-stack">
                                                             <strong class="fin-row-cat"><%= item.nama %></strong>
-                                                            <small class="fin-row-date">NIK: <%= item.nik %> · <strong><%= item.dusun %></strong></small>
+                                                            <small class="fin-row-date">NIK: <%= item.nik %></small>
+                                                            <small class="aid-row-dusun"><%= item.dusun %></small>
                                                             <% if (item.catatan) { %>
                                                                 <small class="aid-row-note">“<%= item.catatan %>”</small>
                                                             <% } %>
                                                         </div>
                                                     </td>
-                                                    <td data-label="Program">
-                                                        <div>
+                                                    <td data-label="Program &amp; Kriteria">
+                                                        <div class="aid-cell-stack">
                                                             <strong class="fin-row-cat"><%= item.jenis_bantuan %></strong>
                                                             <small class="fin-row-date"><%= item.kriteria %></small>
                                                         </div>
                                                     </td>
-                                                    <td data-label="Nilai Bantuan" class="fin-amount is-income">
-                                                        <div>
-                                                            <%= formatRp(item.nominal) %>
+                                                    <td data-label="Nilai &amp; Status">
+                                                        <div class="aid-cell-stack">
+                                                            <span class="fin-amount is-income"><%= formatRp(item.nominal) %></span>
+                                                            <div class="aid-status-meta">
+                                                                <span class="badge <%= isSalur ? 'badge-success' : 'badge-warning' %>"><%= item.status %></span>
+                                                            </div>
                                                             <small class="fin-row-date"><%= item.tanggal %></small>
                                                         </div>
                                                     </td>
-                                                    <td data-label="Status">
-                                                        <span class="badge <%= isSalur ? 'badge-success' : 'badge-warning' %>">
-                                                            <%= item.status %>
-                                                        </span>
-                                                    </td>
-                                                    <td data-label="Aksi" style="text-align: right;">
+                                                    <td data-label="Aksi" class="aid-col-actions">
                                                         <div class="aid-row-actions">
                                                             <form action="/admin/bantuan/<%= item.id %>/status" method="POST" style="margin: 0;">
                                                                 <input type="hidden" name="status" value="<%= isSalur ? 'Belum Tersalurkan' : 'Tersalurkan' %>">

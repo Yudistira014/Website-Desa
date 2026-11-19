@@ -888,7 +888,8 @@ textarea {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
+    flex-wrap: wrap;
+    gap: 14px 16px;
     padding-bottom: 18px;
     margin-bottom: 20px;
     border-bottom: 1px solid var(--line);
@@ -3030,6 +3031,8 @@ body.admin-body {
 
 .fin-filter-tabs {
     display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
     gap: 4px;
     padding: 4px;
     border-radius: var(--radius-sm);
@@ -3038,13 +3041,14 @@ body.admin-body {
 }
 
 .fin-filter-btn {
-    padding: 6px 12px;
+    padding: 7px 12px;
     border: 0;
     border-radius: 6px;
     background: transparent;
     font-size: 0.8rem;
     font-weight: 600;
     color: var(--muted);
+    white-space: nowrap;
     cursor: pointer;
     transition: background-color var(--ease), color var(--ease);
 }
@@ -3061,6 +3065,42 @@ body.admin-body {
 
 .fin-table {
     min-width: 620px;
+}
+
+.aid-table {
+    min-width: 600px;
+}
+
+.aid-table td {
+    vertical-align: middle;
+    padding: 15px 14px;
+}
+
+.aid-table th {
+    white-space: nowrap;
+}
+
+.aid-cell-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.aid-row-dusun {
+    display: inline-block;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--primary-700);
+}
+
+.aid-status-meta {
+    margin-top: 2px;
+}
+
+.aid-col-actions {
+    width: 150px;
+    text-align: right;
+    white-space: nowrap;
 }
 
 .fin-row-cat {

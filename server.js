@@ -697,14 +697,22 @@ app.post('/layanan/:slug/ajukan', cekUser, async (req, res) => {
     }
 });
 
-app.get('/layanan/:slug', (req, res) => {
+app.get('/layanan/:slug', async (req, res) => {
     const layanan = infoDesa.layanan.find(item => item.slug === req.params.slug);
     if (!layanan) {
         return res.status(404).send('Layanan tidak ditemukan');
     }
     const success = req.query.success === '1';
     const error = req.query.error === '1';
-    res.render('layanan-detail', { desa: infoDesa, user: req.session.user, layanan, success, error });
+    let penerimaBantuan = [];
+    if (layanan.slug === 'bantuan-sosial') {
+        try {
+            await ensureBantuanTable();
+            const [rows] = await db.query('SELECT * FROM penerima_bantuan ORDER BY id DESC');
+            penerimaBantuan = rows;
+        } catch (e) {}
+    }
+    res.render('layanan-detail', { desa: infoDesa, user: req.session.user, layanan, penerimaBantuan, success, error });
 });
 
 app.get('/transparansi', async (req, res) => {
@@ -1273,7 +1281,20 @@ app.get('/user', cekUser, async (req, res) => {
     try {
         const [laporanSaya] = await db.query('SELECT * FROM laporan WHERE nama = ? ORDER BY id DESC', [req.session.user.username]);
         const [suratSaya] = await db.query('SELECT * FROM surat_pengantar WHERE nama = ? ORDER BY id DESC', [req.session.user.username]);
-        res.render('user', { desa: infoDesa, user: req.session.user, laporan: laporanSaya, suratPengantar: suratSaya, error: req.query.error });
+        let penerimaBantuan = [];
+        try {
+            await ensureBantuanTable();
+            const [rowsBantuan] = await db.query('SELECT * FROM penerima_bantuan ORDER BY id DESC');
+            penerimaBantuan = rowsBantuan;
+        } catch (e) {}
+        res.render('user', {
+            desa: infoDesa,
+            user: req.session.user,
+            laporan: laporanSaya,
+            suratPengantar: suratSaya,
+            penerimaBantuan,
+            error: req.query.error
+        });
     } catch (err) {
         res.status(500).send("Database Error di Halaman User: " + err.message);
     }

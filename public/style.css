@@ -3059,6 +3059,23 @@ body.admin-body {
     color: var(--success);
 }
 
+.user-aid-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.user-aid-search {
+    width: 240px;
+    padding: 8px 13px;
+    font-size: 0.86rem;
+}
+
+.is-my-aid-row {
+    background: var(--primary-50);
+}
+
 /* Modal / Pop-up Animasi Sukses Admin ---------------------------------------- */
 .admin-success-banner {
     animation: heroFadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1);

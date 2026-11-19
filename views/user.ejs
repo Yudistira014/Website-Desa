@@ -5,7 +5,14 @@
 const imgSrc = foto => /^https?:\/\//i.test(foto) ? foto : '/' + foto;
 const daftarLaporan = laporan || [];
 const daftarSurat = suratPengantar || [];
+const daftarBantuan = (typeof penerimaBantuan !== 'undefined' && Array.isArray(penerimaBantuan)) ? penerimaBantuan : [];
 const statusBadge = status => status === 'Ditolak' ? 'badge-danger' : (status === 'Disetujui' ? 'badge-success' : 'badge-warning');
+const formatRp = n => 'Rp ' + Math.abs(Number(n) || 0).toLocaleString('id-ID');
+const maskNik = nik => {
+    const s = String(nik || '').trim();
+    if (s.length <= 6) return s;
+    return s.slice(0, 4) + '••••••' + s.slice(-4);
+};
 %>
 
 <main id="konten">
@@ -124,9 +131,69 @@ const statusBadge = status => status === 'Ditolak' ? 'badge-danger' : (status ==
                             <% }); %>
                         </div>
                     <% } else { %>
-                        <p class="empty-text">Belum ada pengajuan surat pengantar.</p>
-                    <% } %>
+                    <p class="empty-text">Belum ada pengajuan surat pengantar.</p>
+                <% } %>
                 </div>
+            </section>
+
+            <!-- Daftar Warga Penerima Bantuan Desa -->
+            <section class="card" id="penerima-bantuan">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'heart' }) %></span> Daftar Warga Penerima Bantuan Desa</h2>
+                        <p class="card-subtitle">Transparansi daftar warga yang terdaftar menerima program bantuan sosial <%= desa.nama %>.</p>
+                    </div>
+                    <div class="user-aid-controls">
+                        <input type="search" id="user-aid-search" class="form-control user-aid-search" placeholder="Cari nama warga atau dusun..." aria-label="Cari warga penerima bantuan">
+                        <span class="badge badge-primary"><%= daftarBantuan.length %> penerima</span>
+                    </div>
+                </div>
+
+                <% if (daftarBantuan.length > 0) { %>
+                    <div class="pop-table-wrap">
+                        <table class="pop-table fin-table" id="user-aid-table">
+                            <thead>
+                                <tr>
+                                    <th>Nama Warga &amp; Wilayah</th>
+                                    <th>Program Bantuan</th>
+                                    <th>Kriteria</th>
+                                    <th>Nilai Bantuan</th>
+                                    <th>Status Penyaluran</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% daftarBantuan.forEach(function(item) {
+                                    const isSalur = item.status === 'Tersalurkan';
+                                    const isCurrentUser = user && item.nama && item.nama.toLowerCase() === user.username.toLowerCase();
+                                %>
+                                    <tr data-aid-search="<%= (item.nama + ' ' + item.dusun + ' ' + item.jenis_bantuan + ' ' + item.kriteria).toLowerCase() %>" class="<%= isCurrentUser ? 'is-my-aid-row' : '' %>">
+                                        <td>
+                                            <strong class="fin-row-cat">
+                                                <%= item.nama %>
+                                                <% if (isCurrentUser) { %><span class="badge badge-primary" style="margin-left: 6px;">Anda</span><% } %>
+                                            </strong>
+                                            <small class="fin-row-date">NIK: <%= maskNik(item.nik) %> · <strong><%= item.dusun %></strong></small>
+                                        </td>
+                                        <td>
+                                            <strong class="fin-row-cat"><%= item.jenis_bantuan %></strong>
+                                            <small class="fin-row-date">Didata: <%= item.tanggal %></small>
+                                        </td>
+                                        <td><%= item.kriteria %></td>
+                                        <td class="fin-amount is-income"><%= formatRp(item.nominal) %></td>
+                                        <td>
+                                            <span class="badge <%= isSalur ? 'badge-success' : 'badge-warning' %>">
+                                                <%= item.status %>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="empty-text" id="user-aid-empty-search" hidden>Tidak ditemukan warga dengan kata kunci tersebut.</p>
+                <% } else { %>
+                    <p class="empty-text">Belum ada daftar penerima bantuan desa yang dipublikasikan oleh admin.</p>
+                <% } %>
             </section>
 
             <!-- Layanan cepat -->
@@ -152,4 +219,23 @@ const statusBadge = status => status === 'Ditolak' ? 'badge-danger' : (status ==
 </main>
 
 <%- include('partials/footer', { simple: true }) %>
+<script>
+    (() => {
+        const searchInput = document.getElementById('user-aid-search');
+        const rows = document.querySelectorAll('#user-aid-table tbody tr[data-aid-search]');
+        const emptyMsg = document.getElementById('user-aid-empty-search');
+        if (!searchInput || !rows.length) return;
+
+        searchInput.addEventListener('input', () => {
+            const q = searchInput.value.trim().toLowerCase();
+            let visible = 0;
+            rows.forEach(row => {
+                const match = !q || row.getAttribute('data-aid-search').includes(q);
+                row.hidden = !match;
+                if (match) visible++;
+            });
+            if (emptyMsg) emptyMsg.hidden = visible > 0;
+        });
+    })();
+</script>
 <%- include('partials/end') %>

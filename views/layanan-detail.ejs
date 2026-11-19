@@ -137,6 +137,67 @@
                         <% } %>
                     </article>
                 <% } %>
+
+                <% if (layanan.slug === 'bantuan-sosial') {
+                    const daftarBantuan = (typeof penerimaBantuan !== 'undefined' && Array.isArray(penerimaBantuan)) ? penerimaBantuan : [];
+                    const formatRp = n => 'Rp ' + Math.abs(Number(n) || 0).toLocaleString('id-ID');
+                    const maskNik = nik => {
+                        const s = String(nik || '').trim();
+                        if (s.length <= 6) return s;
+                        return s.slice(0, 4) + '••••••' + s.slice(-4);
+                    };
+                %>
+                    <article class="card card-highlight">
+                        <div class="card-header">
+                            <div>
+                                <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'heart' }) %></span> Daftar Warga Penerima Bantuan</h2>
+                                <p class="card-subtitle">Daftar warga yang telah diverifikasi oleh pemerintah <%= desa.nama %> untuk menerima bantuan sosial.</p>
+                            </div>
+                            <span class="badge badge-primary"><%= daftarBantuan.length %> penerima</span>
+                        </div>
+
+                        <% if (daftarBantuan.length > 0) { %>
+                            <div class="pop-table-wrap">
+                                <table class="pop-table fin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Nama Warga &amp; Dusun</th>
+                                            <th>Program Bantuan</th>
+                                            <th>Kriteria</th>
+                                            <th>Nilai</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% daftarBantuan.forEach(function(item) {
+                                            const isSalur = item.status === 'Tersalurkan';
+                                        %>
+                                            <tr>
+                                                <td>
+                                                    <strong class="fin-row-cat"><%= item.nama %></strong>
+                                                    <small class="fin-row-date">NIK: <%= maskNik(item.nik) %> · <strong><%= item.dusun %></strong></small>
+                                                </td>
+                                                <td>
+                                                    <strong class="fin-row-cat"><%= item.jenis_bantuan %></strong>
+                                                    <small class="fin-row-date"><%= item.tanggal %></small>
+                                                </td>
+                                                <td><%= item.kriteria %></td>
+                                                <td class="fin-amount is-income"><%= formatRp(item.nominal) %></td>
+                                                <td>
+                                                    <span class="badge <%= isSalur ? 'badge-success' : 'badge-warning' %>">
+                                                        <%= item.status %>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        <% }); %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <% } else { %>
+                            <p class="empty-text">Belum ada data warga penerima bantuan yang dipublikasikan.</p>
+                        <% } %>
+                    </article>
+                <% } %>
             </div>
 
             <aside class="stack sticky-aside" aria-label="Layanan lainnya">

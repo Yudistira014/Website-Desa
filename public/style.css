@@ -1125,7 +1125,7 @@ textarea {
     overflow-wrap: anywhere;
 }
 
-.stat-card span {
+.stat-card > div span {
     display: block;
     font-size: 0.85rem;
     color: var(--muted);
@@ -2326,11 +2326,19 @@ body.admin-body {
     color: var(--muted);
 }
 
+.pop-summary-grid .stat-card {
+    padding: 20px 22px;
+}
+
 .pop-charts-grid {
     display: grid;
     grid-template-columns: 1.15fr 1fr 1.05fr;
     gap: 18px;
     margin-bottom: 28px;
+}
+
+.pop-charts-grid:last-child {
+    margin-bottom: 0;
 }
 
 .pop-chart-box {
@@ -2398,8 +2406,19 @@ body.admin-body {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    gap: 8px;
+    gap: 12px;
     font-size: 0.85rem;
+}
+
+.pop-age-meta > span {
+    flex: 1 1 auto;
+    min-width: 0;
+    line-height: 1.35;
+}
+
+.pop-age-meta > strong {
+    flex: 0 0 auto;
+    white-space: nowrap;
 }
 
 .pop-dusun-meta span,
@@ -4214,7 +4233,7 @@ body.admin-body {
         font-size: 1.18rem;
     }
 
-    .stat-card span {
+    .stat-card > div span {
         font-size: 0.8rem;
     }
 

@@ -50,6 +50,15 @@ const c = typeof counts !== 'undefined' && counts ? counts : {};
                     </a>
                 </li>
                 <li>
+                    <a href="/admin/bantuan-desa" class="admin-nav-link <%= currentMenu === 'bantuan-desa' ? 'is-active' : '' %>">
+                        <%- include('icon', { name: 'heart' }) %>
+                        <span>Penerima Bantuan</span>
+                        <% if (typeof c.bantuan === 'number' && c.bantuan > 0) { %>
+                            <span class="admin-nav-badge"><%= c.bantuan %></span>
+                        <% } %>
+                    </a>
+                </li>
+                <li>
                     <a href="/admin/terbitkan-berita" class="admin-nav-link <%= currentMenu === 'terbitkan-berita' ? 'is-active' : '' %>">
                         <%- include('icon', { name: 'megaphone' }) %>
                         <span>Terbitkan Berita</span>

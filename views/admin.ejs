@@ -16,6 +16,11 @@ const pageTitles = {
         heading: 'Manajemen Administrasi Dana Masuk & Keluar',
         sub: 'Catat pemasukan, pengeluaran, serta pantau saldo dan arus kas ' + desa.nama + ' secara otomatis.'
     },
+    'bantuan-desa': {
+        title: 'Penerima Bantuan Desa',
+        heading: 'Manajemen Data Warga Penerima Bantuan',
+        sub: 'Kelola pendataan warga yang membutuhkan bantuan sosial, kriteria kelayakan, dan status penyalurannya.'
+    },
     'terbitkan-berita': {
         title: 'Terbitkan Berita',
         heading: 'Terbitkan Berita Baru',
@@ -64,6 +69,10 @@ const totalDanaMasuk = daftarKeuangan.filter(k => k.tipe === 'masuk').reduce((su
 const totalDanaKeluar = daftarKeuangan.filter(k => k.tipe === 'keluar').reduce((sum, k) => sum + (Number(k.nominal) || 0), 0);
 const saldoKasDesa = totalDanaMasuk - totalDanaKeluar;
 const formatRp = n => 'Rp ' + Math.abs(Number(n) || 0).toLocaleString('id-ID');
+
+const daftarBantuan = (typeof bantuanWarga !== 'undefined' && Array.isArray(bantuanWarga)) ? bantuanWarga : [];
+const bantuanTersalurkan = daftarBantuan.filter(b => b.status === 'Tersalurkan').length;
+const bantuanMenunggu = daftarBantuan.length - bantuanTersalurkan;
 %>
 <%- include('partials/head', { title: pageMeta.title + ' - Admin', bodyClass: 'page-muted admin-body' }) %>
 
@@ -74,7 +83,8 @@ const formatRp = n => 'Rp ' + Math.abs(Number(n) || 0).toLocaleString('id-ID');
             berita: daftarBerita.length,
             galeri: daftarGaleri.length,
             laporan: daftarLaporan.length,
-            suratMenunggu
+            suratMenunggu,
+            bantuan: daftarBantuan.length
         }
     }) %>
 
@@ -170,6 +180,10 @@ const formatRp = n => 'Rp ' + Math.abs(Number(n) || 0).toLocaleString('id-ID');
                             <a href="/admin/keuangan" class="card feature-card">
                                 <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'wallet' }) %></span>
                                 <div><h3>Dana Masuk &amp; Keluar</h3><p>Saldo kas: <strong><%= (saldoKasDesa < 0 ? '-' : '') + formatRp(saldoKasDesa) %></strong></p></div>
+                            </a>
+                            <a href="/admin/bantuan-desa" class="card feature-card">
+                                <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'heart' }) %></span>
+                                <div><h3>Penerima Bantuan (<%= daftarBantuan.length %>)</h3><p>Data warga yang membutuhkan bantuan desa.</p></div>
                             </a>
                             <a href="/admin/terbitkan-berita" class="card feature-card">
                                 <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'megaphone' }) %></span>
@@ -703,6 +717,335 @@ const formatRp = n => 'Rp ' + Math.abs(Number(n) || 0).toLocaleString('id-ID');
                         </section>
                     </div>
                 </section>
+            <% } else if (activeSection === 'bantuan-desa') { %>
+                <!-- HALAMAN PENERIMA BANTUAN DESA -->
+                <%
+                    const totalNilaiBantuan = daftarBantuan.reduce((sum, b) => sum + (Number(b.nominal) || 0), 0);
+                    const totalBantuanCount = daftarBantuan.length;
+                    const pctSalurNum = totalBantuanCount > 0 ? ((bantuanTersalurkan / totalBantuanCount) * 100) : 0;
+                    const pctMenungguNum = totalBantuanCount > 0 ? ((bantuanMenunggu / totalBantuanCount) * 100) : 0;
+                    const degSalur = totalBantuanCount > 0 ? ((bantuanTersalurkan / totalBantuanCount) * 360).toFixed(1) : 0;
+
+                    // Agregasi per kriteria kebutuhan & per dusun
+                    const mapKriteria = {};
+                    const mapDusunBantuan = {};
+                    daftarBantuan.forEach(b => {
+                        const krit = b.kriteria || 'Lainnya';
+                        const dsn = b.dusun || 'Lainnya';
+                        mapKriteria[krit] = (mapKriteria[krit] || 0) + 1;
+                        mapDusunBantuan[dsn] = (mapDusunBantuan[dsn] || 0) + 1;
+                    });
+                    const listKriteria = Object.entries(mapKriteria).sort((a, b) => b[1] - a[1]);
+                    const listDusunBantuan = Object.entries(mapDusunBantuan).sort((a, b) => b[1] - a[1]);
+                %>
+                <section class="admin-section stack">
+                    <!-- 4 Kartu Metrik Bantuan Sosial -->
+                    <div class="pop-summary-grid mb-0">
+                        <div class="card stat-card">
+                            <span class="icon-box"><%- include('partials/icon', { name: 'heart' }) %></span>
+                            <div>
+                                <strong><%= totalBantuanCount.toLocaleString('id-ID') %> Warga</strong>
+                                <span>Total Penerima Terdata</span>
+                            </div>
+                        </div>
+                        <div class="card stat-card">
+                            <span class="icon-box icon-box-success"><%- include('partials/icon', { name: 'check-circle' }) %></span>
+                            <div>
+                                <strong><%= bantuanTersalurkan.toLocaleString('id-ID') %> Warga</strong>
+                                <span>Sudah Tersalurkan (<%= pctSalurNum.toFixed(0) %>%)</span>
+                            </div>
+                        </div>
+                        <div class="card stat-card">
+                            <span class="icon-box icon-box-accent"><%- include('partials/icon', { name: 'alert-circle' }) %></span>
+                            <div>
+                                <strong><%= bantuanMenunggu.toLocaleString('id-ID') %> Warga</strong>
+                                <span>Belum Tersalurkan</span>
+                            </div>
+                        </div>
+                        <div class="card stat-card">
+                            <span class="icon-box"><%- include('partials/icon', { name: 'wallet' }) %></span>
+                            <div>
+                                <strong><%= formatRp(totalNilaiBantuan) %></strong>
+                                <span>Total Nilai Bantuan</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3 Grafik Distribusi Penerima Bantuan -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <h2 class="card-title">
+                                    <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'chart' }) %></span>
+                                    Grafik Distribusi Warga Penerima Bantuan
+                                </h2>
+                                <p class="card-subtitle">Proporsi realisasi penyaluran, kategori kerentanan warga, dan sebaran wilayah dusun.</p>
+                            </div>
+                            <span class="badge badge-primary"><%= totalBantuanCount %> keluarga/warga</span>
+                        </div>
+
+                        <div class="pop-charts-grid mb-0">
+                            <!-- Grafik 1: Donut Status Penyaluran -->
+                            <div class="pop-chart-box">
+                                <div class="pop-chart-head">
+                                    <h3>Realisasi Penyaluran</h3>
+                                    <span class="badge badge-success"><%= pctSalurNum.toFixed(0) %>% selesai</span>
+                                </div>
+                                <div class="pop-donut-wrap">
+                                    <div class="pop-donut" data-aid-donut-deg="<%= degSalur %>">
+                                        <div class="pop-donut-hole">
+                                            <strong><%= totalBantuanCount %></strong>
+                                            <span>Penerima</span>
+                                        </div>
+                                    </div>
+                                    <div class="pop-donut-legend">
+                                        <div class="pop-legend-row">
+                                            <span class="pop-legend-name"><i class="pop-dot is-male"></i> Tersalurkan</span>
+                                            <strong><%= bantuanTersalurkan %> (<%= pctSalurNum.toFixed(1).replace('.', ',') %>%)</strong>
+                                        </div>
+                                        <div class="pop-legend-row">
+                                            <span class="pop-legend-name"><i class="pop-dot is-female"></i> Menunggu</span>
+                                            <strong><%= bantuanMenunggu %> (<%= pctMenungguNum.toFixed(1).replace('.', ',') %>%)</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Grafik 2: Batang Kriteria Warga Membutuhkan -->
+                            <div class="pop-chart-box">
+                                <div class="pop-chart-head">
+                                    <h3>Berdasarkan Kriteria Warga</h3>
+                                    <span class="badge badge-primary"><%= listKriteria.length %> kriteria</span>
+                                </div>
+                                <% if (listKriteria.length > 0) { %>
+                                    <div class="pop-age-bars">
+                                        <% listKriteria.forEach(function(entry) {
+                                            const label = entry[0];
+                                            const count = entry[1];
+                                            const pct = totalBantuanCount > 0 ? ((count / totalBantuanCount) * 100) : 0;
+                                        %>
+                                            <div class="pop-age-item">
+                                                <div class="pop-age-meta">
+                                                    <span><%= label %></span>
+                                                    <strong><%= count %> warga <small>(<%= pct.toFixed(1).replace('.', ',') %>%)</small></strong>
+                                                </div>
+                                                <div class="pop-bar-track">
+                                                    <span class="pop-bar-fill is-male" data-bar-width="<%= pct.toFixed(1) %>"></span>
+                                                </div>
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                <% } else { %>
+                                    <p class="empty-text">Belum ada data kriteria penerima bantuan.</p>
+                                <% } %>
+                            </div>
+
+                            <!-- Grafik 3: Batang Sebaran per Dusun -->
+                            <div class="pop-chart-box">
+                                <div class="pop-chart-head">
+                                    <h3>Sebaran per Wilayah Dusun</h3>
+                                    <span class="badge"><%= listDusunBantuan.length %> dusun</span>
+                                </div>
+                                <% if (listDusunBantuan.length > 0) { %>
+                                    <div class="pop-age-bars">
+                                        <% listDusunBantuan.forEach(function(entry) {
+                                            const label = entry[0];
+                                            const count = entry[1];
+                                            const pct = totalBantuanCount > 0 ? ((count / totalBantuanCount) * 100) : 0;
+                                        %>
+                                            <div class="pop-age-item">
+                                                <div class="pop-age-meta">
+                                                    <span><%= label %></span>
+                                                    <strong><%= count %> warga <small>(<%= pct.toFixed(1).replace('.', ',') %>%)</small></strong>
+                                                </div>
+                                                <div class="pop-bar-track">
+                                                    <span class="pop-bar-fill is-female" data-bar-width="<%= pct.toFixed(1) %>"></span>
+                                                </div>
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                <% } else { %>
+                                    <p class="empty-text">Belum ada data sebaran dusun.</p>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Layout 2 Kolom: Form Tambah Warga Membutuhkan & Tabel Daftar Penerima -->
+                    <div class="fin-main-layout">
+                        <!-- Form Pendataan Warga Membutuhkan -->
+                        <section class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h2 class="card-title">
+                                        <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'heart' }) %></span>
+                                        Tambah Warga Penerima
+                                    </h2>
+                                    <p class="card-subtitle">Daftarkan warga yang membutuhkan bantuan desa.</p>
+                                </div>
+                            </div>
+
+                            <form action="/admin/bantuan/tambah" method="POST" id="aid-form">
+                                <div class="form-group">
+                                    <label for="aid-nama">Nama Lengkap Warga</label>
+                                    <input id="aid-nama" type="text" name="nama" required placeholder="Contoh: Ibu Siti Aminah">
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="aid-nik">NIK</label>
+                                        <input id="aid-nik" type="text" name="nik" inputmode="numeric" maxlength="20" required placeholder="16 digit NIK">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="aid-dusun">Wilayah Dusun</label>
+                                        <select id="aid-dusun" name="dusun" required>
+                                            <% dataPenduduk.forEach(function(d) { %>
+                                                <option value="<%= d.dusun %>"><%= d.dusun %></option>
+                                            <% }); %>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="aid-kriteria">Kriteria / Kondisi Kelayakan</label>
+                                    <select id="aid-kriteria" name="kriteria" required>
+                                        <option value="Keluarga Kurang Mampu (DTKS)">Keluarga Kurang Mampu (DTKS)</option>
+                                        <option value="Lansia Tunggal / Rentan">Lansia Tunggal / Rentan</option>
+                                        <option value="Penyandang Disabilitas">Penyandang Disabilitas</option>
+                                        <option value="Anak Yatim / Piatu">Anak Yatim / Piatu</option>
+                                        <option value="Ibu Hamil / Balita Stunting">Ibu Hamil / Balita Stunting</option>
+                                        <option value="Korban Bencana / Musibah">Korban Bencana / Musibah</option>
+                                        <option value="Buruh Tani / Pekerja Harian">Buruh Tani / Pekerja Harian</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="aid-jenis">Program / Jenis Bantuan</label>
+                                    <select id="aid-jenis" name="jenis_bantuan" required>
+                                        <option value="BLT Dana Desa">BLT Dana Desa</option>
+                                        <option value="Bantuan Sembako Pangan">Bantuan Sembako Pangan</option>
+                                        <option value="Program Keluarga Harapan (PKH)">Program Keluarga Harapan (PKH)</option>
+                                        <option value="Bantuan Rehab Rumah (RTLH)">Bantuan Rehab Rumah (RTLH)</option>
+                                        <option value="Bantuan Gizi & Kesehatan">Bantuan Gizi &amp; Kesehatan</option>
+                                        <option value="Bantuan Modal Usaha Mikro">Bantuan Modal Usaha Mikro</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="aid-nominal-display">Nilai Bantuan (Rp)</label>
+                                        <div class="fin-currency-wrap">
+                                            <span class="fin-currency-prefix">Rp</span>
+                                            <input id="aid-nominal-display" type="text" name="nominal_display" inputmode="numeric" required placeholder="300.000" autocomplete="off">
+                                            <input id="aid-nominal" type="hidden" name="nominal" value="">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="aid-status">Status Awal</label>
+                                        <select id="aid-status" name="status">
+                                            <option value="Belum Tersalurkan">Belum Tersalurkan</option>
+                                            <option value="Tersalurkan">Sudah Tersalurkan</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="aid-catatan">Catatan Kondisi Warga <span class="optional">(opsional)</span></label>
+                                    <textarea id="aid-catatan" name="catatan" rows="2" placeholder="Contoh: Tinggal seorang diri, rumah perlu perbaikan atap..."></textarea>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-block">
+                                    <%- include('partials/icon', { name: 'check-circle' }) %>
+                                    <span>Simpan Data Penerima</span>
+                                </button>
+                            </form>
+                        </section>
+
+                        <!-- Daftar Warga Penerima Bantuan -->
+                        <section class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h2 class="card-title">
+                                        <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'users' }) %></span>
+                                        Daftar Warga Penerima Bantuan
+                                    </h2>
+                                    <p class="card-subtitle">Pantau dan perbarui status penyaluran bantuan kepada warga.</p>
+                                </div>
+                                <div class="fin-filter-tabs" role="tablist" aria-label="Filter status bantuan">
+                                    <button type="button" class="fin-filter-btn is-active" data-aid-filter="all">Semua (<%= totalBantuanCount %>)</button>
+                                    <button type="button" class="fin-filter-btn" data-aid-filter="Belum Tersalurkan">Menunggu (<%= bantuanMenunggu %>)</button>
+                                    <button type="button" class="fin-filter-btn" data-aid-filter="Tersalurkan">Tersalurkan (<%= bantuanTersalurkan %>)</button>
+                                </div>
+                            </div>
+
+                            <% if (daftarBantuan.length > 0) { %>
+                                <div class="pop-table-wrap">
+                                    <table class="pop-table fin-table" id="aid-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Data Warga</th>
+                                                <th>Kriteria &amp; Program</th>
+                                                <th>Nilai Bantuan</th>
+                                                <th>Status</th>
+                                                <th style="width: 190px; text-align: right;">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% daftarBantuan.forEach(function(item) {
+                                                const isSalur = item.status === 'Tersalurkan';
+                                            %>
+                                                <tr data-aid-row="<%= item.status %>">
+                                                    <td>
+                                                        <strong class="fin-row-cat"><%= item.nama %></strong>
+                                                        <small class="fin-row-date">NIK: <%= item.nik %> · <strong><%= item.dusun %></strong></small>
+                                                        <% if (item.catatan) { %>
+                                                            <small class="aid-row-note">“<%= item.catatan %>”</small>
+                                                        <% } %>
+                                                    </td>
+                                                    <td>
+                                                        <strong class="fin-row-cat"><%= item.jenis_bantuan %></strong>
+                                                        <small class="fin-row-date"><%= item.kriteria %></small>
+                                                    </td>
+                                                    <td class="fin-amount is-income">
+                                                        <%= formatRp(item.nominal) %>
+                                                        <small class="fin-row-date"><%= item.tanggal %></small>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge <%= isSalur ? 'badge-success' : 'badge-warning' %>">
+                                                            <%= item.status %>
+                                                        </span>
+                                                    </td>
+                                                    <td style="text-align: right;">
+                                                        <div class="aid-row-actions">
+                                                            <form action="/admin/bantuan/<%= item.id %>/status" method="POST" style="margin: 0;">
+                                                                <input type="hidden" name="status" value="<%= isSalur ? 'Belum Tersalurkan' : 'Tersalurkan' %>">
+                                                                <button type="submit" class="btn <%= isSalur ? 'btn-outline' : 'btn-primary' %> btn-sm">
+                                                                    <% if (!isSalur) { %><%- include('partials/icon', { name: 'check-circle' }) %><% } %>
+                                                                    <span><%= isSalur ? 'Batalkan' : 'Salurkan' %></span>
+                                                                </button>
+                                                            </form>
+                                                            <form action="/admin/bantuan/<%= item.id %>/hapus" method="POST" data-confirm-title="Hapus Data Penerima Bantuan?" data-confirm="Apakah Anda yakin ingin menghapus data penerima bantuan atas nama &quot;<%= item.nama %>&quot; (<%= item.jenis_bantuan %>)?" style="margin: 0;">
+                                                                <button type="submit" class="btn btn-danger-soft btn-sm" aria-label="Hapus penerima">
+                                                                    <%- include('partials/icon', { name: 'trash' }) %>
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            <% }); %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <% } else { %>
+                                <div class="empty-state">
+                                    <span class="icon-box"><%- include('partials/icon', { name: 'heart' }) %></span>
+                                    <h3>Belum ada data warga penerima bantuan</h3>
+                                    <p>Silakan tambahkan data warga yang membutuhkan bantuan menggunakan formulir di sebelah kiri.</p>
+                                </div>
+                            <% } %>
+                        </section>
+                    </div>
+                </section>
             <% } else if (activeSection === 'terbitkan-berita') { %>
                 <!-- HALAMAN 3: TERBITKAN BERITA -->
                 <%
@@ -1025,6 +1368,43 @@ const formatRp = n => 'Rp ' + Math.abs(Number(n) || 0).toLocaleString('id-ID');
 
 <% if (activeSection === 'kelola-galeri' && isVercel) { %>
     <script src="/gallery-upload.js?v=1" defer></script>
+<% } %>
+<% if (activeSection === 'bantuan-desa') { %>
+<script>
+    (() => {
+        document.querySelectorAll('[data-aid-donut-deg]').forEach(el => {
+            const deg = Number.parseFloat(el.getAttribute('data-aid-donut-deg')) || 0;
+            el.style.background = `conic-gradient(#12704f 0deg ${deg}deg, #d9a521 ${deg}deg 360deg)`;
+        });
+        document.querySelectorAll('[data-bar-width]').forEach(el => {
+            const w = Number.parseFloat(el.getAttribute('data-bar-width')) || 0;
+            el.style.width = `${w}%`;
+        });
+
+        const displayInput = document.getElementById('aid-nominal-display');
+        const hiddenInput = document.getElementById('aid-nominal');
+        if (displayInput && hiddenInput) {
+            displayInput.addEventListener('input', () => {
+                const digits = displayInput.value.replace(/\D/g, '');
+                hiddenInput.value = digits;
+                displayInput.value = digits ? Number.parseInt(digits, 10).toLocaleString('id-ID') : '';
+            });
+        }
+
+        const filterBtns = document.querySelectorAll('[data-aid-filter]');
+        const rows = document.querySelectorAll('tr[data-aid-row]');
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = btn.getAttribute('data-aid-filter');
+                filterBtns.forEach(b => b.classList.toggle('is-active', b === btn));
+                rows.forEach(row => {
+                    const status = row.getAttribute('data-aid-row');
+                    row.hidden = target !== 'all' && status !== target;
+                });
+            });
+        });
+    })();
+</script>
 <% } %>
 <% if (activeSection === 'keuangan') { %>
 <script>

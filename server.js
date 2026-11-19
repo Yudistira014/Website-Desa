@@ -450,6 +450,23 @@ async function ensureKeuanganTable(conn = db) {
     `);
 }
 
+async function ensureBantuanTable(conn = db) {
+    await conn.query(`
+        CREATE TABLE IF NOT EXISTS penerima_bantuan (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            nama VARCHAR(120) NOT NULL,
+            nik VARCHAR(50) NOT NULL,
+            dusun VARCHAR(100) NOT NULL,
+            kriteria VARCHAR(100) NOT NULL,
+            jenis_bantuan VARCHAR(120) NOT NULL,
+            nominal BIGINT NOT NULL DEFAULT 0,
+            status VARCHAR(50) NOT NULL DEFAULT 'Belum Tersalurkan',
+            catatan TEXT,
+            tanggal VARCHAR(100) NOT NULL
+        )
+    `);
+}
+
 async function syncTotalPopulasi(conn = db) {
     try {
         await ensureDefaultKependudukan(conn);
@@ -544,6 +561,7 @@ async function verifyDatabaseConnection() {
         `);
         await ensureDefaultKependudukan(connection);
         await ensureKeuanganTable(connection);
+        await ensureBantuanTable(connection);
         await syncTotalPopulasi(connection);
 
         connection.release();
@@ -782,6 +800,7 @@ const adminValidSections = new Set([
     'ringkasan',
     'kependudukan',
     'keuangan',
+    'bantuan-desa',
     'terbitkan-berita',
     'laporan-warga',
     'surat-pengantar',
@@ -807,6 +826,12 @@ async function renderAdminDashboard(req, res, section = 'ringkasan') {
             const [rowsKeuangan] = await db.query('SELECT * FROM keuangan_desa ORDER BY id DESC');
             keuangan = rowsKeuangan;
         } catch (e) {}
+        let bantuanWarga = [];
+        try {
+            await ensureBantuanTable();
+            const [rowsBantuan] = await db.query('SELECT * FROM penerima_bantuan ORDER BY id DESC');
+            bantuanWarga = rowsBantuan;
+        } catch (e) {}
         await syncTotalPopulasi();
         res.render('admin', {
             desa: infoDesa,
@@ -818,6 +843,7 @@ async function renderAdminDashboard(req, res, section = 'ringkasan') {
             suratPengantar,
             kependudukan,
             keuangan,
+            bantuanWarga,
             error: req.query.error,
             success: req.query.success,
             isVercel: process.env.VERCEL === '1',
@@ -875,6 +901,65 @@ app.post('/admin/keuangan/:id/hapus', cekAdmin, async (req, res) => {
         res.redirect('/admin/keuangan?success=Riwayat transaksi berhasil dihapus');
     } catch (err) {
         res.redirect('/admin/keuangan?error=Gagal menghapus riwayat transaksi');
+    }
+});
+
+app.post('/admin/bantuan/tambah', cekAdmin, async (req, res) => {
+    const nama = typeof req.body.nama === 'string' ? req.body.nama.trim() : '';
+    const nik = typeof req.body.nik === 'string' ? req.body.nik.trim() : '';
+    const dusun = typeof req.body.dusun === 'string' ? req.body.dusun.trim() : '';
+    const kriteria = typeof req.body.kriteria === 'string' ? req.body.kriteria.trim() : '';
+    const jenisBantuan = typeof req.body.jenis_bantuan === 'string' ? req.body.jenis_bantuan.trim() : '';
+    const nominalRaw = String(req.body.nominal || req.body.nominal_display || '').replace(/\D/g, '');
+    const nominal = Number.parseInt(nominalRaw, 10) || 0;
+    const status = req.body.status === 'Tersalurkan' ? 'Tersalurkan' : 'Belum Tersalurkan';
+    const catatan = typeof req.body.catatan === 'string' ? req.body.catatan.trim() : '';
+    const tanggal = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    if (!nama || !nik || !dusun || !kriteria || !jenisBantuan) {
+        return res.redirect('/admin/bantuan-desa?error=Lengkapi data warga penerima bantuan dengan benar');
+    }
+
+    try {
+        await ensureBantuanTable();
+        await db.query(
+            `INSERT INTO penerima_bantuan (nama, nik, dusun, kriteria, jenis_bantuan, nominal, status, catatan, tanggal)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [nama, nik, dusun, kriteria, jenisBantuan, nominal, status, catatan || null, tanggal]
+        );
+        res.redirect(`/admin/bantuan-desa?success=Data warga penerima bantuan (${nama}) berhasil ditambahkan`);
+    } catch (err) {
+        console.error('Gagal menambah penerima bantuan:', err.message);
+        res.redirect('/admin/bantuan-desa?error=Gagal menyimpan data penerima bantuan');
+    }
+});
+
+app.post('/admin/bantuan/:id/status', cekAdmin, async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 1) {
+        return res.redirect('/admin/bantuan-desa?error=Data penerima bantuan tidak valid');
+    }
+    const statusBaru = req.body.status === 'Tersalurkan' ? 'Tersalurkan' : 'Belum Tersalurkan';
+    try {
+        await ensureBantuanTable();
+        await db.query('UPDATE penerima_bantuan SET status = ? WHERE id = ?', [statusBaru, id]);
+        res.redirect(`/admin/bantuan-desa?success=Status bantuan berhasil diperbarui menjadi ${statusBaru}`);
+    } catch (err) {
+        res.redirect('/admin/bantuan-desa?error=Gagal memperbarui status bantuan');
+    }
+});
+
+app.post('/admin/bantuan/:id/hapus', cekAdmin, async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 1) {
+        return res.redirect('/admin/bantuan-desa?error=Data penerima bantuan tidak valid');
+    }
+    try {
+        await ensureBantuanTable();
+        await db.query('DELETE FROM penerima_bantuan WHERE id = ?', [id]);
+        res.redirect('/admin/bantuan-desa?success=Data penerima bantuan berhasil dihapus');
+    } catch (err) {
+        res.redirect('/admin/bantuan-desa?error=Gagal menghapus data penerima bantuan');
     }
 });
 

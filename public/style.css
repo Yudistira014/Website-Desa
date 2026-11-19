@@ -3039,6 +3039,26 @@ body.admin-body {
     color: var(--danger);
 }
 
+.aid-row-note {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.76rem;
+    font-style: italic;
+    color: var(--text);
+}
+
+.aid-row-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.icon-box-success {
+    background: var(--success-bg);
+    color: var(--success);
+}
+
 /* Modal / Pop-up Animasi Sukses Admin ---------------------------------------- */
 .admin-success-banner {
     animation: heroFadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1);

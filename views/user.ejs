@@ -150,7 +150,7 @@ const maskNik = nik => {
                 </div>
 
                 <% if (daftarBantuan.length > 0) { %>
-                    <div class="pop-table-wrap">
+                    <div class="pop-table-wrap table-responsive-cards">
                         <table class="pop-table fin-table" id="user-aid-table">
                             <thead>
                                 <tr>
@@ -167,20 +167,24 @@ const maskNik = nik => {
                                     const isCurrentUser = user && item.nama && item.nama.toLowerCase() === user.username.toLowerCase();
                                 %>
                                     <tr data-aid-search="<%= (item.nama + ' ' + item.dusun + ' ' + item.jenis_bantuan + ' ' + item.kriteria).toLowerCase() %>" class="<%= isCurrentUser ? 'is-my-aid-row' : '' %>">
-                                        <td>
-                                            <strong class="fin-row-cat">
-                                                <%= item.nama %>
-                                                <% if (isCurrentUser) { %><span class="badge badge-primary" style="margin-left: 6px;">Anda</span><% } %>
-                                            </strong>
-                                            <small class="fin-row-date">NIK: <%= maskNik(item.nik) %> · <strong><%= item.dusun %></strong></small>
+                                        <td data-label="Nama Warga">
+                                            <div>
+                                                <strong class="fin-row-cat">
+                                                    <%= item.nama %>
+                                                    <% if (isCurrentUser) { %><span class="badge badge-primary" style="margin-left: 6px;">Anda</span><% } %>
+                                                </strong>
+                                                <small class="fin-row-date">NIK: <%= maskNik(item.nik) %> · <strong><%= item.dusun %></strong></small>
+                                            </div>
                                         </td>
-                                        <td>
-                                            <strong class="fin-row-cat"><%= item.jenis_bantuan %></strong>
-                                            <small class="fin-row-date">Didata: <%= item.tanggal %></small>
+                                        <td data-label="Program">
+                                            <div>
+                                                <strong class="fin-row-cat"><%= item.jenis_bantuan %></strong>
+                                                <small class="fin-row-date">Didata: <%= item.tanggal %></small>
+                                            </div>
                                         </td>
-                                        <td><%= item.kriteria %></td>
-                                        <td class="fin-amount is-income"><%= formatRp(item.nominal) %></td>
-                                        <td>
+                                        <td data-label="Kriteria"><span><%= item.kriteria %></span></td>
+                                        <td data-label="Nilai" class="fin-amount is-income"><span><%= formatRp(item.nominal) %></span></td>
+                                        <td data-label="Status">
                                             <span class="badge <%= isSalur ? 'badge-success' : 'badge-warning' %>">
                                                 <%= item.status %>
                                             </span>

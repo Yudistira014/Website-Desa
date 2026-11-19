@@ -157,7 +157,7 @@
                         </div>
 
                         <% if (daftarBantuan.length > 0) { %>
-                            <div class="pop-table-wrap">
+                            <div class="pop-table-wrap table-responsive-cards">
                                 <table class="pop-table fin-table">
                                     <thead>
                                         <tr>
@@ -173,17 +173,21 @@
                                             const isSalur = item.status === 'Tersalurkan';
                                         %>
                                             <tr>
-                                                <td>
-                                                    <strong class="fin-row-cat"><%= item.nama %></strong>
-                                                    <small class="fin-row-date">NIK: <%= maskNik(item.nik) %> · <strong><%= item.dusun %></strong></small>
+                                                <td data-label="Nama Warga">
+                                                    <div>
+                                                        <strong class="fin-row-cat"><%= item.nama %></strong>
+                                                        <small class="fin-row-date">NIK: <%= maskNik(item.nik) %> · <strong><%= item.dusun %></strong></small>
+                                                    </div>
                                                 </td>
-                                                <td>
-                                                    <strong class="fin-row-cat"><%= item.jenis_bantuan %></strong>
-                                                    <small class="fin-row-date"><%= item.tanggal %></small>
+                                                <td data-label="Program">
+                                                    <div>
+                                                        <strong class="fin-row-cat"><%= item.jenis_bantuan %></strong>
+                                                        <small class="fin-row-date"><%= item.tanggal %></small>
+                                                    </div>
                                                 </td>
-                                                <td><%= item.kriteria %></td>
-                                                <td class="fin-amount is-income"><%= formatRp(item.nominal) %></td>
-                                                <td>
+                                                <td data-label="Kriteria"><span><%= item.kriteria %></span></td>
+                                                <td data-label="Nilai" class="fin-amount is-income"><span><%= formatRp(item.nominal) %></span></td>
+                                                <td data-label="Status">
                                                     <span class="badge <%= isSalur ? 'badge-success' : 'badge-warning' %>">
                                                         <%= item.status %>
                                                     </span>

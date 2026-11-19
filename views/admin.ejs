@@ -666,7 +666,7 @@ const bantuanMenunggu = daftarBantuan.length - bantuanTersalurkan;
                             </div>
 
                             <% if (daftarKeuangan.length > 0) { %>
-                                <div class="pop-table-wrap">
+                                <div class="pop-table-wrap table-responsive-cards">
                                     <table class="pop-table fin-table" id="fin-ledger-table">
                                         <thead>
                                             <tr>
@@ -682,20 +682,22 @@ const bantuanMenunggu = daftarBantuan.length - bantuanTersalurkan;
                                                 const isMasuk = item.tipe === 'masuk';
                                             %>
                                                 <tr data-fin-row="<%= item.tipe %>">
-                                                    <td>
-                                                        <strong class="fin-row-cat"><%= item.kategori %></strong>
-                                                        <small class="fin-row-date"><%= item.tanggal %></small>
+                                                    <td data-label="Kategori">
+                                                        <div>
+                                                            <strong class="fin-row-cat"><%= item.kategori %></strong>
+                                                            <small class="fin-row-date"><%= item.tanggal %></small>
+                                                        </div>
                                                     </td>
-                                                    <td><%= item.keterangan %></td>
-                                                    <td>
+                                                    <td data-label="Rincian"><span><%= item.keterangan %></span></td>
+                                                    <td data-label="Jenis">
                                                         <span class="badge <%= isMasuk ? 'badge-success' : 'badge-danger' %>">
                                                             <%= isMasuk ? 'Dana Masuk' : 'Dana Keluar' %>
                                                         </span>
                                                     </td>
-                                                    <td class="fin-amount <%= isMasuk ? 'is-income' : 'is-expense' %>">
-                                                        <%= (isMasuk ? '+ ' : '- ') + formatRp(item.nominal) %>
+                                                    <td data-label="Nominal" class="fin-amount <%= isMasuk ? 'is-income' : 'is-expense' %>">
+                                                        <span><%= (isMasuk ? '+ ' : '- ') + formatRp(item.nominal) %></span>
                                                     </td>
-                                                    <td style="text-align: right;">
+                                                    <td data-label="Aksi" style="text-align: right;">
                                                         <form action="/admin/keuangan/<%= item.id %>/hapus" method="POST" data-confirm-title="Hapus Catatan Transaksi?" data-confirm="Apakah Anda yakin ingin menghapus catatan transaksi &quot;<%= item.kategori %>&quot; sebesar <%= formatRp(item.nominal) %>?" style="margin: 0;">
                                                             <button type="submit" class="btn btn-danger-soft btn-sm" aria-label="Hapus transaksi">
                                                                 <%- include('partials/icon', { name: 'trash' }) %>
@@ -979,7 +981,7 @@ const bantuanMenunggu = daftarBantuan.length - bantuanTersalurkan;
                             </div>
 
                             <% if (daftarBantuan.length > 0) { %>
-                                <div class="pop-table-wrap">
+                                <div class="pop-table-wrap table-responsive-cards">
                                     <table class="pop-table fin-table" id="aid-table">
                                         <thead>
                                             <tr>
@@ -995,27 +997,33 @@ const bantuanMenunggu = daftarBantuan.length - bantuanTersalurkan;
                                                 const isSalur = item.status === 'Tersalurkan';
                                             %>
                                                 <tr data-aid-row="<%= item.status %>">
-                                                    <td>
-                                                        <strong class="fin-row-cat"><%= item.nama %></strong>
-                                                        <small class="fin-row-date">NIK: <%= item.nik %> · <strong><%= item.dusun %></strong></small>
-                                                        <% if (item.catatan) { %>
-                                                            <small class="aid-row-note">“<%= item.catatan %>”</small>
-                                                        <% } %>
+                                                    <td data-label="Data Warga">
+                                                        <div>
+                                                            <strong class="fin-row-cat"><%= item.nama %></strong>
+                                                            <small class="fin-row-date">NIK: <%= item.nik %> · <strong><%= item.dusun %></strong></small>
+                                                            <% if (item.catatan) { %>
+                                                                <small class="aid-row-note">“<%= item.catatan %>”</small>
+                                                            <% } %>
+                                                        </div>
                                                     </td>
-                                                    <td>
-                                                        <strong class="fin-row-cat"><%= item.jenis_bantuan %></strong>
-                                                        <small class="fin-row-date"><%= item.kriteria %></small>
+                                                    <td data-label="Program">
+                                                        <div>
+                                                            <strong class="fin-row-cat"><%= item.jenis_bantuan %></strong>
+                                                            <small class="fin-row-date"><%= item.kriteria %></small>
+                                                        </div>
                                                     </td>
-                                                    <td class="fin-amount is-income">
-                                                        <%= formatRp(item.nominal) %>
-                                                        <small class="fin-row-date"><%= item.tanggal %></small>
+                                                    <td data-label="Nilai Bantuan" class="fin-amount is-income">
+                                                        <div>
+                                                            <%= formatRp(item.nominal) %>
+                                                            <small class="fin-row-date"><%= item.tanggal %></small>
+                                                        </div>
                                                     </td>
-                                                    <td>
+                                                    <td data-label="Status">
                                                         <span class="badge <%= isSalur ? 'badge-success' : 'badge-warning' %>">
                                                             <%= item.status %>
                                                         </span>
                                                     </td>
-                                                    <td style="text-align: right;">
+                                                    <td data-label="Aksi" style="text-align: right;">
                                                         <div class="aid-row-actions">
                                                             <form action="/admin/bantuan/<%= item.id %>/status" method="POST" style="margin: 0;">
                                                                 <input type="hidden" name="status" value="<%= isSalur ? 'Belum Tersalurkan' : 'Tersalurkan' %>">

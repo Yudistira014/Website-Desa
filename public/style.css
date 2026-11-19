@@ -1099,18 +1099,27 @@ textarea {
     display: flex;
     align-items: center;
     gap: 16px;
+    min-width: 0;
+}
+
+.stat-card > div {
+    min-width: 0;
+    flex: 1;
 }
 
 .stat-card strong {
     display: block;
     font-size: 1.35rem;
     color: var(--ink);
-    line-height: 1.2;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
 }
 
 .stat-card span {
-    font-size: 0.86rem;
+    display: block;
+    font-size: 0.85rem;
     color: var(--muted);
+    line-height: 1.35;
 }
 
 .callout {
@@ -4166,11 +4175,99 @@ body.admin-body {
 
     .dash-stats {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .dash-stats .card {
+        padding: 15px 14px;
+    }
+
+    .pop-summary-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .pop-metric {
+        padding: 15px 16px;
+    }
+
+    .pop-metric-value {
+        font-size: 1.4rem;
+    }
+
+    .stat-card {
+        gap: 13px;
+        padding: 16px 18px;
+    }
+
+    .stat-card strong {
+        font-size: 1.18rem;
+    }
+
+    .stat-card span {
+        font-size: 0.8rem;
+    }
+
+    .admin-topbar {
+        padding: 14px 16px;
         gap: 12px;
     }
 
+    .admin-topbar-left {
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .admin-topbar h1 {
+        font-size: 1.12rem;
+        line-height: 1.28;
+    }
+
+    .admin-content {
+        padding: 16px 14px 36px;
+    }
+
     .card {
-        padding: 22px;
+        padding: 18px 16px;
+    }
+
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding-bottom: 14px;
+        margin-bottom: 16px;
+    }
+
+    .card-title {
+        font-size: 1rem;
+        align-items: flex-start;
+    }
+
+    .pop-chart-box {
+        padding: 16px 14px;
+    }
+
+    .pop-donut-wrap {
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .pop-donut-legend {
+        width: 100%;
+    }
+
+    .fin-filter-tabs {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .fin-filter-btn {
+        text-align: center;
+        padding: 7px 6px;
+        font-size: 0.76rem;
     }
 
     .page-header {

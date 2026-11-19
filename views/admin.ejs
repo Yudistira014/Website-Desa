@@ -100,7 +100,33 @@ const formatRp = n => 'Rp ' + Math.abs(Number(n) || 0).toLocaleString('id-ID');
                 <div class="alert alert-error" role="alert"><%- include('partials/icon', { name: 'alert-circle' }) %> <%= error %></div>
             <% } %>
             <% if (success) { %>
-                <div class="alert alert-success" role="status"><%- include('partials/icon', { name: 'check-circle' }) %> <%= success %></div>
+                <!-- Banner status inline -->
+                <div class="alert alert-success admin-success-banner" role="status">
+                    <%- include('partials/icon', { name: 'check-circle' }) %>
+                    <span><%= success %></span>
+                </div>
+
+                <!-- Modal / Pop-up Animasi Sukses -->
+                <div class="success-modal-backdrop" id="success-modal" role="dialog" aria-modal="true" aria-labelledby="success-modal-title">
+                    <div class="success-modal-card">
+                        <div class="success-confetti" aria-hidden="true">
+                            <span></span><span></span><span></span><span></span>
+                            <span></span><span></span><span></span><span></span>
+                        </div>
+                        <div class="success-check-wrap" aria-hidden="true">
+                            <span class="success-check-ring"></span>
+                            <svg class="success-check-svg" viewBox="0 0 52 52" fill="none">
+                                <circle class="success-check-circle" cx="26" cy="26" r="24" stroke="currentColor" stroke-width="3.2"/>
+                                <path class="success-check-mark" d="M15.5 26.8 22.8 34 36.8 19.5" stroke="currentColor" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <span class="badge badge-success">Berhasil Disimpan</span>
+                        <h3 id="success-modal-title">Data Berhasil Diperbarui!</h3>
+                        <p><%= success %></p>
+                        <button type="button" class="btn btn-primary btn-sm" id="success-modal-close">Selesai</button>
+                        <div class="success-modal-progress" aria-hidden="true"><span></span></div>
+                    </div>
+                </div>
             <% } %>
             <% if (activeSection === 'kelola-galeri' && isVercel && !hasVercelBlobConfig) { %>
                 <div class="alert alert-warning" role="alert"><%- include('partials/icon', { name: 'alert-circle' }) %> Hubungkan Vercel Blob dengan akses publik ke project ini agar unggahan galeri dapat disimpan.</div>
@@ -656,7 +682,7 @@ const formatRp = n => 'Rp ' + Math.abs(Number(n) || 0).toLocaleString('id-ID');
                                                         <%= (isMasuk ? '+ ' : '- ') + formatRp(item.nominal) %>
                                                     </td>
                                                     <td style="text-align: right;">
-                                                        <form action="/admin/keuangan/<%= item.id %>/hapus" method="POST" onsubmit="return confirm('Hapus catatan transaksi ini?')" style="margin: 0;">
+                                                        <form action="/admin/keuangan/<%= item.id %>/hapus" method="POST" data-confirm-title="Hapus Catatan Transaksi?" data-confirm="Apakah Anda yakin ingin menghapus catatan transaksi &quot;<%= item.kategori %>&quot; sebesar <%= formatRp(item.nominal) %>?" style="margin: 0;">
                                                             <button type="submit" class="btn btn-danger-soft btn-sm" aria-label="Hapus transaksi">
                                                                 <%- include('partials/icon', { name: 'trash' }) %>
                                                             </button>
@@ -836,7 +862,7 @@ const formatRp = n => 'Rp ' + Math.abs(Number(n) || 0).toLocaleString('id-ID');
                         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                             <span class="badge badge-warning"><%= suratMenunggu %> menunggu</span>
                             <% if (suratSelesai > 0) { %>
-                                <form action="/admin/surat-pengantar/hapus-selesai" method="POST" onsubmit="return confirm('Hapus seluruh riwayat surat yang sudah Disetujui / Ditolak?')" style="margin: 0;">
+                                <form action="/admin/surat-pengantar/hapus-selesai" method="POST" data-confirm-title="Bersihkan Riwayat Surat?" data-confirm="Apakah Anda yakin ingin menghapus seluruh (<%= suratSelesai %>) riwayat surat yang sudah Disetujui maupun Ditolak?" style="margin: 0;">
                                     <button type="submit" class="btn btn-danger-soft btn-sm">
                                         <%- include('partials/icon', { name: 'trash' }) %>
                                         <span>Bersihkan Riwayat Selesai (<%= suratSelesai %>)</span>
@@ -882,7 +908,7 @@ const formatRp = n => 'Rp ' + Math.abs(Number(n) || 0).toLocaleString('id-ID');
                                         </div>
                                     <% } else { %>
                                         <div class="item-actions">
-                                            <form action="/admin/surat-pengantar/<%= surat.id %>/hapus" method="POST" onsubmit="return confirm('Hapus riwayat surat pengantar dari <%= surat.nama %> ini?')">
+                                            <form action="/admin/surat-pengantar/<%= surat.id %>/hapus" method="POST" data-confirm-title="Hapus Riwayat Surat?" data-confirm="Apakah Anda yakin ingin menghapus riwayat pengajuan surat <%= surat.keperluan %> dari <%= surat.nama %>?">
                                                 <button type="submit" class="btn btn-danger-soft btn-sm">
                                                     <%- include('partials/icon', { name: 'trash' }) %>
                                                     <span>Hapus Riwayat</span>
@@ -940,7 +966,7 @@ const formatRp = n => 'Rp ' + Math.abs(Number(n) || 0).toLocaleString('id-ID');
                                                 <strong><%= item.judul %></strong>
                                                 <span><%= item.tanggal %></span>
                                             </div>
-                                            <form action="/admin/hapus-galeri/<%= item.id %>" method="POST" onsubmit="return confirm('Hapus dokumentasi ini?')">
+                                            <form action="/admin/hapus-galeri/<%= item.id %>" method="POST" data-confirm-title="Hapus Dokumentasi Galeri?" data-confirm="Apakah Anda yakin ingin menghapus foto dokumentasi &quot;<%= item.judul %>&quot; dari galeri desa?">
                                                 <button type="submit" class="btn btn-danger-soft btn-sm btn-block"><%- include('partials/icon', { name: 'trash' }) %> Hapus</button>
                                             </form>
                                         </article>
@@ -974,7 +1000,7 @@ const formatRp = n => 'Rp ' + Math.abs(Number(n) || 0).toLocaleString('id-ID');
                                     <p><%= (b.ringkasan || '').length > 130 ? b.ringkasan.substring(0, 130) + '…' : b.ringkasan %></p>
                                     <div class="item-actions">
                                         <a href="/admin/edit-berita/<%= b.id %>" class="btn btn-outline btn-sm"><%- include('partials/icon', { name: 'edit' }) %> Edit</a>
-                                        <form action="/admin/hapus-berita/<%= b.id %>" method="POST" onsubmit="return confirm('Hapus berita ini?')">
+                                        <form action="/admin/hapus-berita/<%= b.id %>" method="POST" data-confirm-title="Hapus Berita Desa?" data-confirm="Apakah Anda yakin ingin menghapus berita &quot;<%= b.judul %>&quot; secara permanen?">
                                             <button type="submit" class="btn btn-danger-soft btn-sm"><%- include('partials/icon', { name: 'trash' }) %> Hapus</button>
                                         </form>
                                     </div>
@@ -1298,4 +1324,39 @@ const formatRp = n => 'Rp ' + Math.abs(Number(n) || 0).toLocaleString('id-ID');
     })();
 </script>
 <% } %>
+<script>
+    (() => {
+        const modal = document.getElementById('success-modal');
+        if (!modal) return;
+
+        const closeBtn = document.getElementById('success-modal-close');
+        let closed = false;
+
+        const closeModal = () => {
+            if (closed) return;
+            closed = true;
+            modal.classList.add('is-closing');
+            setTimeout(() => {
+                modal.remove();
+            }, 280);
+
+            // Bersihkan query ?success=... dari address bar agar tidak muncul ulang saat refresh
+            if (window.history && window.history.replaceState) {
+                const url = new URL(window.location.href);
+                url.searchParams.delete('success');
+                window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
+            }
+        };
+
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', e => {
+            if (e.target === modal) closeModal();
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        setTimeout(closeModal, 3600);
+    })();
+</script>
 <%- include('partials/end') %>

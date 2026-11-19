@@ -1,3 +1,79 @@
+    <!-- Modal Konfirmasi Hapus Modern (Ya / Tidak) -->
+    <div class="confirm-modal-backdrop" id="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" hidden>
+        <div class="confirm-modal-card">
+            <div class="confirm-icon-wrap" aria-hidden="true">
+                <span class="confirm-icon-ring"></span>
+                <%- include('icon', { name: 'trash' }) %>
+            </div>
+            <span class="badge badge-danger">Konfirmasi Hapus</span>
+            <h3 id="confirm-modal-title">Hapus Data Ini?</h3>
+            <p id="confirm-modal-desc">Data yang sudah dihapus tidak dapat dikembalikan lagi.</p>
+            <div class="confirm-modal-actions">
+                <button type="button" class="btn btn-outline" id="confirm-btn-no">Tidak, Batal</button>
+                <button type="button" class="btn btn-danger" id="confirm-btn-yes">
+                    <%- include('icon', { name: 'trash' }) %>
+                    <span>Ya, Hapus</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (() => {
+            const modal = document.getElementById('confirm-modal');
+            if (!modal) return;
+            const titleEl = document.getElementById('confirm-modal-title');
+            const descEl = document.getElementById('confirm-modal-desc');
+            const btnNo = document.getElementById('confirm-btn-no');
+            const btnYes = document.getElementById('confirm-btn-yes');
+            let pendingForm = null;
+
+            const openConfirm = (form, title, desc) => {
+                pendingForm = form;
+                titleEl.textContent = title || 'Hapus Data Ini?';
+                descEl.textContent = desc || 'Tindakan ini bersifat permanen dan data yang dihapus tidak dapat dikembalikan.';
+                modal.hidden = false;
+                modal.classList.remove('is-closing');
+                setTimeout(() => btnNo.focus(), 40);
+            };
+
+            const closeConfirm = () => {
+                if (modal.hidden) return;
+                modal.classList.add('is-closing');
+                setTimeout(() => {
+                    modal.hidden = true;
+                    modal.classList.remove('is-closing');
+                    pendingForm = null;
+                }, 220);
+            };
+
+            document.addEventListener('submit', e => {
+                const form = e.target.closest('form[data-confirm]');
+                if (!form || form.dataset.confirmed === 'true') return;
+                e.preventDefault();
+                openConfirm(
+                    form,
+                    form.getAttribute('data-confirm-title'),
+                    form.getAttribute('data-confirm')
+                );
+            });
+
+            btnNo.addEventListener('click', closeConfirm);
+            btnYes.addEventListener('click', () => {
+                if (!pendingForm) return;
+                pendingForm.dataset.confirmed = 'true';
+                pendingForm.submit();
+            });
+
+            modal.addEventListener('click', e => {
+                if (e.target === modal) closeConfirm();
+            });
+
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape' && !modal.hidden) closeConfirm();
+            });
+        })();
+    </script>
     <script src="/navigation.js?v=20261118"></script>
 </body>
 </html>

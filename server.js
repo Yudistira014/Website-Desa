@@ -403,8 +403,25 @@ const defaultKependudukan = [
     { dusun: 'Dusun Makmur', laki_laki: 555, perempuan: 550, kk: 310, balita: 82, anak_remaja: 230, dewasa: 655, lansia: 138 }
 ];
 
+async function ensureKependudukanTable(conn = db) {
+    await conn.query(`
+        CREATE TABLE IF NOT EXISTS kependudukan (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            dusun VARCHAR(100) NOT NULL UNIQUE,
+            laki_laki INT NOT NULL DEFAULT 0,
+            perempuan INT NOT NULL DEFAULT 0,
+            kk INT NOT NULL DEFAULT 0,
+            balita INT NOT NULL DEFAULT 0,
+            anak_remaja INT NOT NULL DEFAULT 0,
+            dewasa INT NOT NULL DEFAULT 0,
+            lansia INT NOT NULL DEFAULT 0
+        )
+    `);
+}
+
 async function ensureDefaultKependudukan(conn = db) {
     try {
+        await ensureKependudukanTable(conn);
         const [[{ total }]] = await conn.query('SELECT COUNT(*) AS total FROM kependudukan');
         if (Number(total) === 0) {
             const values = defaultKependudukan.map(d => [
@@ -422,14 +439,24 @@ async function ensureDefaultKependudukan(conn = db) {
 
 async function syncTotalPopulasi(conn = db) {
     try {
-        const [rows] = await conn.query('SELECT laki_laki, perempuan FROM kependudukan');
+        await ensureDefaultKependudukan(conn);
+        const [rows] = await conn.query('SELECT * FROM kependudukan ORDER BY id ASC');
         if (rows.length > 0) {
-            const totalJiwa = rows.reduce((sum, r) => sum + (Number(r.laki_laki) || 0) + (Number(r.perempuan) || 0), 0);
-            if (totalJiwa > 0) {
-                infoDesa.populasi = totalJiwa.toLocaleString('id-ID');
-            }
+            const totalLaki = rows.reduce((sum, r) => sum + (Number(r.laki_laki) || 0), 0);
+            const totalPerempuan = rows.reduce((sum, r) => sum + (Number(r.perempuan) || 0), 0);
+            const totalKK = rows.reduce((sum, r) => sum + (Number(r.kk) || 0), 0);
+            const totalJiwa = totalLaki + totalPerempuan;
+
+            infoDesa.populasi = totalJiwa.toLocaleString('id-ID');
+            infoDesa.totalLaki = totalLaki.toLocaleString('id-ID');
+            infoDesa.totalPerempuan = totalPerempuan.toLocaleString('id-ID');
+            infoDesa.totalKK = totalKK.toLocaleString('id-ID');
+            infoDesa.kependudukan = rows;
+            infoDesa.wilayah.dusun = rows.map(r => r.dusun);
+            return rows;
         }
     } catch (err) {}
+    return defaultKependudukan;
 }
 
 async function verifyDatabaseConnection() {
@@ -532,6 +559,13 @@ function cekUser(req, res, next) {
 }
 
 // --- RUTE UTAMA (PUBLIC) ---
+app.use(async (req, res, next) => {
+    if (req.method === 'GET' && !req.path.startsWith('/uploads/')) {
+        await syncTotalPopulasi();
+    }
+    next();
+});
+
 app.get('/', async (req, res) => {
     try {
         const [berita] = await db.query('SELECT * FROM berita ORDER BY id DESC LIMIT 3');
@@ -793,6 +827,7 @@ app.post('/admin/kependudukan', cekAdmin, async (req, res) => {
     const lansiaList = Array.isArray(req.body.lansia) ? req.body.lansia : [req.body.lansia];
 
     try {
+        await ensureDefaultKependudukan();
         for (let i = 0; i < dusunList.length; i++) {
             const namaDusun = (dusunList[i] || '').trim();
             if (!namaDusun) continue;

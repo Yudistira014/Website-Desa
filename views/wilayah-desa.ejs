@@ -41,12 +41,26 @@
                     <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'map-pin' }) %></span> Dusun di <%= desa.nama %></h2>
                 </div>
                 <ul class="tile-list">
-                    <% desa.wilayah.dusun.forEach(function(dusun, index) { %>
-                        <li class="tile">
-                            <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'home' }) %></span>
-                            <span><%= dusun %><small>Wilayah <%= index + 1 %></small></span>
-                        </li>
-                    <% }); %>
+                    <% if (desa.kependudukan && desa.kependudukan.length) { %>
+                        <% desa.kependudukan.forEach(function(item, index) {
+                            const totalDusun = (Number(item.laki_laki) || 0) + (Number(item.perempuan) || 0);
+                        %>
+                            <li class="tile">
+                                <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'home' }) %></span>
+                                <span>
+                                    <%= item.dusun %>
+                                    <small><%= totalDusun.toLocaleString('id-ID') %> jiwa · <%= (Number(item.kk) || 0).toLocaleString('id-ID') %> KK</small>
+                                </span>
+                            </li>
+                        <% }); %>
+                    <% } else { %>
+                        <% desa.wilayah.dusun.forEach(function(dusun, index) { %>
+                            <li class="tile">
+                                <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'home' }) %></span>
+                                <span><%= dusun %><small>Wilayah <%= index + 1 %></small></span>
+                            </li>
+                        <% }); %>
+                    <% } %>
                 </ul>
             </article>
         </div>

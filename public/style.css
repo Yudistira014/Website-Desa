@@ -2774,6 +2774,269 @@ body.admin-body {
     display: none !important;
 }
 
+/* Manajemen Administrasi Dana Masuk & Keluar --------------------------------- */
+.fin-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.fin-stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 22px 24px;
+    border-top: 4px solid var(--primary-600);
+}
+
+.fin-stat-card.is-income {
+    border-top-color: var(--success);
+}
+
+.fin-stat-card.is-expense {
+    border-top-color: var(--danger);
+}
+
+.fin-stat-card.is-balance {
+    border-top-color: var(--accent-500);
+}
+
+.fin-stat-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.fin-stat-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.fin-stat-card.is-income .icon-box {
+    background: var(--success-bg);
+    color: var(--success);
+}
+
+.fin-stat-card.is-expense .icon-box {
+    background: var(--danger-bg);
+    color: var(--danger);
+}
+
+.fin-stat-card.is-balance .icon-box {
+    background: var(--accent-100);
+    color: var(--warning);
+}
+
+.fin-stat-value {
+    font-size: clamp(1.35rem, 2.2vw, 1.75rem);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.25;
+}
+
+.fin-stat-card.is-income .fin-stat-value {
+    color: var(--success);
+}
+
+.fin-stat-card.is-expense .fin-stat-value {
+    color: var(--danger);
+}
+
+.fin-stat-value.is-negative {
+    color: var(--danger);
+}
+
+.fin-stat-sub {
+    font-size: 0.82rem;
+    color: var(--muted);
+}
+
+.fin-ratio-card {
+    padding: 20px 24px;
+}
+
+.fin-ratio-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.fin-ratio-head h3 {
+    font-size: 0.98rem;
+}
+
+.fin-ratio-head p {
+    font-size: 0.83rem;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+.pop-dot.is-danger-dot {
+    background: var(--danger);
+}
+
+.fin-ratio-bar {
+    display: flex;
+    width: 100%;
+    height: 14px;
+    border-radius: var(--radius-pill);
+    background: var(--bg);
+    overflow: hidden;
+    border: 1px solid var(--line);
+}
+
+.fin-ratio-fill {
+    display: block;
+    height: 100%;
+    transition: width 0.35s ease;
+}
+
+.fin-ratio-fill.is-income  { background: var(--primary-600); }
+.fin-ratio-fill.is-expense { background: var(--danger); }
+
+.fin-main-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+}
+
+.fin-type-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.fin-type-option {
+    cursor: pointer;
+    margin: 0;
+}
+
+.fin-type-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.fin-type-pill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1.5px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text);
+    transition: all var(--ease);
+}
+
+.fin-type-pill svg {
+    width: 17px;
+    height: 17px;
+}
+
+.fin-type-option input:checked + .fin-type-pill.is-income {
+    border-color: var(--success);
+    background: var(--success-bg);
+    color: var(--success);
+}
+
+.fin-type-option input:checked + .fin-type-pill.is-expense {
+    border-color: var(--danger);
+    background: var(--danger-bg);
+    color: var(--danger);
+}
+
+.fin-currency-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.fin-currency-prefix {
+    position: absolute;
+    left: 14px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--muted);
+    pointer-events: none;
+}
+
+.fin-currency-wrap input[type="text"] {
+    padding-left: 42px;
+    font-weight: 600;
+}
+
+.fin-filter-tabs {
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    border: 1px solid var(--line);
+}
+
+.fin-filter-btn {
+    padding: 6px 12px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background-color var(--ease), color var(--ease);
+}
+
+.fin-filter-btn:hover {
+    color: var(--ink);
+}
+
+.fin-filter-btn.is-active {
+    background: var(--surface);
+    color: var(--primary-700);
+    box-shadow: var(--shadow-sm);
+}
+
+.fin-table {
+    min-width: 620px;
+}
+
+.fin-row-cat {
+    display: block;
+    color: var(--ink);
+}
+
+.fin-row-date {
+    display: block;
+    font-size: 0.76rem;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+.fin-amount {
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.fin-amount.is-income {
+    color: var(--success);
+}
+
+.fin-amount.is-expense {
+    color: var(--danger);
+}
+
 /* 14. Auth ------------------------------------------------------------------- */
 .auth-page {
     position: relative;
@@ -3513,6 +3776,11 @@ body.admin-body {
 
     .publish-aside {
         position: static;
+    }
+
+    .fin-summary-grid,
+    .fin-main-layout {
+        grid-template-columns: 1fr;
     }
 }
 

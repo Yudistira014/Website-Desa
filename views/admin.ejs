@@ -11,6 +11,11 @@ const pageTitles = {
         heading: 'Grafik & Hitung Kependudukan',
         sub: 'Visualisasi dan kalkulator otomatis data penduduk ' + desa.nama + ' per dusun.'
     },
+    'keuangan': {
+        title: 'Administrasi Dana Desa',
+        heading: 'Manajemen Administrasi Dana Masuk & Keluar',
+        sub: 'Catat pemasukan, pengeluaran, serta pantau saldo dan arus kas ' + desa.nama + ' secara otomatis.'
+    },
     'terbitkan-berita': {
         title: 'Terbitkan Berita',
         heading: 'Terbitkan Berita Baru',
@@ -53,6 +58,12 @@ const dataPenduduk = (typeof kependudukan !== 'undefined' && Array.isArray(kepen
 ];
 const totalPopulasi = dataPenduduk.reduce((acc, r) => acc + (Number(r.laki_laki) || 0) + (Number(r.perempuan) || 0), 0);
 const totalKK = dataPenduduk.reduce((acc, r) => acc + (Number(r.kk) || 0), 0);
+
+const daftarKeuangan = (typeof keuangan !== 'undefined' && Array.isArray(keuangan)) ? keuangan : [];
+const totalDanaMasuk = daftarKeuangan.filter(k => k.tipe === 'masuk').reduce((sum, k) => sum + (Number(k.nominal) || 0), 0);
+const totalDanaKeluar = daftarKeuangan.filter(k => k.tipe === 'keluar').reduce((sum, k) => sum + (Number(k.nominal) || 0), 0);
+const saldoKasDesa = totalDanaMasuk - totalDanaKeluar;
+const formatRp = n => 'Rp ' + Math.abs(Number(n) || 0).toLocaleString('id-ID');
 %>
 <%- include('partials/head', { title: pageMeta.title + ' - Admin', bodyClass: 'page-muted admin-body' }) %>
 
@@ -130,6 +141,10 @@ const totalKK = dataPenduduk.reduce((acc, r) => acc + (Number(r.kk) || 0), 0);
                                 <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'chart' }) %></span>
                                 <div><h3>Grafik Kependudukan</h3><p>Hitung &amp; perbarui statistik penduduk per dusun.</p></div>
                             </a>
+                            <a href="/admin/keuangan" class="card feature-card">
+                                <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'wallet' }) %></span>
+                                <div><h3>Dana Masuk &amp; Keluar</h3><p>Saldo kas: <strong><%= (saldoKasDesa < 0 ? '-' : '') + formatRp(saldoKasDesa) %></strong></p></div>
+                            </a>
                             <a href="/admin/terbitkan-berita" class="card feature-card">
                                 <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'megaphone' }) %></span>
                                 <div><h3>Terbitkan Berita</h3><p>Tulis berita atau pengumuman baru untuk warga.</p></div>
@@ -137,10 +152,6 @@ const totalKK = dataPenduduk.reduce((acc, r) => acc + (Number(r.kk) || 0), 0);
                             <a href="/admin/kelola-galeri" class="card feature-card">
                                 <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'image' }) %></span>
                                 <div><h3>Kelola Galeri (<%= daftarGaleri.length %>)</h3><p>Unggah dokumentasi foto kegiatan desa.</p></div>
-                            </a>
-                            <a href="/admin/daftar-berita" class="card feature-card">
-                                <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'news' }) %></span>
-                                <div><h3>Daftar Berita (<%= daftarBerita.length %>)</h3><p>Edit atau hapus berita yang telah terbit.</p></div>
                             </a>
                         </div>
                     </div>
@@ -342,6 +353,222 @@ const totalKK = dataPenduduk.reduce((acc, r) => acc + (Number(r.kk) || 0), 0);
                             </table>
                         </div>
                     </form>
+                </section>
+            <% } else if (activeSection === 'keuangan') { %>
+                <!-- HALAMAN KEUANGAN: MANAJEMEN DANA MASUK & KELUAR -->
+                <%
+                    const totalArusKas = totalDanaMasuk + totalDanaKeluar;
+                    const pctMasuk = totalArusKas > 0 ? ((totalDanaMasuk / totalArusKas) * 100).toFixed(1) : '50.0';
+                    const pctKeluar = totalArusKas > 0 ? ((totalDanaKeluar / totalArusKas) * 100).toFixed(1) : '50.0';
+                    const countMasuk = daftarKeuangan.filter(k => k.tipe === 'masuk').length;
+                    const countKeluar = daftarKeuangan.filter(k => k.tipe === 'keluar').length;
+                    const tanggalDefault = new Date().toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                    });
+                %>
+                <section class="admin-section stack">
+                    <!-- 3 Kartu Metrik Keuangan -->
+                    <div class="fin-summary-grid">
+                        <div class="card fin-stat-card is-income">
+                            <div class="fin-stat-head">
+                                <span class="fin-stat-label">Total Dana Masuk</span>
+                                <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'trend-up' }) %></span>
+                            </div>
+                            <strong class="fin-stat-value"><%= formatRp(totalDanaMasuk) %></strong>
+                            <small class="fin-stat-sub"><%= countMasuk %> transaksi pemasukan</small>
+                        </div>
+
+                        <div class="card fin-stat-card is-expense">
+                            <div class="fin-stat-head">
+                                <span class="fin-stat-label">Total Dana Keluar</span>
+                                <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'trend-down' }) %></span>
+                            </div>
+                            <strong class="fin-stat-value"><%= formatRp(totalDanaKeluar) %></strong>
+                            <small class="fin-stat-sub"><%= countKeluar %> transaksi pengeluaran</small>
+                        </div>
+
+                        <div class="card fin-stat-card is-balance">
+                            <div class="fin-stat-head">
+                                <span class="fin-stat-label">Saldo Kas Desa Saat Ini</span>
+                                <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'wallet' }) %></span>
+                            </div>
+                            <strong class="fin-stat-value <%= saldoKasDesa < 0 ? 'is-negative' : '' %>">
+                                <%= (saldoKasDesa < 0 ? '- ' : '') + formatRp(saldoKasDesa) %>
+                            </strong>
+                            <small class="fin-stat-sub">Selisih otomatis pemasukan &amp; pengeluaran</small>
+                        </div>
+                    </div>
+
+                    <!-- Bar Visual Perbandingan Arus Kas -->
+                    <div class="card fin-ratio-card">
+                        <div class="fin-ratio-head">
+                            <div>
+                                <h3>Perbandingan Arus Kas Desa</h3>
+                                <p>Rasio proporsi antara total dana masuk dan dana keluar yang tercatat.</p>
+                            </div>
+                            <div class="pop-legend-inline">
+                                <span><i class="pop-dot is-male"></i> Dana Masuk (<%= pctMasuk.replace('.', ',') %>%)</span>
+                                <span><i class="pop-dot is-danger-dot"></i> Dana Keluar (<%= pctKeluar.replace('.', ',') %>%)</span>
+                            </div>
+                        </div>
+                        <div class="fin-ratio-bar">
+                            <span class="fin-ratio-fill is-income" style="width: <%= pctMasuk %>%"></span>
+                            <span class="fin-ratio-fill is-expense" style="width: <%= pctKeluar %>%"></span>
+                        </div>
+                    </div>
+
+                    <!-- Layout 2 Kolom: Form Input Transaksi & Buku Kas Riwayat -->
+                    <div class="fin-main-layout">
+                        <!-- Form Catat Transaksi -->
+                        <section class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h2 class="card-title">
+                                        <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'wallet' }) %></span>
+                                        Catat Transaksi Dana
+                                    </h2>
+                                    <p class="card-subtitle">Tambahkan catatan dana masuk atau pengeluaran desa.</p>
+                                </div>
+                            </div>
+
+                            <form action="/admin/keuangan/tambah" method="POST" id="fin-form">
+                                <div class="form-group">
+                                    <label>Jenis Transaksi</label>
+                                    <div class="fin-type-switch">
+                                        <label class="fin-type-option">
+                                            <input type="radio" name="tipe" value="masuk" checked>
+                                            <span class="fin-type-pill is-income">
+                                                <%- include('partials/icon', { name: 'trend-up' }) %>
+                                                Dana Masuk
+                                            </span>
+                                        </label>
+                                        <label class="fin-type-option">
+                                            <input type="radio" name="tipe" value="keluar">
+                                            <span class="fin-type-pill is-expense">
+                                                <%- include('partials/icon', { name: 'trend-down' }) %>
+                                                Dana Keluar
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="fin-kategori">Sumber / Kategori Dana</label>
+                                    <select id="fin-kategori" name="kategori" required>
+                                        <optgroup label="Kategori Dana Masuk" id="opt-masuk">
+                                            <option value="Dana Desa (APBN)">Dana Desa (APBN)</option>
+                                            <option value="Alokasi Dana Desa (ADD)">Alokasi Dana Desa (ADD)</option>
+                                            <option value="Pendapatan Asli Desa (PADes)">Pendapatan Asli Desa (PADes)</option>
+                                            <option value="Bantuan Provinsi / Kabupaten">Bantuan Provinsi / Kabupaten</option>
+                                            <option value="Swadaya & Hibah Masyarakat">Swadaya &amp; Hibah Masyarakat</option>
+                                        </optgroup>
+                                        <optgroup label="Kategori Dana Keluar" id="opt-keluar">
+                                            <option value="Pembangunan Infrastruktur">Pembangunan Infrastruktur</option>
+                                            <option value="Pemberdayaan Masyarakat">Pemberdayaan Masyarakat</option>
+                                            <option value="Bantuan Sosial & Kesehatan">Bantuan Sosial &amp; Kesehatan</option>
+                                            <option value="Operasional Pemerintahan">Operasional Pemerintahan</option>
+                                            <option value="Kegiatan Kemasyarakatan">Kegiatan Kemasyarakatan</option>
+                                        </optgroup>
+                                        <option value="Lainnya">Lainnya</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="fin-nominal-display">Nominal (Rp)</label>
+                                    <div class="fin-currency-wrap">
+                                        <span class="fin-currency-prefix">Rp</span>
+                                        <input id="fin-nominal-display" type="text" inputmode="numeric" required placeholder="Contoh: 25.000.000" autocomplete="off">
+                                        <input id="fin-nominal" type="hidden" name="nominal" value="">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="fin-tanggal">Tanggal Transaksi</label>
+                                    <input id="fin-tanggal" type="text" name="tanggal" value="<%= tanggalDefault %>" required placeholder="Contoh: 19 November 2026">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="fin-keterangan">Rincian / Keterangan</label>
+                                    <textarea id="fin-keterangan" name="keterangan" rows="3" required placeholder="Contoh: Pencairan tahap I pembangunan drainase Dusun Karang..."></textarea>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-block">
+                                    <%- include('partials/icon', { name: 'check-circle' }) %>
+                                    <span>Simpan Transaksi</span>
+                                </button>
+                            </form>
+                        </section>
+
+                        <!-- Tabel Buku Kas / Riwayat Transaksi -->
+                        <section class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h2 class="card-title">
+                                        <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'clipboard' }) %></span>
+                                        Buku Kas Riwayat Dana
+                                    </h2>
+                                    <p class="card-subtitle">Filter dan kelola seluruh riwayat transaksi dana masuk &amp; keluar.</p>
+                                </div>
+                                <div class="fin-filter-tabs" role="tablist" aria-label="Filter transaksi">
+                                    <button type="button" class="fin-filter-btn is-active" data-fin-filter="all">Semua (<%= daftarKeuangan.length %>)</button>
+                                    <button type="button" class="fin-filter-btn" data-fin-filter="masuk">Masuk (<%= countMasuk %>)</button>
+                                    <button type="button" class="fin-filter-btn" data-fin-filter="keluar">Keluar (<%= countKeluar %>)</button>
+                                </div>
+                            </div>
+
+                            <% if (daftarKeuangan.length > 0) { %>
+                                <div class="pop-table-wrap">
+                                    <table class="pop-table fin-table" id="fin-ledger-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Tanggal &amp; Kategori</th>
+                                                <th>Rincian Keterangan</th>
+                                                <th>Jenis</th>
+                                                <th>Nominal</th>
+                                                <th style="width: 90px; text-align: right;">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% daftarKeuangan.forEach(function(item) {
+                                                const isMasuk = item.tipe === 'masuk';
+                                            %>
+                                                <tr data-fin-row="<%= item.tipe %>">
+                                                    <td>
+                                                        <strong class="fin-row-cat"><%= item.kategori %></strong>
+                                                        <small class="fin-row-date"><%= item.tanggal %></small>
+                                                    </td>
+                                                    <td><%= item.keterangan %></td>
+                                                    <td>
+                                                        <span class="badge <%= isMasuk ? 'badge-success' : 'badge-danger' %>">
+                                                            <%= isMasuk ? 'Dana Masuk' : 'Dana Keluar' %>
+                                                        </span>
+                                                    </td>
+                                                    <td class="fin-amount <%= isMasuk ? 'is-income' : 'is-expense' %>">
+                                                        <%= (isMasuk ? '+ ' : '- ') + formatRp(item.nominal) %>
+                                                    </td>
+                                                    <td style="text-align: right;">
+                                                        <form action="/admin/keuangan/<%= item.id %>/hapus" method="POST" onsubmit="return confirm('Hapus catatan transaksi ini?')" style="margin: 0;">
+                                                            <button type="submit" class="btn btn-danger-soft btn-sm" aria-label="Hapus transaksi">
+                                                                <%- include('partials/icon', { name: 'trash' }) %>
+                                                            </button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            <% }); %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <% } else { %>
+                                <div class="empty-state">
+                                    <span class="icon-box"><%- include('partials/icon', { name: 'wallet' }) %></span>
+                                    <h3>Belum ada catatan dana</h3>
+                                    <p>Gunakan formulir di sebelah kiri untuk mencatat pemasukan atau pengeluaran dana desa pertama Anda.</p>
+                                </div>
+                            <% } %>
+                        </section>
+                    </div>
                 </section>
             <% } else if (activeSection === 'terbitkan-berita') { %>
                 <!-- HALAMAN 3: TERBITKAN BERITA -->
@@ -665,6 +892,52 @@ const totalKK = dataPenduduk.reduce((acc, r) => acc + (Number(r.kk) || 0), 0);
 
 <% if (activeSection === 'kelola-galeri' && isVercel) { %>
     <script src="/gallery-upload.js?v=1" defer></script>
+<% } %>
+<% if (activeSection === 'keuangan') { %>
+<script>
+    (() => {
+        // Format input nominal otomatis dengan pemisah ribuan (titik)
+        const displayInput = document.getElementById('fin-nominal-display');
+        const hiddenInput = document.getElementById('fin-nominal');
+        const selectKategori = document.getElementById('fin-kategori');
+        const optMasuk = document.getElementById('opt-masuk');
+        const optKeluar = document.getElementById('opt-keluar');
+        const radios = document.querySelectorAll('input[name="tipe"]');
+
+        if (displayInput && hiddenInput) {
+            displayInput.addEventListener('input', () => {
+                const digits = displayInput.value.replace(/\D/g, '');
+                hiddenInput.value = digits;
+                displayInput.value = digits ? Number.parseInt(digits, 10).toLocaleString('id-ID') : '';
+            });
+        }
+
+        // Sesuaikan pilihan default kategori saat jenis transaksi diganti
+        if (radios.length && selectKategori && optMasuk && optKeluar) {
+            radios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    const isMasuk = radio.value === 'masuk';
+                    const firstOption = (isMasuk ? optMasuk : optKeluar).querySelector('option');
+                    if (firstOption) selectKategori.value = firstOption.value;
+                });
+            });
+        }
+
+        // Filter tab riwayat transaksi (Semua / Masuk / Keluar)
+        const filterBtns = document.querySelectorAll('[data-fin-filter]');
+        const ledgerRows = document.querySelectorAll('tr[data-fin-row]');
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = btn.getAttribute('data-fin-filter');
+                filterBtns.forEach(b => b.classList.toggle('is-active', b === btn));
+                ledgerRows.forEach(row => {
+                    const rowType = row.getAttribute('data-fin-row');
+                    row.hidden = target !== 'all' && rowType !== target;
+                });
+            });
+        });
+    })();
+</script>
 <% } %>
 <% if (activeSection === 'terbitkan-berita') { %>
 <script>

@@ -44,6 +44,12 @@ const c = typeof counts !== 'undefined' && counts ? counts : {};
                     </a>
                 </li>
                 <li>
+                    <a href="/admin/keuangan" class="admin-nav-link <%= currentMenu === 'keuangan' ? 'is-active' : '' %>">
+                        <%- include('icon', { name: 'wallet' }) %>
+                        <span>Dana Masuk &amp; Keluar</span>
+                    </a>
+                </li>
+                <li>
                     <a href="/admin/terbitkan-berita" class="admin-nav-link <%= currentMenu === 'terbitkan-berita' ? 'is-active' : '' %>">
                         <%- include('icon', { name: 'megaphone' }) %>
                         <span>Terbitkan Berita</span>

@@ -437,6 +437,19 @@ async function ensureDefaultKependudukan(conn = db) {
     }
 }
 
+async function ensureKeuanganTable(conn = db) {
+    await conn.query(`
+        CREATE TABLE IF NOT EXISTS keuangan_desa (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            tipe ENUM('masuk', 'keluar') NOT NULL,
+            kategori VARCHAR(100) NOT NULL,
+            keterangan VARCHAR(255) NOT NULL,
+            nominal BIGINT NOT NULL DEFAULT 0,
+            tanggal VARCHAR(100) NOT NULL
+        )
+    `);
+}
+
 async function syncTotalPopulasi(conn = db) {
     try {
         await ensureDefaultKependudukan(conn);
@@ -530,6 +543,7 @@ async function verifyDatabaseConnection() {
             )
         `);
         await ensureDefaultKependudukan(connection);
+        await ensureKeuanganTable(connection);
         await syncTotalPopulasi(connection);
 
         connection.release();
@@ -767,6 +781,7 @@ app.get('/logout', (req, res) => {
 const adminValidSections = new Set([
     'ringkasan',
     'kependudukan',
+    'keuangan',
     'terbitkan-berita',
     'laporan-warga',
     'surat-pengantar',
@@ -786,6 +801,12 @@ async function renderAdminDashboard(req, res, section = 'ringkasan') {
             const [rowsPenduduk] = await db.query('SELECT * FROM kependudukan ORDER BY id ASC');
             if (rowsPenduduk.length > 0) kependudukan = rowsPenduduk;
         } catch (e) {}
+        let keuangan = [];
+        try {
+            await ensureKeuanganTable();
+            const [rowsKeuangan] = await db.query('SELECT * FROM keuangan_desa ORDER BY id DESC');
+            keuangan = rowsKeuangan;
+        } catch (e) {}
         await syncTotalPopulasi();
         res.render('admin', {
             desa: infoDesa,
@@ -796,6 +817,7 @@ async function renderAdminDashboard(req, res, section = 'ringkasan') {
             laporanWarga: laporan,
             suratPengantar,
             kependudukan,
+            keuangan,
             error: req.query.error,
             success: req.query.success,
             isVercel: process.env.VERCEL === '1',
@@ -813,6 +835,47 @@ app.get('/admin/:section', cekAdmin, (req, res, next) => {
     if (!adminValidSections.has(section)) return next();
     if (section === 'ringkasan') return res.redirect('/admin');
     return renderAdminDashboard(req, res, section);
+});
+
+app.post('/admin/keuangan/tambah', cekAdmin, async (req, res) => {
+    const tipe = req.body.tipe === 'keluar' ? 'keluar' : 'masuk';
+    const kategori = typeof req.body.kategori === 'string' ? req.body.kategori.trim() : '';
+    const keterangan = typeof req.body.keterangan === 'string' ? req.body.keterangan.trim() : '';
+    const nominalRaw = String(req.body.nominal || '').replace(/\D/g, '');
+    const nominal = Number.parseInt(nominalRaw, 10) || 0;
+    const tanggalInput = typeof req.body.tanggal === 'string' && req.body.tanggal.trim()
+        ? req.body.tanggal.trim()
+        : new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    if (!kategori || !keterangan || nominal <= 0) {
+        return res.redirect('/admin/keuangan?error=Lengkapi kategori, keterangan, dan nominal dana yang valid');
+    }
+
+    try {
+        await ensureKeuanganTable();
+        await db.query(
+            'INSERT INTO keuangan_desa (tipe, kategori, keterangan, nominal, tanggal) VALUES (?, ?, ?, ?, ?)',
+            [tipe, kategori, keterangan, nominal, tanggalInput]
+        );
+        res.redirect(`/admin/keuangan?success=Transaksi dana ${tipe === 'masuk' ? 'masuk' : 'keluar'} berhasil dicatat`);
+    } catch (err) {
+        console.error('Gagal mencatat transaksi keuangan:', err.message);
+        res.redirect('/admin/keuangan?error=Gagal menyimpan transaksi keuangan');
+    }
+});
+
+app.post('/admin/keuangan/:id/hapus', cekAdmin, async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 1) {
+        return res.redirect('/admin/keuangan?error=Data transaksi tidak valid');
+    }
+    try {
+        await ensureKeuanganTable();
+        await db.query('DELETE FROM keuangan_desa WHERE id = ?', [id]);
+        res.redirect('/admin/keuangan?success=Riwayat transaksi berhasil dihapus');
+    } catch (err) {
+        res.redirect('/admin/keuangan?error=Gagal menghapus riwayat transaksi');
+    }
 });
 
 app.post('/admin/kependudukan', cekAdmin, async (req, res) => {

@@ -64,4 +64,19 @@
             if (!event.matches) closeMenu();
         });
     });
+
+    // Sinkronkan tinggi fixed .admin-topbar ke padding-top .admin-main di semua menu admin
+    const adminTopbar = document.querySelector('.admin-topbar');
+    const adminMain = document.querySelector('.admin-main');
+    if (adminTopbar && adminMain) {
+        const syncTopbarHeight = () => {
+            const h = Math.ceil(adminTopbar.getBoundingClientRect().height);
+            if (h > 0) adminMain.style.setProperty('--admin-topbar-h', h + 'px');
+        };
+        syncTopbarHeight();
+        window.addEventListener('resize', syncTopbarHeight);
+        if (typeof ResizeObserver !== 'undefined') {
+            new ResizeObserver(syncTopbarHeight).observe(adminTopbar);
+        }
+    }
 })();

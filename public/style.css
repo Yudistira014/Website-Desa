@@ -1722,7 +1722,6 @@ textarea {
 }
 
 .dash-grid + .card,
-.dash-grid > .card + .card,
 .stack > .card + .card,
 .dash-grid + .dash-grid {
     margin-top: 24px;
@@ -1932,7 +1931,7 @@ textarea {
 
 .quick-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px;
 }
 
@@ -1942,16 +1941,18 @@ body.admin-body {
 }
 
 .admin-shell {
-    display: grid;
-    grid-template-columns: 270px minmax(0, 1fr);
+    position: relative;
     min-height: 100vh;
     width: 100%;
-    overflow-x: clip;
+    padding-left: 270px;
 }
 
 .admin-sidebar {
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    bottom: 0;
+    width: 270px;
     height: 100vh;
     display: flex;
     flex-direction: column;
@@ -4041,7 +4042,7 @@ body.admin-body {
 
     /* Admin sidebar mobile drawer */
     .admin-shell {
-        grid-template-columns: 1fr;
+        padding-left: 0;
     }
 
     .admin-sidebar {
@@ -4054,6 +4055,10 @@ body.admin-body {
         transform: translateX(-100%);
         transition: transform 0.25s ease;
         box-shadow: var(--shadow-lg);
+    }
+
+    .quick-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .admin-sidebar.is-open {
@@ -4142,6 +4147,7 @@ body.admin-body {
     .grid-2,
     .grid-3,
     .grid-4,
+    .quick-grid,
     .gallery-grid,
     .form-row,
     .footer-grid {

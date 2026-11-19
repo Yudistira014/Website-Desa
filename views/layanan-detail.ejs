@@ -138,6 +138,52 @@
                     </article>
                 <% } %>
 
+                <% if (layanan.slug === 'layanan-kesehatan') {
+                    const daftarKesehatan = (typeof layananKesehatan !== 'undefined' && Array.isArray(layananKesehatan)) ? layananKesehatan : [];
+                %>
+                    <article class="card card-highlight">
+                        <div class="card-header">
+                            <div>
+                                <h2 class="card-title"><span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'health' }) %></span> Jadwal &amp; Layanan Kesehatan Desa</h2>
+                                <p class="card-subtitle">Informasi jadwal Posyandu, imunisasi, pemeriksaan, dan layanan ambulans aktif di <%= desa.nama %>.</p>
+                            </div>
+                            <span class="badge badge-primary"><%= daftarKesehatan.length %> layanan aktif</span>
+                        </div>
+
+                        <% if (daftarKesehatan.length > 0) { %>
+                            <div class="item-list">
+                                <% daftarKesehatan.forEach(function(item) {
+                                    const phoneNumber = item.kontak ? String(item.kontak).replace(/\D/g, '') : '';
+                                    const waNumber = phoneNumber.replace(/^0/, '62');
+                                %>
+                                    <div class="item is-secondary">
+                                        <div class="item-head">
+                                            <span class="item-title"><%= item.nama_layanan %></span>
+                                            <span class="badge badge-success"><%= item.kategori %></span>
+                                        </div>
+                                        <div class="item-meta">
+                                            <span><strong>Jadwal:</strong> <%= item.jadwal %></span>
+                                            <span><strong>Lokasi:</strong> <%= item.lokasi %></span>
+                                            <% if (item.petugas) { %><span><strong>Petugas:</strong> <%= item.petugas %></span><% } %>
+                                        </div>
+                                        <% if (item.keterangan) { %>
+                                            <p class="item-body"><%= item.keterangan %></p>
+                                        <% } %>
+                                        <% if (phoneNumber) { %>
+                                            <div class="item-actions">
+                                                <a href="tel:<%= phoneNumber %>" class="btn btn-primary btn-sm"><%- include('partials/icon', { name: 'phone' }) %> Hubungi (<%= item.kontak %>)</a>
+                                                <a href="https://wa.me/<%= waNumber %>" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm">WhatsApp</a>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                <% }); %>
+                            </div>
+                        <% } else { %>
+                            <p class="empty-text">Jadwal layanan kesehatan belum tersedia. Silakan hubungi kantor desa untuk informasi terbaru.</p>
+                        <% } %>
+                    </article>
+                <% } %>
+
                 <% if (layanan.slug === 'bantuan-sosial') {
                     const daftarBantuan = (typeof penerimaBantuan !== 'undefined' && Array.isArray(penerimaBantuan)) ? penerimaBantuan : [];
                     const formatRp = n => 'Rp ' + Math.abs(Number(n) || 0).toLocaleString('id-ID');

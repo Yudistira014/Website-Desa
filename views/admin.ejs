@@ -21,6 +21,11 @@ const pageTitles = {
         heading: 'Manajemen Data Warga Penerima Bantuan',
         sub: 'Kelola pendataan warga yang membutuhkan bantuan sosial, kriteria kelayakan, dan status penyalurannya.'
     },
+    'layanan-kesehatan': {
+        title: 'Kelola Layanan Kesehatan',
+        heading: 'Manajemen Layanan Kesehatan Desa',
+        sub: 'Atur jadwal Posyandu, imunisasi, layanan ambulans desa, lokasi, petugas, dan kontak siaga.'
+    },
     'terbitkan-berita': {
         title: 'Terbitkan Berita',
         heading: 'Terbitkan Berita Baru',
@@ -73,6 +78,10 @@ const formatRp = n => 'Rp ' + Math.abs(Number(n) || 0).toLocaleString('id-ID');
 const daftarBantuan = (typeof bantuanWarga !== 'undefined' && Array.isArray(bantuanWarga)) ? bantuanWarga : [];
 const bantuanTersalurkan = daftarBantuan.filter(b => b.status === 'Tersalurkan').length;
 const bantuanMenunggu = daftarBantuan.length - bantuanTersalurkan;
+
+const daftarKesehatan = (typeof layananKesehatan !== 'undefined' && Array.isArray(layananKesehatan)) ? layananKesehatan : [];
+const kesehatanAktif = daftarKesehatan.filter(k => k.status === 'Aktif').length;
+const kesehatanNonaktif = daftarKesehatan.length - kesehatanAktif;
 %>
 <%- include('partials/head', { title: pageMeta.title + ' - Admin', bodyClass: 'page-muted admin-body' }) %>
 
@@ -84,7 +93,8 @@ const bantuanMenunggu = daftarBantuan.length - bantuanTersalurkan;
             galeri: daftarGaleri.length,
             laporan: daftarLaporan.length,
             suratMenunggu,
-            bantuan: daftarBantuan.length
+            bantuan: daftarBantuan.length,
+            kesehatan: daftarKesehatan.length
         }
     }) %>
 
@@ -175,6 +185,10 @@ const bantuanMenunggu = daftarBantuan.length - bantuanTersalurkan;
                             <a href="/admin/bantuan-desa" class="card feature-card">
                                 <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'heart' }) %></span>
                                 <div><h3>Penerima Bantuan (<%= daftarBantuan.length %>)</h3><p>Data warga yang membutuhkan bantuan desa.</p></div>
+                            </a>
+                            <a href="/admin/layanan-kesehatan" class="card feature-card">
+                                <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'health' }) %></span>
+                                <div><h3>Layanan Kesehatan (<%= kesehatanAktif %> aktif)</h3><p>Jadwal Posyandu, imunisasi, dan ambulans desa.</p></div>
                             </a>
                             <a href="/admin/terbitkan-berita" class="card feature-card">
                                 <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'megaphone' }) %></span>
@@ -1047,6 +1061,208 @@ const bantuanMenunggu = daftarBantuan.length - bantuanTersalurkan;
                         </section>
                     </div>
                 </section>
+            <% } else if (activeSection === 'layanan-kesehatan') { %>
+                <!-- HALAMAN: KELOLA LAYANAN KESEHATAN DESA -->
+                <%
+                    const totalKesehatan = daftarKesehatan.length;
+                    const kategoriKesehatanSet = new Set(daftarKesehatan.map(k => k.kategori || 'Lainnya'));
+                %>
+                <section class="admin-section">
+                    <!-- Ringkasan 4 Kartu Metrik Kesehatan -->
+                    <div class="pop-summary-grid">
+                        <div class="card stat-card">
+                            <span class="icon-box"><%- include('partials/icon', { name: 'health' }) %></span>
+                            <div>
+                                <strong><%= totalKesehatan %> Layanan</strong>
+                                <span>Total Program Terdaftar</span>
+                            </div>
+                        </div>
+                        <div class="card stat-card">
+                            <span class="icon-box icon-box-success"><%- include('partials/icon', { name: 'check-circle' }) %></span>
+                            <div>
+                                <strong><%= kesehatanAktif %> Aktif</strong>
+                                <span>Tampil di Halaman Warga</span>
+                            </div>
+                        </div>
+                        <div class="card stat-card">
+                            <span class="icon-box icon-box-accent"><%- include('partials/icon', { name: 'alert-circle' }) %></span>
+                            <div>
+                                <strong><%= kesehatanNonaktif %> Nonaktif</strong>
+                                <span>Disembunyikan Sementara</span>
+                            </div>
+                        </div>
+                        <div class="card stat-card">
+                            <span class="icon-box"><%- include('partials/icon', { name: 'clipboard' }) %></span>
+                            <div>
+                                <strong><%= kategoriKesehatanSet.size %> Kategori</strong>
+                                <span>Jenis Layanan Kesehatan</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Layout 2 Kolom: Form Tambah Layanan & Tabel Daftar Layanan -->
+                    <div class="fin-main-layout">
+                        <!-- Form Tambah Layanan Kesehatan -->
+                        <section class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h2 class="card-title">
+                                        <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'health' }) %></span>
+                                        Tambah Layanan Kesehatan
+                                    </h2>
+                                    <p class="card-subtitle">Data berstatus Aktif otomatis tampil di halaman Layanan Kesehatan warga.</p>
+                                </div>
+                            </div>
+
+                            <form action="/admin/kesehatan/tambah" method="POST">
+                                <div class="form-group">
+                                    <label for="health-nama">Nama Layanan / Program</label>
+                                    <input id="health-nama" type="text" name="nama_layanan" required placeholder="Contoh: Posyandu Balita Dusun Makmur">
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="health-kategori">Kategori</label>
+                                        <select id="health-kategori" name="kategori" required>
+                                            <option value="Posyandu">Posyandu</option>
+                                            <option value="Imunisasi">Imunisasi</option>
+                                            <option value="Ambulans Desa">Ambulans Desa</option>
+                                            <option value="Pemeriksaan Umum">Pemeriksaan Umum</option>
+                                            <option value="Kesehatan Ibu & Anak">Kesehatan Ibu &amp; Anak</option>
+                                            <option value="Gizi & Stunting">Gizi &amp; Stunting</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="health-status">Status</label>
+                                        <select id="health-status" name="status" required>
+                                            <option value="Aktif">Aktif (Tampil)</option>
+                                            <option value="Nonaktif">Nonaktif (Arsip)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="health-jadwal">Jadwal Pelaksanaan</label>
+                                    <input id="health-jadwal" type="text" name="jadwal" required placeholder="Contoh: Setiap Rabu pekan ke-2, 08.00 – 11.30 WIB">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="health-lokasi">Lokasi / Tempat</label>
+                                    <input id="health-lokasi" type="text" name="lokasi" required placeholder="Contoh: Balai Dusun Karang / Polindes">
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="health-petugas">Petugas / Bidan</label>
+                                        <input id="health-petugas" type="text" name="petugas" placeholder="Contoh: Bidan Siti Rahma">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="health-kontak">No. HP / WhatsApp</label>
+                                        <input id="health-kontak" type="tel" name="kontak" placeholder="Contoh: 0812xxxxxxxx">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="health-ket">Keterangan / Layanan Tersedia <span class="optional">(opsional)</span></label>
+                                    <textarea id="health-ket" name="keterangan" rows="3" placeholder="Penimbangan balita, vitamin A, cek tensi, rujukan darurat, dsb."></textarea>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-block">Simpan Layanan Kesehatan</button>
+                            </form>
+                        </section>
+
+                        <!-- Tabel Daftar Layanan Kesehatan -->
+                        <section class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h2 class="card-title">
+                                        <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'clipboard' }) %></span>
+                                        Daftar Layanan Kesehatan Desa
+                                    </h2>
+                                    <p class="card-subtitle">Kelola jadwal, status tayang, dan informasi petugas kesehatan desa.</p>
+                                </div>
+                                <div class="fin-filter-tabs" role="tablist" aria-label="Filter status layanan kesehatan">
+                                    <button type="button" class="fin-filter-btn is-active" data-health-filter="all">Semua (<%= totalKesehatan %>)</button>
+                                    <button type="button" class="fin-filter-btn" data-health-filter="Aktif">Aktif (<%= kesehatanAktif %>)</button>
+                                    <button type="button" class="fin-filter-btn" data-health-filter="Nonaktif">Nonaktif (<%= kesehatanNonaktif %>)</button>
+                                </div>
+                            </div>
+
+                            <% if (daftarKesehatan.length > 0) { %>
+                                <div class="pop-table-wrap table-responsive-cards">
+                                    <table class="pop-table fin-table aid-table" id="health-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Layanan &amp; Lokasi</th>
+                                                <th>Jadwal &amp; Petugas</th>
+                                                <th>Status &amp; Kontak</th>
+                                                <th class="aid-col-actions">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% daftarKesehatan.forEach(function(item) {
+                                                const isAktif = item.status === 'Aktif';
+                                            %>
+                                                <tr data-health-row="<%= item.status %>">
+                                                    <td data-label="Layanan &amp; Lokasi">
+                                                        <div class="aid-cell-stack">
+                                                            <strong class="fin-row-cat"><%= item.nama_layanan %></strong>
+                                                            <small class="aid-row-dusun"><%= item.kategori %></small>
+                                                            <small class="fin-row-date"><%= item.lokasi %></small>
+                                                            <% if (item.keterangan) { %>
+                                                                <small class="aid-row-note"><%= item.keterangan %></small>
+                                                            <% } %>
+                                                        </div>
+                                                    </td>
+                                                    <td data-label="Jadwal &amp; Petugas">
+                                                        <div class="aid-cell-stack">
+                                                            <strong class="fin-row-cat"><%= item.jadwal %></strong>
+                                                            <% if (item.petugas) { %>
+                                                                <small class="fin-row-date">Petugas: <%= item.petugas %></small>
+                                                            <% } %>
+                                                        </div>
+                                                    </td>
+                                                    <td data-label="Status &amp; Kontak">
+                                                        <div class="aid-cell-stack">
+                                                            <div class="aid-status-meta">
+                                                                <span class="badge <%= isAktif ? 'badge-success' : 'badge-warning' %>"><%= item.status %></span>
+                                                            </div>
+                                                            <% if (item.kontak) { %>
+                                                                <small class="fin-row-date">HP/WA: <%= item.kontak %></small>
+                                                            <% } %>
+                                                            <small class="fin-row-date"><%= item.tanggal %></small>
+                                                        </div>
+                                                    </td>
+                                                    <td data-label="Aksi" class="aid-col-actions">
+                                                        <div class="aid-row-actions">
+                                                            <form action="/admin/kesehatan/<%= item.id %>/status" method="POST" style="margin: 0;">
+                                                                <input type="hidden" name="status" value="<%= isAktif ? 'Nonaktif' : 'Aktif' %>">
+                                                                <button type="submit" class="btn <%= isAktif ? 'btn-outline' : 'btn-primary' %> btn-sm">
+                                                                    <span><%= isAktif ? 'Nonaktifkan' : 'Aktifkan' %></span>
+                                                                </button>
+                                                            </form>
+                                                            <form action="/admin/kesehatan/<%= item.id %>/hapus" method="POST" data-confirm-title="Hapus Layanan Kesehatan?" data-confirm="Apakah Anda yakin ingin menghapus layanan kesehatan &quot;<%= item.nama_layanan %>&quot;?" style="margin: 0;">
+                                                                <button type="submit" class="btn btn-danger-soft btn-sm" aria-label="Hapus layanan kesehatan">
+                                                                    <%- include('partials/icon', { name: 'trash' }) %>
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            <% }); %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <% } else { %>
+                                <div class="empty-state">
+                                    <span class="icon-box"><%- include('partials/icon', { name: 'health' }) %></span>
+                                    <h3>Belum ada data layanan kesehatan</h3>
+                                    <p>Tambahkan jadwal Posyandu, imunisasi, atau layanan ambulans menggunakan formulir di sebelah kiri.</p>
+                                </div>
+                            <% } %>
+                        </section>
+                    </div>
+                </section>
             <% } else if (activeSection === 'terbitkan-berita') { %>
                 <!-- HALAMAN 3: TERBITKAN BERITA -->
                 <%
@@ -1556,6 +1772,25 @@ const bantuanMenunggu = daftarBantuan.length - bantuanTersalurkan;
                 inputFoto.files = files;
                 showPhotoPreview(files[0]);
             }
+        });
+    })();
+</script>
+<% } %>
+<% if (activeSection === 'layanan-kesehatan') { %>
+<script>
+    (() => {
+        const filterBtns = document.querySelectorAll('[data-health-filter]');
+        const tableRows = document.querySelectorAll('tr[data-health-row]');
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('is-active'));
+                btn.classList.add('is-active');
+                const mode = btn.getAttribute('data-health-filter');
+                tableRows.forEach(row => {
+                    const status = row.getAttribute('data-health-row');
+                    row.hidden = (mode !== 'all' && status !== mode);
+                });
+            });
         });
     })();
 </script>

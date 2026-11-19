@@ -467,6 +467,39 @@ async function ensureBantuanTable(conn = db) {
     `);
 }
 
+async function ensureKesehatanTable(conn = db) {
+    await conn.query(`
+        CREATE TABLE IF NOT EXISTS layanan_kesehatan (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            nama_layanan VARCHAR(150) NOT NULL,
+            kategori VARCHAR(80) NOT NULL,
+            jadwal VARCHAR(140) NOT NULL,
+            lokasi VARCHAR(150) NOT NULL,
+            petugas VARCHAR(120),
+            kontak VARCHAR(50),
+            status VARCHAR(40) NOT NULL DEFAULT 'Aktif',
+            keterangan TEXT,
+            tanggal VARCHAR(100) NOT NULL
+        )
+    `);
+    const [rows] = await conn.query('SELECT COUNT(*) AS total FROM layanan_kesehatan');
+    if (rows[0].total === 0) {
+        const tanggal = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+        const defaults = [
+            ['Posyandu Balita & Ibu Hamil', 'Posyandu', 'Setiap Rabu pekan ke-2, 08.00 – 11.30 WIB', 'Balai Dusun Karang', 'Bidan Siti Rahma', '081298765432', 'Aktif', 'Penimbangan balita, pemberian vitamin A, pemeriksaan kehamilan, dan penyuluhan gizi.', tanggal],
+            ['Layanan Ambulans Desa 24 Jam', 'Ambulans Desa', 'Siaga 24 Jam (Senin – Minggu)', 'Kantor Desa Sukamakmur', 'Tim Siaga Kesehatan Desa', '081298765432', 'Aktif', 'Layanan rujukan darurat ke Puskesmas atau RS terdekat secara gratis bagi warga desa.', tanggal],
+            ['Posbindu & Posyandu Lansia', 'Pemeriksaan Umum', 'Setiap Jumat pekan ke-1, 08.00 – 11.00 WIB', 'Balai Dusun Mulyo', 'dr. Hendra Wijaya & Kader', '085712345678', 'Aktif', 'Cek tekanan darah, gula darah, kolesterol, dan senam lansia bersama.', tanggal]
+        ];
+        for (const item of defaults) {
+            await conn.query(
+                `INSERT INTO layanan_kesehatan (nama_layanan, kategori, jadwal, lokasi, petugas, kontak, status, keterangan, tanggal)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                item
+            );
+        }
+    }
+}
+
 async function syncTotalPopulasi(conn = db) {
     try {
         await ensureDefaultKependudukan(conn);
@@ -562,6 +595,7 @@ async function verifyDatabaseConnection() {
         await ensureDefaultKependudukan(connection);
         await ensureKeuanganTable(connection);
         await ensureBantuanTable(connection);
+        await ensureKesehatanTable(connection);
         await syncTotalPopulasi(connection);
 
         connection.release();
@@ -712,7 +746,15 @@ app.get('/layanan/:slug', async (req, res) => {
             penerimaBantuan = rows;
         } catch (e) {}
     }
-    res.render('layanan-detail', { desa: infoDesa, user: req.session.user, layanan, penerimaBantuan, success, error });
+    let layananKesehatan = [];
+    if (layanan.slug === 'layanan-kesehatan') {
+        try {
+            await ensureKesehatanTable();
+            const [rows] = await db.query("SELECT * FROM layanan_kesehatan WHERE status = 'Aktif' ORDER BY id DESC");
+            layananKesehatan = rows;
+        } catch (e) {}
+    }
+    res.render('layanan-detail', { desa: infoDesa, user: req.session.user, layanan, penerimaBantuan, layananKesehatan, success, error });
 });
 
 app.get('/transparansi', async (req, res) => {
@@ -809,6 +851,7 @@ const adminValidSections = new Set([
     'kependudukan',
     'keuangan',
     'bantuan-desa',
+    'layanan-kesehatan',
     'terbitkan-berita',
     'laporan-warga',
     'surat-pengantar',
@@ -840,6 +883,12 @@ async function renderAdminDashboard(req, res, section = 'ringkasan') {
             const [rowsBantuan] = await db.query('SELECT * FROM penerima_bantuan ORDER BY id DESC');
             bantuanWarga = rowsBantuan;
         } catch (e) {}
+        let layananKesehatan = [];
+        try {
+            await ensureKesehatanTable();
+            const [rowsKesehatan] = await db.query('SELECT * FROM layanan_kesehatan ORDER BY id DESC');
+            layananKesehatan = rowsKesehatan;
+        } catch (e) {}
         await syncTotalPopulasi();
         res.render('admin', {
             desa: infoDesa,
@@ -852,6 +901,7 @@ async function renderAdminDashboard(req, res, section = 'ringkasan') {
             kependudukan,
             keuangan,
             bantuanWarga,
+            layananKesehatan,
             error: req.query.error,
             success: req.query.success,
             isVercel: process.env.VERCEL === '1',
@@ -968,6 +1018,64 @@ app.post('/admin/bantuan/:id/hapus', cekAdmin, async (req, res) => {
         res.redirect('/admin/bantuan-desa?success=Data penerima bantuan berhasil dihapus');
     } catch (err) {
         res.redirect('/admin/bantuan-desa?error=Gagal menghapus data penerima bantuan');
+    }
+});
+
+app.post('/admin/kesehatan/tambah', cekAdmin, async (req, res) => {
+    const namaLayanan = typeof req.body.nama_layanan === 'string' ? req.body.nama_layanan.trim() : '';
+    const kategori = typeof req.body.kategori === 'string' ? req.body.kategori.trim() : '';
+    const jadwal = typeof req.body.jadwal === 'string' ? req.body.jadwal.trim() : '';
+    const lokasi = typeof req.body.lokasi === 'string' ? req.body.lokasi.trim() : '';
+    const petugas = typeof req.body.petugas === 'string' ? req.body.petugas.trim() : '';
+    const kontak = typeof req.body.kontak === 'string' ? req.body.kontak.trim() : '';
+    const status = req.body.status === 'Nonaktif' ? 'Nonaktif' : 'Aktif';
+    const keterangan = typeof req.body.keterangan === 'string' ? req.body.keterangan.trim() : '';
+    const tanggal = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    if (!namaLayanan || !kategori || !jadwal || !lokasi) {
+        return res.redirect('/admin/layanan-kesehatan?error=Lengkapi nama layanan, kategori, jadwal, dan lokasi terlebih dahulu');
+    }
+
+    try {
+        await ensureKesehatanTable();
+        await db.query(
+            `INSERT INTO layanan_kesehatan (nama_layanan, kategori, jadwal, lokasi, petugas, kontak, status, keterangan, tanggal)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [namaLayanan, kategori, jadwal, lokasi, petugas || null, kontak || null, status, keterangan || null, tanggal]
+        );
+        res.redirect(`/admin/layanan-kesehatan?success=Layanan kesehatan "${namaLayanan}" berhasil ditambahkan`);
+    } catch (err) {
+        console.error('Gagal menambah layanan kesehatan:', err.message);
+        res.redirect('/admin/layanan-kesehatan?error=Gagal menyimpan data layanan kesehatan');
+    }
+});
+
+app.post('/admin/kesehatan/:id/status', cekAdmin, async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 1) {
+        return res.redirect('/admin/layanan-kesehatan?error=Data layanan kesehatan tidak valid');
+    }
+    const statusBaru = req.body.status === 'Nonaktif' ? 'Nonaktif' : 'Aktif';
+    try {
+        await ensureKesehatanTable();
+        await db.query('UPDATE layanan_kesehatan SET status = ? WHERE id = ?', [statusBaru, id]);
+        res.redirect(`/admin/layanan-kesehatan?success=Status layanan kesehatan diperbarui menjadi ${statusBaru}`);
+    } catch (err) {
+        res.redirect('/admin/layanan-kesehatan?error=Gagal memperbarui status layanan kesehatan');
+    }
+});
+
+app.post('/admin/kesehatan/:id/hapus', cekAdmin, async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 1) {
+        return res.redirect('/admin/layanan-kesehatan?error=Data layanan kesehatan tidak valid');
+    }
+    try {
+        await ensureKesehatanTable();
+        await db.query('DELETE FROM layanan_kesehatan WHERE id = ?', [id]);
+        res.redirect('/admin/layanan-kesehatan?success=Data layanan kesehatan berhasil dihapus');
+    } catch (err) {
+        res.redirect('/admin/layanan-kesehatan?error=Gagal menghapus data layanan kesehatan');
     }
 });
 

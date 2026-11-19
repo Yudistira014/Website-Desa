@@ -59,6 +59,15 @@ const c = typeof counts !== 'undefined' && counts ? counts : {};
                     </a>
                 </li>
                 <li>
+                    <a href="/admin/layanan-kesehatan" class="admin-nav-link <%= currentMenu === 'layanan-kesehatan' ? 'is-active' : '' %>">
+                        <%- include('icon', { name: 'health' }) %>
+                        <span>Layanan Kesehatan</span>
+                        <% if (typeof c.kesehatan === 'number' && c.kesehatan > 0) { %>
+                            <span class="admin-nav-badge"><%= c.kesehatan %></span>
+                        <% } %>
+                    </a>
+                </li>
+                <li>
                     <a href="/admin/terbitkan-berita" class="admin-nav-link <%= currentMenu === 'terbitkan-berita' ? 'is-active' : '' %>">
                         <%- include('icon', { name: 'megaphone' }) %>
                         <span>Terbitkan Berita</span>

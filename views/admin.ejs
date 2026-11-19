@@ -110,32 +110,23 @@ const bantuanMenunggu = daftarBantuan.length - bantuanTersalurkan;
                 <div class="alert alert-error" role="alert"><%- include('partials/icon', { name: 'alert-circle' }) %> <%= error %></div>
             <% } %>
             <% if (success) { %>
-                <!-- Banner status inline -->
-                <div class="alert alert-success admin-success-banner" role="status">
-                    <%- include('partials/icon', { name: 'check-circle' }) %>
-                    <span><%= success %></span>
-                </div>
-
-                <!-- Modal / Pop-up Animasi Sukses -->
-                <div class="success-modal-backdrop" id="success-modal" role="dialog" aria-modal="true" aria-labelledby="success-modal-title">
-                    <div class="success-modal-card">
-                        <div class="success-confetti" aria-hidden="true">
-                            <span></span><span></span><span></span><span></span>
-                            <span></span><span></span><span></span><span></span>
-                        </div>
-                        <div class="success-check-wrap" aria-hidden="true">
-                            <span class="success-check-ring"></span>
-                            <svg class="success-check-svg" viewBox="0 0 52 52" fill="none">
-                                <circle class="success-check-circle" cx="26" cy="26" r="24" stroke="currentColor" stroke-width="3.2"/>
-                                <path class="success-check-mark" d="M15.5 26.8 22.8 34 36.8 19.5" stroke="currentColor" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </div>
-                        <span class="badge badge-success">Berhasil Disimpan</span>
-                        <h3 id="success-modal-title">Data Berhasil Diperbarui!</h3>
-                        <p><%= success %></p>
-                        <button type="button" class="btn btn-primary btn-sm" id="success-modal-close">Selesai</button>
-                        <div class="success-modal-progress" aria-hidden="true"><span></span></div>
+                <!-- Notifikasi Toast Sukses (Simple & Non-intrusive) -->
+                <div class="success-toast" id="success-toast" role="status" aria-live="polite">
+                    <div class="success-toast-icon" aria-hidden="true">
+                        <span class="success-toast-ring"></span>
+                        <svg class="success-toast-svg" viewBox="0 0 36 36" fill="none">
+                            <circle class="success-check-circle" cx="18" cy="18" r="16" stroke="currentColor" stroke-width="2.6"/>
+                            <path class="success-check-mark" d="M11 18.5 15.8 23.2 25.2 13.5" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                     </div>
+                    <div class="success-toast-body">
+                        <strong>Berhasil</strong>
+                        <p><%= success %></p>
+                    </div>
+                    <button type="button" class="success-toast-close" id="success-toast-close" aria-label="Tutup notifikasi">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    </button>
+                    <div class="success-toast-progress" aria-hidden="true"><span></span></div>
                 </div>
             <% } %>
             <% if (activeSection === 'kelola-galeri' && isVercel && !hasVercelBlobConfig) { %>
@@ -1718,37 +1709,49 @@ const bantuanMenunggu = daftarBantuan.length - bantuanTersalurkan;
 <% } %>
 <script>
     (() => {
-        const modal = document.getElementById('success-modal');
-        if (!modal) return;
+        const toast = document.getElementById('success-toast');
+        if (!toast) return;
 
-        const closeBtn = document.getElementById('success-modal-close');
+        // Bersihkan query ?success=... segera agar tidak muncul ulang saat refresh
+        if (window.history && window.history.replaceState) {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('success');
+            window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
+        }
+
+        const closeBtn = document.getElementById('success-toast-close');
         let closed = false;
+        let remaining = 3500;
+        let startTime = Date.now();
+        let timerId = null;
 
-        const closeModal = () => {
+        const closeToast = () => {
             if (closed) return;
             closed = true;
-            modal.classList.add('is-closing');
-            setTimeout(() => {
-                modal.remove();
-            }, 280);
-
-            // Bersihkan query ?success=... dari address bar agar tidak muncul ulang saat refresh
-            if (window.history && window.history.replaceState) {
-                const url = new URL(window.location.href);
-                url.searchParams.delete('success');
-                window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
-            }
+            if (timerId) clearTimeout(timerId);
+            toast.classList.add('is-closing');
+            setTimeout(() => toast.remove(), 250);
         };
 
-        if (closeBtn) closeBtn.addEventListener('click', closeModal);
-        modal.addEventListener('click', e => {
-            if (e.target === modal) closeModal();
-        });
+        const startTimer = () => {
+            startTime = Date.now();
+            timerId = setTimeout(closeToast, remaining);
+        };
+
+        const pauseTimer = () => {
+            if (closed) return;
+            clearTimeout(timerId);
+            remaining = Math.max(400, remaining - (Date.now() - startTime));
+        };
+
+        if (closeBtn) closeBtn.addEventListener('click', closeToast);
+        toast.addEventListener('mouseenter', pauseTimer);
+        toast.addEventListener('mouseleave', startTimer);
         document.addEventListener('keydown', e => {
-            if (e.key === 'Escape') closeModal();
+            if (e.key === 'Escape') closeToast();
         });
 
-        setTimeout(closeModal, 3600);
+        startTimer();
     })();
 </script>
 <%- include('partials/end') %>

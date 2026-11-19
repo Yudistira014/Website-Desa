@@ -65,14 +65,14 @@ const imgSrc = foto => /^https?:\/\//i.test(foto) ? foto : '/' + foto;
             </div>
             <div class="grid grid-3">
                 <% desa.layanan.forEach(function(item, idx) { %>
-                    <article class="card service-card" data-reveal="up" style="--reveal-delay: <%= idx * 80 %>ms">
+                    <article class="card service-card" data-reveal="up" data-reveal-delay="<%= idx * 80 %>">
                         <span class="icon-box"><%- include('partials/icon', { name: serviceIcon[item.slug] || 'home' }) %></span>
                         <h3><%= item.nama %></h3>
                         <p><%= item.desc %></p>
                         <a href="/layanan/<%= item.slug %>" class="link-arrow">Pelajari layanan <span aria-hidden="true">→</span></a>
                     </article>
                 <% }); %>
-                <article class="card service-card" data-reveal="up" style="--reveal-delay: <%= desa.layanan.length * 80 %>ms">
+                <article class="card service-card" data-reveal="up" data-reveal-delay="<%= desa.layanan.length * 80 %>">
                     <span class="icon-box icon-box-accent"><%- include('partials/icon', { name: 'chat' }) %></span>
                     <h3>Pengaduan &amp; Aspirasi</h3>
                     <p>Sampaikan keluhan, saran, atau permohonan informasi langsung kepada pemerintah desa.</p>
@@ -122,7 +122,7 @@ const imgSrc = foto => /^https?:\/\//i.test(foto) ? foto : '/' + foto;
             <% if (berita && berita.length) { %>
                 <div class="grid grid-3">
                     <% berita.forEach(function(item, idx) { %>
-                        <article class="card news-card" data-reveal="up" style="--reveal-delay: <%= idx * 95 %>ms">
+                        <article class="card news-card" data-reveal="up" data-reveal-delay="<%= idx * 95 %>">
                             <div class="news-card-image">
                                 <% if (item.foto) { %>
                                     <img src="<%= imgSrc(item.foto) %>" alt="<%= item.judul %>" loading="lazy" decoding="async">
@@ -165,7 +165,7 @@ const imgSrc = foto => /^https?:\/\//i.test(foto) ? foto : '/' + foto;
             <% if (galeri && galeri.length) { %>
                 <div class="gallery-grid">
                     <% galeri.forEach(function(item, idx) { %>
-                        <a class="gallery-tile" href="/galeri" aria-label="Lihat galeri: <%= item.judul %>" data-reveal="scale" style="--reveal-delay: <%= idx * 80 %>ms">
+                        <a class="gallery-tile" href="/galeri" aria-label="Lihat galeri: <%= item.judul %>" data-reveal="scale" data-reveal-delay="<%= idx * 80 %>">
                             <img src="<%= imgSrc(item.foto) %>" alt="<%= item.judul %>" loading="lazy" decoding="async">
                             <span class="gallery-tile-caption">
                                 <span><%= item.tanggal %></span>
@@ -210,6 +210,10 @@ const imgSrc = foto => /^https?:\/\//i.test(foto) ? foto : '/' + foto;
 
         // 2. Scroll-reveal modern dengan IntersectionObserver
         const revealEls = document.querySelectorAll('[data-reveal]');
+        revealEls.forEach(el => {
+            const delay = el.getAttribute('data-reveal-delay');
+            if (delay) el.style.setProperty('--reveal-delay', `${delay}ms`);
+        });
         const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         if (prefersReduced || !('IntersectionObserver' in window)) {

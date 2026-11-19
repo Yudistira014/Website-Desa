@@ -1712,7 +1712,8 @@ textarea {
 }
 
 .dash-grid + .card,
-.card + .card,
+.dash-grid > .card + .card,
+.stack > .card + .card,
 .dash-grid + .dash-grid {
     margin-top: 24px;
 }
@@ -2400,6 +2401,7 @@ body.admin-body {
 .pop-bar-fill.is-age-2  { background: var(--primary-600); }
 .pop-bar-fill.is-age-3  { background: var(--primary-800); }
 .pop-bar-fill.is-age-4  { background: var(--accent-500); }
+.pop-bar-fill.is-danger-fill { background: var(--danger); }
 
 .pop-dusun-sub {
     display: flex;
@@ -3505,6 +3507,7 @@ body.admin-body {
 .mt-16 { margin-top: 16px; }
 .mt-24 { margin-top: 24px; }
 .mt-32 { margin-top: 32px; }
+.mb-0  { margin-bottom: 0 !important; }
 .mb-16 { margin-bottom: 16px; }
 
 .visually-hidden {

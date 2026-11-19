@@ -358,8 +358,12 @@ const formatRp = n => 'Rp ' + Math.abs(Number(n) || 0).toLocaleString('id-ID');
                 <!-- HALAMAN KEUANGAN: MANAJEMEN DANA MASUK & KELUAR -->
                 <%
                     const totalArusKas = totalDanaMasuk + totalDanaKeluar;
-                    const pctMasuk = totalArusKas > 0 ? ((totalDanaMasuk / totalArusKas) * 100).toFixed(1) : '50.0';
-                    const pctKeluar = totalArusKas > 0 ? ((totalDanaKeluar / totalArusKas) * 100).toFixed(1) : '50.0';
+                    const pctMasukNum = totalArusKas > 0 ? ((totalDanaMasuk / totalArusKas) * 100) : 50;
+                    const pctKeluarNum = totalArusKas > 0 ? ((totalDanaKeluar / totalArusKas) * 100) : 50;
+                    const pctMasuk = pctMasukNum.toFixed(1);
+                    const pctKeluar = pctKeluarNum.toFixed(1);
+                    const degMasuk = totalArusKas > 0 ? ((totalDanaMasuk / totalArusKas) * 360).toFixed(1) : 180;
+                    const serapanPct = totalDanaMasuk > 0 ? Math.min(100, (totalDanaKeluar / totalDanaMasuk) * 100).toFixed(1) : '0.0';
                     const countMasuk = daftarKeuangan.filter(k => k.tipe === 'masuk').length;
                     const countKeluar = daftarKeuangan.filter(k => k.tipe === 'keluar').length;
                     const tanggalDefault = new Date().toLocaleDateString('id-ID', {
@@ -367,9 +371,24 @@ const formatRp = n => 'Rp ' + Math.abs(Number(n) || 0).toLocaleString('id-ID');
                         month: 'long',
                         year: 'numeric'
                     });
+
+                    // Agregasi per kategori untuk grafik batang
+                    const mapMasuk = {};
+                    const mapKeluar = {};
+                    daftarKeuangan.forEach(item => {
+                        const nom = Number(item.nominal) || 0;
+                        const kat = item.kategori || 'Lainnya';
+                        if (item.tipe === 'masuk') {
+                            mapMasuk[kat] = (mapMasuk[kat] || 0) + nom;
+                        } else {
+                            mapKeluar[kat] = (mapKeluar[kat] || 0) + nom;
+                        }
+                    });
+                    const listKategoriMasuk = Object.entries(mapMasuk).sort((a, b) => b[1] - a[1]);
+                    const listKategoriKeluar = Object.entries(mapKeluar).sort((a, b) => b[1] - a[1]);
                 %>
                 <section class="admin-section stack">
-                    <!-- 3 Kartu Metrik Keuangan -->
+                    <!-- 3 Kartu Metrik Keuangan (Sejajar Rapi) -->
                     <div class="fin-summary-grid">
                         <div class="card fin-stat-card is-income">
                             <div class="fin-stat-head">
@@ -397,25 +416,113 @@ const formatRp = n => 'Rp ' + Math.abs(Number(n) || 0).toLocaleString('id-ID');
                             <strong class="fin-stat-value <%= saldoKasDesa < 0 ? 'is-negative' : '' %>">
                                 <%= (saldoKasDesa < 0 ? '- ' : '') + formatRp(saldoKasDesa) %>
                             </strong>
-                            <small class="fin-stat-sub">Selisih otomatis pemasukan &amp; pengeluaran</small>
+                            <small class="fin-stat-sub">Serapan anggaran: <strong><%= serapanPct.replace('.', ',') %>%</strong></small>
                         </div>
                     </div>
 
-                    <!-- Bar Visual Perbandingan Arus Kas -->
-                    <div class="card fin-ratio-card">
-                        <div class="fin-ratio-head">
+                    <!-- 3 Grafik Visual Keuangan Desa -->
+                    <div class="card">
+                        <div class="card-header">
                             <div>
-                                <h3>Perbandingan Arus Kas Desa</h3>
-                                <p>Rasio proporsi antara total dana masuk dan dana keluar yang tercatat.</p>
+                                <h2 class="card-title">
+                                    <span class="icon-box icon-box-sm"><%- include('partials/icon', { name: 'chart' }) %></span>
+                                    Grafik Visualisasi Dana Masuk &amp; Keluar
+                                </h2>
+                                <p class="card-subtitle">Proporsi arus kas, sumber pemasukan, dan realisasi pengeluaran berdasarkan kategori.</p>
                             </div>
-                            <div class="pop-legend-inline">
-                                <span><i class="pop-dot is-male"></i> Dana Masuk (<%= pctMasuk.replace('.', ',') %>%)</span>
-                                <span><i class="pop-dot is-danger-dot"></i> Dana Keluar (<%= pctKeluar.replace('.', ',') %>%)</span>
-                            </div>
+                            <span class="badge badge-primary"><%= daftarKeuangan.length %> transaksi tercatat</span>
                         </div>
-                        <div class="fin-ratio-bar">
-                            <span class="fin-ratio-fill is-income" style="width: <%= pctMasuk %>%"></span>
-                            <span class="fin-ratio-fill is-expense" style="width: <%= pctKeluar %>%"></span>
+
+                        <div class="pop-charts-grid mb-0">
+                            <!-- Grafik 1: Donut Proporsi Arus Kas -->
+                            <div class="pop-chart-box">
+                                <div class="pop-chart-head">
+                                    <h3>Komposisi Arus Kas</h3>
+                                    <span class="badge <%= saldoKasDesa >= 0 ? 'badge-success' : 'badge-danger' %>">
+                                        <%= saldoKasDesa >= 0 ? 'Surplus' : 'Defisit' %>
+                                    </span>
+                                </div>
+                                <div class="pop-donut-wrap">
+                                    <div class="pop-donut" data-donut-deg="<%= degMasuk %>">
+                                        <div class="pop-donut-hole">
+                                            <strong><%= serapanPct.replace('.', ',') %>%</strong>
+                                            <span>Serapan</span>
+                                        </div>
+                                    </div>
+                                    <div class="pop-donut-legend">
+                                        <div class="pop-legend-row">
+                                            <span class="pop-legend-name"><i class="pop-dot is-male"></i> Masuk</span>
+                                            <strong><%= pctMasuk.replace('.', ',') %>%</strong>
+                                        </div>
+                                        <div class="pop-legend-row">
+                                            <span class="pop-legend-name"><i class="pop-dot is-danger-dot"></i> Keluar</span>
+                                            <strong><%= pctKeluar.replace('.', ',') %>%</strong>
+                                        </div>
+                                        <div class="pop-legend-row is-total">
+                                            <span class="pop-legend-name">Total Arus</span>
+                                            <strong><%= formatRp(totalArusKas) %></strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Grafik 2: Batang Sumber Dana Masuk per Kategori -->
+                            <div class="pop-chart-box">
+                                <div class="pop-chart-head">
+                                    <h3>Grafik Sumber Dana Masuk</h3>
+                                    <span class="badge badge-success"><%= listKategoriMasuk.length %> sumber</span>
+                                </div>
+                                <% if (listKategoriMasuk.length > 0) { %>
+                                    <div class="pop-age-bars">
+                                        <% listKategoriMasuk.forEach(function(entry) {
+                                            const kat = entry[0];
+                                            const nilai = entry[1];
+                                            const pct = totalDanaMasuk > 0 ? ((nilai / totalDanaMasuk) * 100) : 0;
+                                        %>
+                                            <div class="pop-age-item">
+                                                <div class="pop-age-meta">
+                                                    <span><%= kat %></span>
+                                                    <strong><%= formatRp(nilai) %> <small>(<%= pct.toFixed(1).replace('.', ',') %>%)</small></strong>
+                                                </div>
+                                                <div class="pop-bar-track">
+                                                    <span class="pop-bar-fill is-male" data-bar-width="<%= pct.toFixed(1) %>"></span>
+                                                </div>
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                <% } else { %>
+                                    <p class="empty-text">Belum ada data pemasukan untuk ditampilkan pada grafik.</p>
+                                <% } %>
+                            </div>
+
+                            <!-- Grafik 3: Batang Alokasi Dana Keluar per Kategori -->
+                            <div class="pop-chart-box">
+                                <div class="pop-chart-head">
+                                    <h3>Grafik Alokasi Dana Keluar</h3>
+                                    <span class="badge badge-danger"><%= listKategoriKeluar.length %> bidang</span>
+                                </div>
+                                <% if (listKategoriKeluar.length > 0) { %>
+                                    <div class="pop-age-bars">
+                                        <% listKategoriKeluar.forEach(function(entry) {
+                                            const kat = entry[0];
+                                            const nilai = entry[1];
+                                            const pct = totalDanaKeluar > 0 ? ((nilai / totalDanaKeluar) * 100) : 0;
+                                        %>
+                                            <div class="pop-age-item">
+                                                <div class="pop-age-meta">
+                                                    <span><%= kat %></span>
+                                                    <strong><%= formatRp(nilai) %> <small>(<%= pct.toFixed(1).replace('.', ',') %>%)</small></strong>
+                                                </div>
+                                                <div class="pop-bar-track">
+                                                    <span class="pop-bar-fill is-danger-fill" data-bar-width="<%= pct.toFixed(1) %>"></span>
+                                                </div>
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                <% } else { %>
+                                    <p class="empty-text">Belum ada data pengeluaran untuk ditampilkan pada grafik.</p>
+                                <% } %>
+                            </div>
                         </div>
                     </div>
 
@@ -479,7 +586,7 @@ const formatRp = n => 'Rp ' + Math.abs(Number(n) || 0).toLocaleString('id-ID');
                                     <label for="fin-nominal-display">Nominal (Rp)</label>
                                     <div class="fin-currency-wrap">
                                         <span class="fin-currency-prefix">Rp</span>
-                                        <input id="fin-nominal-display" type="text" inputmode="numeric" required placeholder="Contoh: 25.000.000" autocomplete="off">
+                                        <input id="fin-nominal-display" type="text" name="nominal_display" inputmode="numeric" required placeholder="Contoh: 25.000.000" autocomplete="off">
                                         <input id="fin-nominal" type="hidden" name="nominal" value="">
                                     </div>
                                 </div>
@@ -896,6 +1003,16 @@ const formatRp = n => 'Rp ' + Math.abs(Number(n) || 0).toLocaleString('id-ID');
 <% if (activeSection === 'keuangan') { %>
 <script>
     (() => {
+        // Render nilai lebar bar & sudut donut dari atribut data-*
+        document.querySelectorAll('[data-donut-deg]').forEach(el => {
+            const deg = Number.parseFloat(el.getAttribute('data-donut-deg')) || 0;
+            el.style.background = `conic-gradient(#12704f 0deg ${deg}deg, #c23b2f ${deg}deg 360deg)`;
+        });
+        document.querySelectorAll('[data-bar-width]').forEach(el => {
+            const w = Number.parseFloat(el.getAttribute('data-bar-width')) || 0;
+            el.style.width = `${w}%`;
+        });
+
         // Format input nominal otomatis dengan pemisah ribuan (titik)
         const displayInput = document.getElementById('fin-nominal-display');
         const hiddenInput = document.getElementById('fin-nominal');

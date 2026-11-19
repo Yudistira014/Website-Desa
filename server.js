@@ -841,7 +841,7 @@ app.post('/admin/keuangan/tambah', cekAdmin, async (req, res) => {
     const tipe = req.body.tipe === 'keluar' ? 'keluar' : 'masuk';
     const kategori = typeof req.body.kategori === 'string' ? req.body.kategori.trim() : '';
     const keterangan = typeof req.body.keterangan === 'string' ? req.body.keterangan.trim() : '';
-    const nominalRaw = String(req.body.nominal || '').replace(/\D/g, '');
+    const nominalRaw = String(req.body.nominal || req.body.nominal_display || '').replace(/\D/g, '');
     const nominal = Number.parseInt(nominalRaw, 10) || 0;
     const tanggalInput = typeof req.body.tanggal === 'string' && req.body.tanggal.trim()
         ? req.body.tanggal.trim()
